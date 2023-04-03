@@ -1,0 +1,25 @@
+*.class
+*.log
+
+.cache
+.env
+.envrc
+.history
+.sdkmanrc
+.lib/
+dist/*
+target/
+lib_managed/
+local.conf
+src_managed/
+project/boot/
+project/plugins/project/
+
+.idea*
+
+# Metals
+.metals/
+.bsp/
+.bloop/
+metals.sbt
+.vscode
