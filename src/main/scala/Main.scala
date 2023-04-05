@@ -1,3 +1,4 @@
+import requests.models.ModelsGetResponseData.ModelsResponse
 import sttp.client4._
 
 
