@@ -15,11 +15,6 @@ object Dependencies {
       "com.softwaremill.sttp.client4" %% "jsoniter" % V.sttpClient
     )
     val scalaTest = "org.scalatest" %% "scalatest" % V.scalaTest % Test
-//    val catsCore = "org.typelevel" %% "cats-core" % V.cats
-//    val catsEffect = "org.typelevel" %% "cats-effect" % V.catsEffect
-//    val cats = Seq(catsCore, catsEffect)
-//
-//    val pureConfig = "com.github.pureconfig" %% "pureconfig" % V.pureConfig
 
     val jsoniter = Seq(
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"   % V.jsoniter,
