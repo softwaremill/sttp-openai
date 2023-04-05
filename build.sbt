@@ -1,22 +1,14 @@
 import com.softwaremill.SbtSoftwareMillCommon.commonSmlBuildSettings
+import Dependencies._
 
 lazy val commonSettings = commonSmlBuildSettings ++ Seq(
-  organization := "com.softwaremill.xxx",
+  organization := "com.softwaremill.sttp-openapi",
   scalaVersion := "2.13.10"
 )
 
-val scalaTest = "org.scalatest" %% "scalatest" % "3.2.15" % Test
-
 lazy val rootProject = (project in file("."))
   .settings(commonSettings: _*)
-  .settings(publishArtifact := false, name := "root")
-  .aggregate(core)
-
-lazy val core: Project = (project in file("core"))
-  .settings(commonSettings: _*)
+  .settings(publishArtifact := false, name := "sttp-openapi")
   .settings(
-    name := "core",
-    libraryDependencies ++= Seq(
-      scalaTest
-    )
+    libraryDependencies ++= Libraries.jsoniter ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
   )
