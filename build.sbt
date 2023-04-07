@@ -2,7 +2,7 @@ import com.softwaremill.SbtSoftwareMillCommon.commonSmlBuildSettings
 import Dependencies._
 
 lazy val commonSettings = commonSmlBuildSettings ++ Seq(
-  organization := "com.softwaremill.sttp.openapi",
+  organization := "com.softwaremill.sttp.openai",
   scalaVersion := "2.13.10"
 )
 

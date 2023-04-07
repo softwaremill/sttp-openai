@@ -7,7 +7,7 @@ import sttp.openapi.models.requests.ModelsGetResponseData._
 
 class OpenAi(val authToken: String) {
 
-  /** Fetches all available models from https://platform.openai.com/docs/api-reference/models */
+  /** Fetches all available models from [[https://platform.openai.com/docs/api-reference/models]] */
   def getModels: Request[Either[ResponseException[String, Exception], ModelsResponse]] =
     openApiAuthRequest
       .get(OpenAIEndpoints.ModelEndpoint)

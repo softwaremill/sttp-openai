@@ -1,5 +1,6 @@
 package sttp.openapi.models.requests
 
+/** An object that transforms all snake_case keys into camelCase [[https://com-lihaoyi.github.io/upickle/#CustomConfiguration]] */
 object SnakePickle extends upickle.AttributeTagged {
   private def camelToSnake(s: String): String =
     s.replaceAll("([A-Z])", "#$1").split('#').map(_.toLowerCase).mkString("_")
