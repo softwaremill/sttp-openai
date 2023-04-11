@@ -26,6 +26,7 @@ object SnakePickle extends upickle.AttributeTagged {
   override def objectTypeKeyWriteMap(s: CharSequence): String =
     camelToSnake(s.toString)
 
+/** This is required in order to parse null values into Scala's Option */
   override implicit def OptionWriter[T: SnakePickle.Writer]: Writer[Option[T]] =
     implicitly[SnakePickle.Writer[T]].comap[Option[T]] {
       case None    => null.asInstanceOf[T]
