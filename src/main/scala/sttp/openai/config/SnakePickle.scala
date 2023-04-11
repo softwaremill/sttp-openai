@@ -2,7 +2,8 @@ package sttp.openai.config
 
 import sttp.client4.json.RichResponseAs
 import sttp.client4.upicklejson.SttpUpickleApi
-import sttp.client4.{IsOption, JsonInput, ResponseAs, ResponseException, asString}
+import sttp.client4.{asString, BodySerializer, IsOption, JsonInput, ResponseAs, ResponseException, StringBody}
+import sttp.model.MediaType
 
 /** An object that transforms all snake_case keys into camelCase [[https://com-lihaoyi.github.io/upickle/#CustomConfiguration]] */
 object SnakePickle extends upickle.AttributeTagged {
@@ -41,6 +42,8 @@ object SnakePickle extends upickle.AttributeTagged {
 
 /** This is required in order to deserialize JSON with snake_case keys into case classes with fields corresponding to keys in camelCase */
 object SttpUpickleApiExtension extends SttpUpickleApi {
+  implicit def upickleBodySerializer[B](implicit encoder: SnakePickle.Writer[B]): BodySerializer[B] =
+    b => StringBody(SnakePickle.write(b), "utf-8", MediaType.ApplicationJson)
 
   def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[ResponseException[String, Exception], B]] =
     asString.mapWithMetadata(ResponseAs.deserializeRightWithError(deserializeJsonSnake)).showAsJson
