@@ -1,9 +1,9 @@
-package sttp.openapi
+package sttp.openai
 
 import sttp.client4._
-import sttp.client4.upicklejson.asJson
 import sttp.model.Uri
-import sttp.openapi.models.requests.ModelsGetResponseData._
+import sttp.openai.models.requests.ModelsGetResponseData._
+import sttp.openai.models.requests.SttpUpickleApiExtension.asJsonSnake
 
 class OpenAi(val authToken: String) {
 
@@ -11,7 +11,7 @@ class OpenAi(val authToken: String) {
   def getModels: Request[Either[ResponseException[String, Exception], ModelsResponse]] =
     openApiAuthRequest
       .get(OpenAIEndpoints.ModelEndpoint)
-      .response(asJson[ModelsResponse])
+      .response(asJsonSnake[ModelsResponse])
 
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)

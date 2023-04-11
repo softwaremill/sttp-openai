@@ -1,5 +1,4 @@
-package sttp.openapi.models.requests
-import upickle.default._
+package sttp.openai.models.requests
 
 object ModelsGetResponseData {
 
@@ -39,7 +38,6 @@ object ModelsGetResponseData {
   case class ModelsResponse(`object`: String, data: Seq[Data])
 
   object ModelsResponse {
-    implicit def modelsResponseReadWriter: ReadWriter[ModelsResponse] =
-      SnakePickle.macroRW[ModelsResponse].asInstanceOf[ReadWriter[ModelsResponse]]
+    implicit def modelsResponseReadWriter: SnakePickle.ReadWriter[ModelsResponse] = SnakePickle.macroRW[ModelsResponse]
   }
 }
