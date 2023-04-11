@@ -42,7 +42,7 @@ object SnakePickle extends upickle.AttributeTagged {
 
 /** This is required in order to deserialize JSON with snake_case keys into case classes with fields corresponding to keys in camelCase */
 object SttpUpickleApiExtension extends SttpUpickleApi {
-  implicit def upickleBodySerializer[B](implicit encoder: SnakePickle.Writer[B]): BodySerializer[B] =
+  implicit def upickleBodySerializerSnake[B](implicit encoder: SnakePickle.Writer[B]): BodySerializer[B] =
     b => StringBody(SnakePickle.write(b), "utf-8", MediaType.ApplicationJson)
 
   def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[ResponseException[String, Exception], B]] =
