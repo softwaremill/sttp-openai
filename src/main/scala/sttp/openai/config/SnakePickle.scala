@@ -1,8 +1,8 @@
-package sttp.openai.models.requests
+package sttp.openai.config
 
 import sttp.client4.json.RichResponseAs
-import sttp.client4.{asString, IsOption, JsonInput, ResponseAs, ResponseException}
 import sttp.client4.upicklejson.SttpUpickleApi
+import sttp.client4.{IsOption, JsonInput, ResponseAs, ResponseException, asString}
 
 /** An object that transforms all snake_case keys into camelCase [[https://com-lihaoyi.github.io/upickle/#CustomConfiguration]] */
 object SnakePickle extends upickle.AttributeTagged {

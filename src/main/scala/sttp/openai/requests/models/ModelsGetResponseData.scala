@@ -1,4 +1,6 @@
-package sttp.openai.models.requests
+package sttp.openai.requests.models
+
+import sttp.openai.config.SnakePickle
 
 object ModelsGetResponseData {
 

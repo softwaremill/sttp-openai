@@ -2,8 +2,8 @@ package sttp.openai
 
 import sttp.client4._
 import sttp.model.Uri
-import sttp.openai.models.requests.ModelsGetResponseData._
-import sttp.openai.models.requests.SttpUpickleApiExtension.asJsonSnake
+import sttp.openai.requests.models.ModelsGetResponseData.ModelsResponse
+import sttp.openai.config.SttpUpickleApiExtension.asJsonSnake
 
 class OpenAi(val authToken: String) {
 

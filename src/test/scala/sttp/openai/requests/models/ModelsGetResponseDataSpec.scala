@@ -1,11 +1,12 @@
-package sttp.openai.models.requests
+package sttp.openai.requests.models
 
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import resources.ModelsGetResponse
-import sttp.openai.models.requests.ModelsGetResponseData.{Data, ModelsResponse, Permission}
-import sttp.openai.models.requests.ModelsGetResponseData.ModelsResponse._
+import ModelsGetResponseData.{Data, ModelsResponse, Permission}
+import ModelsGetResponseData.ModelsResponse._
+import sttp.openai.config.SttpUpickleApiExtension
 
 class ModelsGetResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
