@@ -1,4 +1,4 @@
-package resources
+package sttp.openai.fixtures
 
 object ModelsGetResponse {
   val responseJson: String =

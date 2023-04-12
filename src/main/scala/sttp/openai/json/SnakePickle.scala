@@ -1,4 +1,4 @@
-package sttp.openai.config
+package sttp.openai.json
 
 import sttp.client4.json.RichResponseAs
 import sttp.client4.upicklejson.SttpUpickleApi
