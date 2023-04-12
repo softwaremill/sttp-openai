@@ -1,22 +1,25 @@
 import com.softwaremill.SbtSoftwareMillCommon.commonSmlBuildSettings
+import Dependencies._
+
+val scala2 = List("2.13.10")
+val scala3 = List("3.2.2")
+
+def dependenciesFor(version: String)(deps: (Option[(Long, Long)] => ModuleID)*): Seq[ModuleID] =
+  deps.map(_.apply(CrossVersion.partialVersion(version)))
 
 lazy val commonSettings = commonSmlBuildSettings ++ Seq(
-  organization := "com.softwaremill.xxx",
-  scalaVersion := "2.13.10"
+  organization := "com.softwaremill.sttp.openai"
 )
 
-val scalaTest = "org.scalatest" %% "scalatest" % "3.2.15" % Test
-
-lazy val rootProject = (project in file("."))
+lazy val root = (project in file("."))
   .settings(commonSettings: _*)
-  .settings(publishArtifact := false, name := "root")
-  .aggregate(core)
+  .settings(publish / skip := true, name := "sttp-openai", scalaVersion := scala2.head)
+  .aggregate(core.projectRefs: _*)
 
-lazy val core: Project = (project in file("core"))
-  .settings(commonSettings: _*)
+lazy val core = (projectMatrix in file("core"))
+  .jvmPlatform(
+    scalaVersions = scala2 ++ scala3
+  )
   .settings(
-    name := "core",
-    libraryDependencies ++= Seq(
-      scalaTest
-    )
+    libraryDependencies ++= Seq(Libraries.uPickle) ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
   )
