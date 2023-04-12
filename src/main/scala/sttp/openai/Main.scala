@@ -6,9 +6,9 @@ import sttp.openai.requests.models.ModelsGetResponseData.ModelsResponse
 object Main extends App {
   val backend: SyncBackend = DefaultSyncBackend()
 
-  val openApi: OpenAi = new OpenAi("test")
+  val openAi: OpenAi = new OpenAi("test")
   val response: Response[Either[ResponseException[String, Exception], ModelsResponse]] =
-    openApi.getModels
+    openAi.getModels
       .send(backend)
 
   println(response.code)
