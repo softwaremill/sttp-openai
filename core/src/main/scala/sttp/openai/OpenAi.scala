@@ -4,8 +4,9 @@ import sttp.client4._
 import sttp.model.Uri
 import sttp.openai.requests.models.ModelsGetResponseData.ModelsResponse
 import sttp.openai.json.SttpUpickleApiExtension.asJsonSnake
-import sttp.openai.requests.completions.CompletionsRequestBody.CompletionBody
-import sttp.openai.requests.completions.CompReqBody.{CompBody => Test}
+import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
+import sttp.openai.json.SttpUpickleApiExtension.upickleBodySerializerSnake
+import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 
 class OpenAi(authToken: String) {
 
@@ -15,20 +16,11 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.ModelEndpoint)
       .response(asJsonSnake[ModelsResponse])
 
-  def createCompletion(completionBody: CompletionBody) = {
-    import sttp.openai.json.SttpUpickleApiExtension.upickleBodySerializerSnake
-
+  def createCompletion(completionBody: CompletionsBody): Request[Either[ResponseException[String, Exception], CompletionsResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.CompletionsEndpoint)
       .body(completionBody)
-  }
-
-  def createCompletion(completionBody: Test) = {
-    import sttp.client4.upicklejson._
-    openApiAuthRequest
-      .post(OpenAIEndpoints.CompletionsEndpoint)
-      .body(completionBody)
-  }
+      .response(asJsonSnake[CompletionsResponse])
 
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
@@ -36,5 +28,5 @@ class OpenAi(authToken: String) {
 
 private object OpenAIEndpoints {
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
-    val CompletionsEndpoint: Uri = uri"https://api.openai.com/v1/completions"
+  val CompletionsEndpoint: Uri = uri"https://api.openai.com/v1/completions"
 }
