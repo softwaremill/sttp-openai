@@ -6,7 +6,7 @@ object CompReqBody {
 
   case class CompBody(
       model: String,
-      @upickle.implicits.key("prompt")prompt: Option[Prompt] = None,
+      prompt: Option[Prompt] = None,
 //            prompt: Option[String] = None,
       suffix: Option[String] = None,
       maxTokens: Option[Int] = None,
@@ -30,10 +30,14 @@ object CompReqBody {
 
   sealed trait Prompt
   object Prompt {
-    implicit val promptRW: ReadWriter[Prompt] = ReadWriter.merge(
-      SinglePrompt.singlePromptRW,
-      macroRW[MultiplePrompt]
-    )
+    implicit val promptRW: ReadWriter[Prompt] = upickle.default.readwriter[String].bimap[Prompt](_ match {
+      case SinglePrompt(value) => value
+      case MultiplePrompt(values) => values.toString
+    }, s => SinglePrompt(s))
+//    implicit val promptRW: ReadWriter[Prompt] = upickle.default.macroRW[Prompt].bimap[String](s => SinglePrompt(s), prompt => prompt match {
+//      case SinglePrompt(value) => value
+//      case MultiplePrompt(values) => values.toString()
+//    })
 
 //    implicit val promptWriter: Writer[Prompt] = (prompt: Prompt) => {
 //      upickle.Js.Obj("value" -> upickle.default.writeJs(prompt))
@@ -41,11 +45,14 @@ object CompReqBody {
 
 //    implicit val promptReader: Reader[Prompt] = upickle.default.macroR
   }
-  @upickle.implicits.key("prompt") case class SinglePrompt(@upickle.implicits.key("prompt") value: String) extends Prompt
+  case class SinglePrompt(value: String) extends Prompt
   object SinglePrompt {
-    implicit val singlePromptRW: ReadWriter[SinglePrompt] = macroRW[SinglePrompt]
+    implicit val singlePromptRW: ReadWriter[SinglePrompt] = upickle.default.stringKeyRW(upickle.default.readwriter[String].bimap[SinglePrompt](_.value, SinglePrompt(_)))
   }
   case class MultiplePrompt(values: Seq[String]) extends Prompt
+  object MultiplePrompt {
+    implicit val multiplePromptRW: ReadWriter[MultiplePrompt] = upickle.default.stringKeyRW(upickle.default.readwriter[Seq[String]].bimap[MultiplePrompt](_.values, MultiplePrompt(_)))
+  }
 
 
   sealed trait Stop
