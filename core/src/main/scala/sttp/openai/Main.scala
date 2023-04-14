@@ -1,12 +1,7 @@
 package sttp.openai
 
 import sttp.client4._
-//import sttp.openai.requests.completions.CompletionsRequestBody.CompletionBody
-import sttp.openai.requests.completions.CompReqBody.CompBody
-//import sttp.openai.requests.completions.CompReqBody.SinglePrompt
-import sttp.openai.requests.completions.CompReqBody.MultiplePrompt
-//import sttp.openai.requests.completions.CompletionsRequestBody.SinglePrompt
-//import sttp.openai.requests.completions.CompletionsRequestBody.CompletionBody
+import sttp.openai.requests.completions.CompletionsRequestBody.{CompletionsBody, MultiplePrompt}
 
 object Main extends App {
   val backend: SyncBackend = DefaultSyncBackend()
@@ -17,7 +12,7 @@ object Main extends App {
 //      .send(backend)
 
 //  val completionBody = CompletionBody("text-davinci-003", prompt = Some(SinglePrompt("Say this is a test")), maxTokens = Some(7), temperature = Some(0))
-    val compBody = CompBody(model = "text-davinci-003", prompt = Some(MultiplePrompt(Seq("Say this is a test", "xD"))))
+  val compBody = CompletionsBody(model = "text-davinci-003", prompt = Some(MultiplePrompt(Seq("Say this is a test", "xD"))))
 //    val compBody = CompBody(model = "text-davinci-003", prompt = Some("Say this is a test"))
 //  val completionBody = CompletionBody("text-davinci-003", prompt = Some("Say this is a test"), maxTokens = Some(7), temperature = Some(0))
 
