@@ -5,6 +5,7 @@ import sttp.model.Uri
 import sttp.openai.requests.models.ModelsGetResponseData.ModelsResponse
 import sttp.openai.json.SttpUpickleApiExtension.asJsonSnake
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionBody
+import sttp.openai.requests.completions.CompReqBody.{CompBody => Test}
 
 class OpenAi(authToken: String) {
 
@@ -17,6 +18,13 @@ class OpenAi(authToken: String) {
   def createCompletion(completionBody: CompletionBody) = {
     import sttp.openai.json.SttpUpickleApiExtension.upickleBodySerializerSnake
 
+    openApiAuthRequest
+      .post(OpenAIEndpoints.CompletionsEndpoint)
+      .body(completionBody)
+  }
+
+  def createCompletion(completionBody: Test) = {
+    import sttp.client4.upicklejson._
     openApiAuthRequest
       .post(OpenAIEndpoints.CompletionsEndpoint)
       .body(completionBody)

@@ -32,21 +32,24 @@ object CompletionsRequestBody {
   object Prompt {
 
     implicit def rw: SnakePickle.ReadWriter[Prompt] = SnakePickle.ReadWriter.merge(
+//      SinglePrompt.singlePromptRW,
+//      MultiplePrompt.multiplePromptRW
       SnakePickle.macroRW[SinglePrompt],
       SnakePickle.macroRW[MultiplePrompt]
     )
-    case class SinglePrompt(value: String) extends Prompt
 
-    object SinglePrompt {
-      implicit def singlePromptRW: SnakePickle.ReadWriter[SinglePrompt] = SnakePickle.macroRW[SinglePrompt]
-    }
+  }
 
-    case class MultiplePrompt(values: Seq[String]) extends Prompt
+  upickle.implicits.key("prompt")
+  case class SinglePrompt(value: String) extends Prompt
+  object SinglePrompt {
+    implicit def singlePromptRW: SnakePickle.ReadWriter[SinglePrompt] = SnakePickle.macroRW[SinglePrompt]
+  }
 
-    object MultiplePrompt {
-      implicit def multiplePromptRW: SnakePickle.ReadWriter[MultiplePrompt] = SnakePickle.macroRW[MultiplePrompt]
-    }
+  case class MultiplePrompt(values: Seq[String]) extends Prompt
 
+  object MultiplePrompt {
+    implicit def multiplePromptRW: SnakePickle.ReadWriter[MultiplePrompt] = SnakePickle.macroRW[MultiplePrompt]
   }
 
   sealed trait Stop
