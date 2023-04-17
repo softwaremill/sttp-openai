@@ -56,13 +56,13 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       logprobs = None,
       stop = Some(SingleStop("\n"))
     )
-    val jsonRequest = fixtures.CompletionsFixture.jsonSinglePromptRequest
+    val jsonRequest: ujson.Value = ujson.read(fixtures.CompletionsFixture.jsonSinglePromptRequest)
 
     // when
-    val serializedJson = SnakePickle.writeJs(givenRequest)
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
 
     // then
-    serializedJson.toString().filterNot(_.isWhitespace) shouldBe jsonRequest.filterNot(_.isWhitespace)
+    serializedJson shouldBe jsonRequest
   }
 
   "Given completions of MultiplePrompt response as Json" should "be properly deserialized to case class" in {
@@ -120,13 +120,13 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       logprobs = None,
       stop = Some(SingleStop("\n"))
     )
-    val jsonRequest = fixtures.CompletionsFixture.jsonMultiplePromptRequest
+    val jsonRequest: ujson.Value = ujson.read(fixtures.CompletionsFixture.jsonMultiplePromptRequest)
 
     // when
-    val serializedJson = SnakePickle.writeJs(givenRequest)
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
 
     // then
-    serializedJson.toString().filterNot(_.isWhitespace) shouldBe jsonRequest.filterNot(_.isWhitespace)
+    serializedJson shouldBe jsonRequest
   }
 
 }
