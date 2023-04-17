@@ -20,6 +20,16 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FilesEndpoint)
       .response(asJsonSnake[FilesResponse])
 
+  /** @param fileId
+    *   The ID of the file to use for this request.
+    * @return
+    *   Returns information about a specific file.
+    */
+  def retrieveFile(fileId: String): Request[Either[ResponseException[String, Exception], FileData]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
+      .response(asJsonSnake[FileData])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -27,4 +37,5 @@ class OpenAi(authToken: String) {
 private object OpenAIEndpoints {
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
+  def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
 }
