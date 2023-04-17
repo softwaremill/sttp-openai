@@ -1,0 +1,29 @@
+package sttp.openai.requests.files
+
+import sttp.openai.json.SnakePickle
+
+object FilesResponseData {
+  case class FileData(
+      `object`: String,
+      id: String,
+      purpose: String,
+      filename: String,
+      bytes: Int,
+      createdAt: Int,
+      status: String,
+      statusDetails: Option[String]
+  )
+
+  object FileData {
+    implicit val fileInfoReadWriter: SnakePickle.ReadWriter[FileData] = SnakePickle.macroRW[FileData]
+  }
+
+  case class FilesResponse(
+      `object`: String,
+      data: Seq[FileData]
+  )
+
+  object FilesResponse {
+    implicit val filesResponseReadWriter: SnakePickle.ReadWriter[FilesResponse] = SnakePickle.macroRW[FilesResponse]
+  }
+}

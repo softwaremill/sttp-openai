@@ -2,23 +2,23 @@ package sttp.openai.requests.models
 
 import sttp.openai.json.SnakePickle
 
-object ModelsGetResponseData {
+object ModelsResponseData {
 
-  case class Data(
+  case class ModelData(
       id: String,
       `object`: String,
       created: Int,
       ownedBy: String,
-      permission: Seq[Permission],
+      permission: Seq[ModelPermission],
       root: String,
       parent: Option[String]
   )
 
-  object Data {
-    implicit def dataReadWriter: SnakePickle.ReadWriter[Data] = SnakePickle.macroRW[Data]
+  object ModelData {
+    implicit def dataReadWriter: SnakePickle.ReadWriter[ModelData] = SnakePickle.macroRW[ModelData]
   }
 
-  case class Permission(
+  case class ModelPermission(
       id: String,
       `object`: String,
       created: Int,
@@ -33,11 +33,11 @@ object ModelsGetResponseData {
       isBlocking: Boolean
   )
 
-  object Permission {
-    implicit def permissionReadWriter: SnakePickle.ReadWriter[Permission] = SnakePickle.macroRW[Permission]
+  object ModelPermission {
+    implicit def permissionReadWriter: SnakePickle.ReadWriter[ModelPermission] = SnakePickle.macroRW[ModelPermission]
   }
 
-  case class ModelsResponse(`object`: String, data: Seq[Data])
+  case class ModelsResponse(`object`: String, data: Seq[ModelData])
 
   object ModelsResponse {
     implicit def modelsResponseReadWriter: SnakePickle.ReadWriter[ModelsResponse] = SnakePickle.macroRW[ModelsResponse]
