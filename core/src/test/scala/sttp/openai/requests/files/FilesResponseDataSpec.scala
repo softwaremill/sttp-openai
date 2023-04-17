@@ -5,11 +5,11 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
-import sttp.openai.requests.files.FilesResponseData.{FileData, FilesResponse}
+import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
 import sttp.openai.requests.files.FilesResponseData.FilesResponse._
 
 class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues {
-  "Given files response as Json" should "be properly deserialized to case class" in {
+  "Given list files response as Json" should "be properly deserialized to case class" in {
     // given
     val listFilesResponse = fixtures.FilesResponse.listFilesJsonResponse
     val expectedResponse = FilesResponse(
@@ -34,4 +34,22 @@ class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     // then
     givenResponse.value shouldBe expectedResponse
   }
+
+  "Given delete file response as Json" should "be properly deserialized to case class" in {
+    // given
+    val listFilesResponse = fixtures.FilesResponse.deleteFileJsonResponse
+    val expectedResponse = DeletedFileData(
+      `object` = "file",
+      id = "file-tralala",
+      deleted = true
+    )
+
+    // when
+    val givenResponse: Either[Exception, DeletedFileData] =
+      SttpUpickleApiExtension.deserializeJsonSnake[DeletedFileData].apply(listFilesResponse)
+
+    // then
+    givenResponse.value shouldBe expectedResponse
+  }
+
 }
