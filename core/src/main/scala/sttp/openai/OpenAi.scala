@@ -17,6 +17,12 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.modelEndpoint)
       .response(asJsonSnake[ModelsResponse])
 
+  /** @param completionBody
+    *   Request body
+    *
+    * Creates a completion for the provided prompt and parameters given in request body and send it over to
+    * [[https://api.openai.com/v1/completions]]
+    */
   def createCompletion(completionBody: CompletionsBody): Request[Either[ResponseException[String, Exception], CompletionsResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.CompletionsEndpoint)
