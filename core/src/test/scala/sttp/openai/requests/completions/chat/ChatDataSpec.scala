@@ -46,8 +46,6 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     // when
     val givenResponse: Either[Exception, ChatResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
-    println(givenResponse)
-
     // then
     givenResponse.value shouldBe expectedResponse
   }
@@ -75,13 +73,13 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       user = Some("testUser")
     )
 
-    val jsonRequest = fixtures.ChatFixture.jsonRequest
+    val jsonRequest: ujson.Value = ujson.read(fixtures.ChatFixture.jsonRequest)
 
     // when
-    val serializedJson = SnakePickle.writeJs(givenRequest)
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
 
     // then
-    serializedJson.toString().filterNot(_.isWhitespace) shouldBe jsonRequest.filterNot(_.isWhitespace)
+    serializedJson shouldBe jsonRequest
 
   }
 
