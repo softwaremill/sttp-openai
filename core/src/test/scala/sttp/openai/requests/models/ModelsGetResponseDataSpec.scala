@@ -3,8 +3,8 @@ package sttp.openai.requests.models
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ModelsGetResponseData.{Data, ModelsResponse, Permission}
-import ModelsGetResponseData.ModelsResponse._
+import ModelsResponseData.{ModelData, ModelPermission, ModelsResponse}
+import ModelsResponseData.ModelsResponse._
 import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
 
@@ -15,8 +15,8 @@ class ModelsGetResponseDataSpec extends AnyFlatSpec with Matchers with EitherVal
     // given
     val response: String = fixtures.ModelsGetResponse.responseJson
 
-    val babbagePermission: Seq[Permission] = Seq(
-      Permission(
+    val babbagePermission: Seq[ModelPermission] = Seq(
+      ModelPermission(
         id = "modelperm-49FUp5v084tBB49tC4z8LPH5",
         `object` = "model_permission",
         created = 1669085501,
@@ -32,9 +32,9 @@ class ModelsGetResponseDataSpec extends AnyFlatSpec with Matchers with EitherVal
       )
     )
 
-    val davinciPermission: Seq[Permission] =
+    val davinciPermission: Seq[ModelPermission] =
       Seq(
-        Permission(
+        ModelPermission(
           id = "modelperm-U6ZwlyAd0LyMk4rcMdz33Yc3",
           `object` = "model_permission",
           created = 1669066355,
@@ -50,8 +50,8 @@ class ModelsGetResponseDataSpec extends AnyFlatSpec with Matchers with EitherVal
         )
       )
 
-    val serializedData: Seq[Data] = Seq(
-      Data(
+    val serializedData: Seq[ModelData] = Seq(
+      ModelData(
         id = "babbage",
         `object` = "model",
         created = 1649358449,
@@ -60,7 +60,7 @@ class ModelsGetResponseDataSpec extends AnyFlatSpec with Matchers with EitherVal
         root = "babbage",
         parent = None
       ),
-      Data(
+      ModelData(
         id = "davinci",
         `object` = "model",
         created = 1649359874,
