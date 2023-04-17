@@ -11,10 +11,7 @@ object Main extends App {
 //    openAi.getModels
 //      .send(backend)
 
-//  val completionBody = CompletionBody("text-davinci-003", prompt = Some(SinglePrompt("Say this is a test")), maxTokens = Some(7), temperature = Some(0))
-  val compBody = CompletionsBody(model = "text-davinci-003", prompt = Some(MultiplePrompt(Seq("Say this is a test", "xD"))))
-//    val compBody = CompBody(model = "text-davinci-003", prompt = Some("Say this is a test"))
-//  val completionBody = CompletionBody("text-davinci-003", prompt = Some("Say this is a test"), maxTokens = Some(7), temperature = Some(0))
+  val compBody = CompletionsBody(model = "text-davinci-003", prompt = Some(MultiplePrompt(Seq("Say this is a test", "Say this is a test2"))))
 
   println(compBody.prompt)
   val response = openAi.createCompletion(compBody)
