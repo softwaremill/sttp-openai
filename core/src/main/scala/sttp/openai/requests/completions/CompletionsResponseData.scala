@@ -24,9 +24,4 @@ object CompletionsResponseData {
   object CompletionsResponse {
     implicit val choicesRW: SnakePickle.ReadWriter[CompletionsResponse] = SnakePickle.macroRW[CompletionsResponse]
   }
-
-  case class Usage(promptTokens: Int, completionTokens: Int, totalTokens: Int)
-  object Usage {
-    implicit val choicesRW: SnakePickle.ReadWriter[Usage] = SnakePickle.macroRW[Usage]
-  }
 }

@@ -5,6 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.requests.completions.Stop.SingleStop
 
 class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given completions response as Json" should "be properly deserialized to case class" in {
