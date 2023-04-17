@@ -18,7 +18,7 @@ lazy val root = (project in file("."))
 
 lazy val core = (projectMatrix in file("core"))
   .jvmPlatform(
-    scalaVersions = scala2
+    scalaVersions = scala2 ++ scala3
   )
   .settings(
     libraryDependencies ++= Seq(Libraries.uPickle) ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
