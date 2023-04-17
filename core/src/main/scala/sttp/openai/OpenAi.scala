@@ -11,7 +11,7 @@ class OpenAi(authToken: String) {
   /** Fetches all available models from [[https://platform.openai.com/docs/api-reference/models]] */
   def getModels: Request[Either[ResponseException[String, Exception], ModelsResponse]] =
     openApiAuthRequest
-      .get(OpenAIEndpoints.ModelEndpoint)
+      .get(OpenAIEndpoints.modelEndpoint)
       .response(asJsonSnake[ModelsResponse])
 
   /** @param modelId
@@ -36,6 +36,6 @@ class OpenAi(authToken: String) {
 
 private object OpenAIEndpoints {
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
-  val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
-  def RetrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
+  val modelEndpoint: Uri = uri"https://api.openai.com/v1/models"
+  def RetrieveModelEndpoint(modelId: String): Uri = modelEndpoint.addPath(modelId)
 }
