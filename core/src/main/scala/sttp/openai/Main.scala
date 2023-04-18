@@ -1,7 +1,7 @@
 package sttp.openai
 
 import sttp.client4._
-import sttp.model.Uri
+import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody
 
 object Main extends App {
   val backend: SyncBackend = DefaultSyncBackend()
@@ -11,5 +11,12 @@ object Main extends App {
 //    openAi.getModels
 //      .send(backend)
 
+  val imageRequestBody: ImageCreationBody = ImageCreationBody(
+    prompt = "A world of warcraft character"
+  )
 
+  val req = openAi.createImage(imageRequestBody)
+
+  val res = req.send(backend)
+  println(res)
 }

@@ -9,7 +9,7 @@ import sttp.openai.json.SttpUpickleApiExtension.upickleBodySerializerSnake
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody
-import sttp.openai.requests.images.ImageCreationResponseData.ImageCreationResponse
+//import sttp.openai.requests.images.ImageCreationResponseData.ImageCreationResponse
 
 
 class OpenAi(authToken: String) {
@@ -48,10 +48,15 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FilesEndpoint)
       .response(asJsonSnake[FilesResponse])
 
-  def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageCreationResponse]] =
+//  def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageCreationResponse]] =
+//    openApiAuthRequest
+//      .post(OpenAIEndpoints.CreateImageEndpoint)
+//      .response(asJsonSnake[ImageCreationResponse])
+
+  def createImage(imageCreationBody: ImageCreationBody): Request[Either[String, String]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.CreateImageEndpoint)
-      .response(asJsonSnake[ImageCreationResponse])
+      .body(imageCreationBody)
 
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
