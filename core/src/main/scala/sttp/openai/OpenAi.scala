@@ -8,6 +8,8 @@ import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.json.SttpUpickleApiExtension.upickleBodySerializerSnake
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.files.FilesResponseData._
+import sttp.openai.requests.finetunes.FineTunesRequestBody
+import sttp.openai.requests.finetunes.FineTunesResponseData.FineTuneResponse
 
 class OpenAi(authToken: String) {
 
@@ -55,6 +57,12 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  def createFineTune(fineTunesRequestBody: FineTunesRequestBody) =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.FineTunesEndpoint)
+      .body(fineTunesRequestBody)
+      .response(asJsonSnake[FineTuneResponse])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -62,6 +70,7 @@ class OpenAi(authToken: String) {
 private object OpenAIEndpoints {
   val CompletionsEndpoint: Uri = uri"https://api.openai.com/v1/completions"
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
+  val FineTunesEndpoint: Uri = uri"https://api.openai.com/v1/fine-tunes"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
