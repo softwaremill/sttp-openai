@@ -8,6 +8,9 @@ import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.json.SttpUpickleApiExtension.upickleBodySerializerSnake
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.files.FilesResponseData._
+import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody
+import sttp.openai.requests.images.ImageCreationResponseData.ImageCreationResponse
+
 
 class OpenAi(authToken: String) {
 
@@ -45,13 +48,24 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FilesEndpoint)
       .response(asJsonSnake[FilesResponse])
 
+  def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageCreationResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.CreateImageEndpoint)
+      .response(asJsonSnake[ImageCreationResponse])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
 
 private object OpenAIEndpoints {
+  private val ImageEndpointBase: Uri = uri"https://api.openai.com/v1/images"
+
+
   val CompletionsEndpoint: Uri = uri"https://api.openai.com/v1/completions"
+  val CreateImageEndpoint: Uri = ImageEndpointBase.addPath("generations")
+  val EditImageEndpoint: Uri = ImageEndpointBase.addPath("edits")
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
+  val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
 }

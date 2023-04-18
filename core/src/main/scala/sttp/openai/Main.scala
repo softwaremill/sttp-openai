@@ -1,6 +1,7 @@
 package sttp.openai
 
 import sttp.client4._
+import sttp.model.Uri
 
 object Main extends App {
   val backend: SyncBackend = DefaultSyncBackend()
