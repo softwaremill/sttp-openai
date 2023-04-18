@@ -9,6 +9,8 @@ import sttp.openai.json.SttpUpickleApiExtension.upickleBodySerializerSnake
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
+import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.files.FilesResponseData._
 
 class OpenAi(authToken: String) {
@@ -58,6 +60,12 @@ class OpenAi(authToken: String) {
       .body(chatRequestBody)
       .response(asJsonSnake[ChatResponse])
 
+  def createEdit(editRequestBody: EditBody): Request[Either[ResponseException[String, Exception], EditResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EditEndpoint)
+      .body(editRequestBody)
+      .response(asJsonSnake[EditResponse])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -65,6 +73,7 @@ class OpenAi(authToken: String) {
 private object OpenAIEndpoints {
   val ChatEndpoint: Uri = uri"https://api.openai.com/v1/chat/completions"
   val CompletionsEndpoint: Uri = uri"https://api.openai.com/v1/completions"
+  val EditEndpoint: Uri = uri"https://api.openai.com/v1/edits"
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
