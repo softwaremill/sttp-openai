@@ -48,5 +48,4 @@ object CompletionsRequestBody {
   }
   case class SinglePrompt(value: String) extends Prompt
   case class MultiplePrompt(values: Seq[String]) extends Prompt
-
 }

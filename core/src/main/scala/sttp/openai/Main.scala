@@ -30,5 +30,4 @@ object Main extends App {
   val response = openAi.createChatCompletion(chatBody).send(backend)
 
   println(response.body)
-
 }
