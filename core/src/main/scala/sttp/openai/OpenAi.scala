@@ -47,6 +47,6 @@ class OpenAi(authToken: String) {
 private object OpenAIEndpoints {
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
-  def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
+  def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
 }
