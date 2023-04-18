@@ -5,11 +5,10 @@ import sttp.client4._
 object Main extends App {
   val backend: SyncBackend = DefaultSyncBackend()
 
-  val openAi: OpenAi = new OpenAi("test")
+  val openAi: OpenAi = new OpenAi("sk-")
+//  val response: Response[Either[ResponseException[String, Exception], ModelsResponse]] =
+//    openAi.getModels
+//      .send(backend)
 
-  val response = openAi.retrieveModel("text-davinci-003").send(backend)
-
-  println(response.code)
-  println(response.body)
 
 }
