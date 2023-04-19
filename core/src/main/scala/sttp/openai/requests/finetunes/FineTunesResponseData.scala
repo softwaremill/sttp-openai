@@ -2,6 +2,7 @@ package sttp.openai.requests.finetunes
 
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.files.FilesResponseData.FileData
+
 object FineTunesResponseData {
   case class Event(
       `object`: String,
