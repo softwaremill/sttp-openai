@@ -6,7 +6,7 @@ import sttp.openai.requests.finetunes.FineTunesRequestBody
 object Main extends App {
   val backend: SyncBackend = DefaultSyncBackend()
 
-  val openAi: OpenAi = new OpenAi("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")
+  val openAi: OpenAi = new OpenAi("sk-")
   val response =
     openAi
       .createFineTune(FineTunesRequestBody("file-ntUIeQbt4iFIRNOKsyjDoLFT"))

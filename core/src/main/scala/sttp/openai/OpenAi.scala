@@ -57,7 +57,7 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
-  def createFineTune(fineTunesRequestBody: FineTunesRequestBody) =
+  def createFineTune(fineTunesRequestBody: FineTunesRequestBody): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.FineTunesEndpoint)
       .body(fineTunesRequestBody)

@@ -13,7 +13,7 @@ case class FineTunesRequestBody(
     computeClassificationMetrics: Option[Boolean] = None,
     classificationNClasses: Option[Int] = None,
     classificationPositiveClass: Option[String] = None,
-    classificationBetas: Option[Array[Double]] = None,
+    classificationBetas: Option[Seq[Double]] = None,
     suffix: Option[String] = None
 )
 object FineTunesRequestBody {

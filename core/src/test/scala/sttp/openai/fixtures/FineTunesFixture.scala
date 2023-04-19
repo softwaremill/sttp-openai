@@ -1,7 +1,26 @@
 package sttp.openai.fixtures
 
 object FineTunesFixture {
-  val jsonCreateFineTuneResponse = """{
+  var jsonCreateFineTuneRequest: String = """{
+                                            |  "training_file": "file-train231",
+                                            |  "validation_file": "file-valid2",
+                                            |  "model": "curie",
+                                            |  "n_epochs": 3,
+                                            |  "batch_size": 2,
+                                            |  "learning_rate_multiplier": 0.04,
+                                            |  "prompt_loss_weight": 0.01,
+                                            |  "compute_classification_metrics": true,
+                                            |  "classification_n_classes": 13,
+                                            |  "classification_positive_class": "pClass",
+                                            |  "classification_betas": [
+                                            |    0.01,
+                                            |    0.04,
+                                            |    0.2
+                                            |  ],
+                                            |  "suffix": "sml-model-name"
+                                            |}""".stripMargin
+
+  val jsonCreateFineTuneResponse: String = """{
                      |  "object": "fine-tune",
                      |  "id": "ft-trala",
                      |  "hyperparams": {
