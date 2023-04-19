@@ -9,12 +9,29 @@ object ImageCreationRequestBody {
   case class ImageCreationBody(
       prompt: String,
       n: Option[Int] = None,
-      size: Option[Size] = None,
+      size: String = "", //
       responseFormat: Option[String] = None,
       user: Option[String] = None
   )
 
   object ImageCreationBody {
+    def apply(
+        prompt: String,
+        n: Option[Int] = None,
+        size: String = "1024x1024",
+        responseFormat: Option[String] = None,
+        user: Option[String] = None
+    ): ImageCreationBody =
+      new ImageCreationBody(prompt, n, size, responseFormat, user)
+
+    def apply(
+        prompt: String,
+        n: Option[Int],
+        size: Size,
+        responseFormat: Option[String],
+        user: Option[String]
+    ): ImageCreationBody =
+      new ImageCreationBody(prompt, n, size.value, responseFormat, user)
 
     implicit val imageCreationBodyRW: SnakePickle.ReadWriter[ImageCreationBody] = SnakePickle.macroRW[ImageCreationBody]
   }
@@ -52,8 +69,8 @@ object ImageCreationRequestBody {
           SnakePickle.read[ujson.Value](json) match {
             case Str(value) =>
               withValue(value) match {
-                case Some(size) => size
-                case None       => Large
+                case Some(size) => size // TODO
+                case None       => Large // TODO
               }
             case e => throw DeserializationException(e.str, new Exception(s"Could not deserialize: $e"))
           }
