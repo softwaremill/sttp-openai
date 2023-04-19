@@ -82,6 +82,12 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  /** Creates a job that fine-tunes a specified model from a given dataset.
+    * @param fineTunesRequestBody
+    *   Request body that will be used to create a fine-tune.
+    * @return
+    *   Details of the enqueued job including job status and the name of the fine-tuned models once complete.
+    */
   def createFineTune(fineTunesRequestBody: FineTunesRequestBody): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.FineTunesEndpoint)
