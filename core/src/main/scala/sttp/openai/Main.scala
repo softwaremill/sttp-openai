@@ -1,9 +1,6 @@
 package sttp.openai
 
 import sttp.client4._
-//import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody
-//import sttp.openai.requests.images.ImageCreationRequestBody.Size.Small
-
 object Main extends App {
   val backend: SyncBackend = DefaultSyncBackend()
 
@@ -12,13 +9,4 @@ object Main extends App {
 //    openAi.getModels
 //      .send(backend)
 
-//  val imageRequestBody: ImageCreationBody = ImageCreationBody(
-//    prompt = "fishman",
-//    size = Some(Small)
-//  )
-//
-//  val req = openAi.createImage(imageRequestBody)
-//
-//  val res = req.send(backend)
-//  println(res)
 }
