@@ -94,6 +94,11 @@ class OpenAi(authToken: String) {
       .body(fineTunesRequestBody)
       .response(asJsonSnake[FineTuneResponse])
 
+  def getFineTunes =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.FineTunesEndpoint)
+      .response(asString)
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
