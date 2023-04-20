@@ -50,6 +50,11 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FilesEndpoint)
       .response(asJsonSnake[FilesResponse])
 
+  /** @param imageCreationBody
+    *   Create image request body
+    *
+    * Creates an image given a prompt in request body and send it over to [[https://api.openai.com/v1/images/generations]]
+    */
   def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageCreationResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.CreateImageEndpoint)
