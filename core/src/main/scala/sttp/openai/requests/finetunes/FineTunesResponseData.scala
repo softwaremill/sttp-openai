@@ -11,7 +11,7 @@ object FineTunesResponseData {
       createdAt: Int
   )
   object Event {
-    implicit val eventsBodyReadWriter: SnakePickle.ReadWriter[Event] = SnakePickle.macroRW[Event]
+    implicit val eventsBodyReader: SnakePickle.Reader[Event] = SnakePickle.macroR[Event]
   }
 
   case class Hyperparams(
@@ -21,7 +21,7 @@ object FineTunesResponseData {
       learningRateMultiplier: Option[Double]
   )
   object Hyperparams {
-    implicit val hyperparamsReadWriter: SnakePickle.ReadWriter[Hyperparams] = SnakePickle.macroRW[Hyperparams]
+    implicit val hyperparamsReader: SnakePickle.Reader[Hyperparams] = SnakePickle.macroR[Hyperparams]
   }
 
   case class CreateFineTuneResponse(
@@ -40,7 +40,7 @@ object FineTunesResponseData {
   case class GetFineTunesResponse(`object`: String, data: Seq[FineTuneData])
 
   object GetFineTunesResponse {
-    implicit val getFineTunesResponseReadWriter: SnakePickle.ReadWriter[GetFineTunesResponse] = SnakePickle.macroRW[GetFineTunesResponse]
+    implicit val getFineTunesResponseReader: SnakePickle.Reader[GetFineTunesResponse] = SnakePickle.macroR[GetFineTunesResponse]
   }
   case class FineTuneData(
       `object`: String,
@@ -57,6 +57,6 @@ object FineTunesResponseData {
       fineTunedModel: Option[String]
   )
   object FineTuneData {
-    implicit val fineTuneDataReadWriter: SnakePickle.ReadWriter[FineTuneData] = SnakePickle.macroRW[FineTuneData]
+    implicit val fineTuneDataReader: SnakePickle.Reader[FineTuneData] = SnakePickle.macroR[FineTuneData]
   }
 }
