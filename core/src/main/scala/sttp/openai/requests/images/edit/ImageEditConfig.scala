@@ -3,23 +3,28 @@ package sttp.openai.requests.images.edit
 import sttp.openai.requests.images.{ResponseFormat, Size}
 
 import java.io.File
+import java.nio.file.Paths
+case class ImageEditConfig(
+    image: File,
+    prompt: String,
+    mask: Option[File] = None,
+    n: Option[Int] = None,
+    size: Option[Size] = None,
+    responseFormat: Option[ResponseFormat] = None
+)
 
-//class ImageEditConfig
-//
-//object ImageEditConfig {
-//  case class DefaultConfig(
-//      mask: Option[File],
-//      n: Option[Int],
-//      size: Option[String],
-//      responseFormat: Option[String]
-//  ) extends ImageEditConfig
-//
-//  case class ImageConfig(
-//      mask: Option[File],
-//      n: Option[Int],
-//      size: Option[Size],
-//      responseFormat: Option[ResponseFormat]
-//  ) extends ImageEditConfig
-//}
+object ImageEditConfig {
+  def createImageEditConfigWithSystemPaths(
+      systemPathImage: String,
+      prompt: String,
+      systemPathMask: Option[String],
+      n: Option[Int],
+      size: Option[Size],
+      responseFormat: Option[ResponseFormat]
+  ): ImageEditConfig = {
+    val image: File = Paths.get(systemPathImage).toFile
+    val mask: Option[File] = systemPathMask.map(Paths.get(_).toFile)
 
-case class ImageEditConfig(image: File, prompt: String, size: Option[Size] = None)
+    ImageEditConfig(image, prompt, mask, n, size, responseFormat)
+  }
+}

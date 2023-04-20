@@ -11,6 +11,8 @@ object ResponseFormat {
 
   case object B64Json extends ResponseFormat("b64_json")
 
+  case class Custom(customResponseFormatValue: String) extends ResponseFormat(customResponseFormatValue)
+
   private case object NotSupportedFormat extends ResponseFormat("format is not supported")
 
   val values: Set[ResponseFormat] = Set(URL, B64Json)
