@@ -15,7 +15,7 @@ object ImageCreationRequestBody {
   )
 
   object ImageCreationBody {
-    def create(
+    def createImageCreationBody(
         prompt: String,
         size: Size,
         responseFormat: ResponseFormat,

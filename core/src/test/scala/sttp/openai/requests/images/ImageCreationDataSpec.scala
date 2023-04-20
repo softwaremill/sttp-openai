@@ -56,7 +56,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody._
 
     // given
-    val givenRequest: ImageCreationBody = ImageCreationBody.create(
+    val givenRequest: ImageCreationBody = ImageCreationBody.createImageCreationBody(
       "cute fish",
       Size.Large,
       ResponseFormat.URL,
