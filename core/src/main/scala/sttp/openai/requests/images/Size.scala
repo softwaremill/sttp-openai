@@ -13,6 +13,8 @@ object Size {
 
   case object Large extends Size("1024x1024")
 
+  case class Custom(v: String) extends Size(v)
+  
   private case object NotSupportedSize extends Size("-1")
 
   val values: Set[Size] = Set(Small, Medium, Large)
