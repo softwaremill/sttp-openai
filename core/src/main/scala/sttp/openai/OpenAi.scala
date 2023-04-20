@@ -10,9 +10,11 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.files.FilesResponseData._
-import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody
-import sttp.openai.requests.images.ImageCreationResponseData.ImageCreationResponse
+import sttp.openai.requests.images.creation.ImageCreationRequestBody.{ImageCreationBody, Size}
+import sttp.openai.requests.images.creation.ImageCreationResponseData.ImageCreationResponse
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+
+import java.io.File
 
 class OpenAi(authToken: String) {
 
@@ -55,6 +57,25 @@ class OpenAi(authToken: String) {
       .post(OpenAIEndpoints.CreateImageEndpoint)
       .body(imageCreationBody)
       .response(asJsonSnake[ImageCreationResponse])
+
+  def imageEdit(image: File, prompt: String, mask: Option[File], n: Option[Int], size: Option[Size], responseFormat: Option[String]): String =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EditImageEndpoint)
+
+      .multipartBody(
+        multipart("prompt", prompt),
+        multipartFile("image", image)
+      )
+      .toCurl
+
+  def imageEdit(image: File, mask: File, prompt: String): Request[Either[String, String]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EditImageEndpoint)
+      .multipartBody(
+        multipart("prompt", prompt),
+        multipartFile("mask", mask),
+        multipartFile("image", image)
+      )
 
   /** @param editRequestBody
     *   Edit request body

@@ -8,8 +8,8 @@ import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given image generation response as Json" should "be properly deserialized to case class" in {
-    import sttp.openai.requests.images.ImageCreationResponseData._
-    import sttp.openai.requests.images.ImageCreationResponseData.ImageCreationResponse._
+    import sttp.openai.requests.images.creation.ImageCreationResponseData._
+    import sttp.openai.requests.images.creation.ImageCreationResponseData.ImageCreationResponse._
 
     // given
     val jsonResponse = fixtures.ImageCreationFixture.jsonResponse
@@ -30,8 +30,8 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
   }
 
   "Given create image request as case class" should "be properly serialized to Json" in {
-    import sttp.openai.requests.images.ImageCreationRequestBody._
-    import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody._
+    import sttp.openai.requests.images.creation.ImageCreationRequestBody._
+    import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody._
 
     // given
     val givenRequest: ImageCreationBody = ImageCreationBody(
