@@ -1,16 +1,16 @@
-package sttp.openai.requests.images.creation
+package sttp.openai.requests.images
 
 import sttp.openai.json.SnakePickle
 
-object ImageCreationResponseData {
+object ImageResponseData {
 
-  case class ImageCreationResponse(
+  case class ImageResponse(
       created: Int,
       data: Seq[GeneratedImageData]
   )
 
-  object ImageCreationResponse {
-    implicit val imageCreationResponseRW: SnakePickle.ReadWriter[ImageCreationResponse] = SnakePickle.macroRW[ImageCreationResponse]
+  object ImageResponse {
+    implicit val imageCreationResponseRW: SnakePickle.ReadWriter[ImageResponse] = SnakePickle.macroRW[ImageResponse]
   }
 
   case class GeneratedImageData(url: String)

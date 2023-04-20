@@ -2,7 +2,8 @@ package sttp.openai
 
 import java.io.File
 import sttp.client4._
-import .ImageEditBody
+import sttp.openai.requests.images.Size
+import sttp.openai.requests.images.ResponseFormat
 object Main extends App {
   val backend: SyncBackend = DefaultSyncBackend()
 
@@ -11,10 +12,11 @@ object Main extends App {
 //    openAi.getModels
 //      .send(backend)
 
-  val imageEditBody: ImageEditBody = ImageEditBody("test")
-  val file: File = new File("sttp/openai/resources/Screenshot 2023-02-02 at 08.40.24.png")
-  val p = openAi.imageEdit(file, imageEditBody)
-
-  println(p)
+  val sample_image: File = new File("/Users/adamrybicki/Desktop/sttp-openai/core/src/main/scala/sttp/openai/sample_image.png")
+  val sample_mask: File = new File("/Users/adamrybicki/Desktop/sttp-openai/core/src/main/scala/sttp/openai/sample_mask.png")
+  println(ResponseFormat.URL.toString)
+  println(openAi.imageEdit(sample_image, "random", Some(sample_mask), None, Some(Size.Large), Some(ResponseFormat.URL)))
+//  val res = openAi.imageEdit(sample_image, sample_mask, "Put Andrzej Leper in there").send(backend)
+//  println(res)
 
 }

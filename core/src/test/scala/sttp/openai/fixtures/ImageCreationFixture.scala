@@ -5,7 +5,7 @@ object ImageCreationFixture {
       |"prompt": "cute fish",
       |"n": 1,
       |"size": "1024x1024",
-      |"response_format": "test",
+      |"response_format": "url",
       |"user": "user1"
       |}""".stripMargin
 

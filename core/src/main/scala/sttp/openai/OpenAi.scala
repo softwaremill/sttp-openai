@@ -10,8 +10,10 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.files.FilesResponseData._
-import sttp.openai.requests.images.creation.ImageCreationRequestBody.{ImageCreationBody, Size}
-import sttp.openai.requests.images.creation.ImageCreationResponseData.ImageCreationResponse
+import sttp.openai.requests.images.Size
+import sttp.openai.requests.images.ResponseFormat
+import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
+import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 
 import java.io.File
@@ -52,23 +54,71 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FilesEndpoint)
       .response(asJsonSnake[FilesResponse])
 
-  def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageCreationResponse]] =
+  /** @param imageCreationBody
+    *   Create image request body
+    *
+    * Creates an image given a prompt in request body and send it over to [[https://api.openai.com/v1/images/generations]]
+    */
+  def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.CreateImageEndpoint)
       .body(imageCreationBody)
-      .response(asJsonSnake[ImageCreationResponse])
+      .response(asJsonSnake[ImageResponse])
 
-  def imageEdit(image: File, prompt: String, mask: Option[File], n: Option[Int], size: Option[Size], responseFormat: Option[String]): String =
+  def imageEdit(
+      image: File,
+      prompt: String,
+      mask: Option[File] = None,
+      n: Option[Int] = None,
+      size: Option[Size] = None,
+      responseFormat: Option[ResponseFormat] = None
+  ): Request[Either[ResponseException[String, Exception], ImageResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.EditImageEndpoint)
-
       .multipartBody(
-        multipart("prompt", prompt),
-        multipartFile("image", image)
+        Seq(
+          Some(multipartFile("image", image)),
+          Some(multipart("prompt", prompt)),
+          mask.map(multipartFile("mask", _)),
+          n.map(multipart("n", _)),
+          size.map(multipart("size", _)),
+          responseFormat.map(multipart("response_format", _))
+        ).flatten
       )
-      .toCurl
+      .response(asJsonSnake[ImageResponse])
 
-  def imageEdit(image: File, mask: File, prompt: String): Request[Either[String, String]] =
+  def imageEdit(
+      image: File,
+      prompt: String,
+      mask: Option[File] = None,
+      n: Option[Int] = None,
+      size: Option[String] = None,
+      responseFormat: Option[String] = None
+  ): Request[Either[ResponseException[String, Exception], ImageResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EditImageEndpoint)
+      .multipartBody(
+        Seq(
+          Some(multipartFile("image", image)),
+          Some(multipart("prompt", prompt)),
+          mask.map(multipartFile("mask", _)),
+          n.map(multipart("n", _)),
+          size.map(multipart("size", _)),
+          responseFormat.map(multipart("response_format", _))
+        ).flatten
+      )
+      .response(asJsonSnake[ImageResponse])
+
+//    def imageEdit(
+//        systemPathImage: String,
+//        prompt: String,
+//        systemPathMask: Option[String],
+//        n: Option[Int],
+//        size: Option[Size],
+//        responseFormat: Option[ResponseFormat]
+//    ): Request[Either[ResponseException[String, Exception], ImageResponse]] = ???
+
+  def imageEdit(image: File, mask: File, prompt: String): Request[Either[ResponseException[String, Exception], ImageResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.EditImageEndpoint)
       .multipartBody(
@@ -76,6 +126,7 @@ class OpenAi(authToken: String) {
         multipartFile("mask", mask),
         multipartFile("image", image)
       )
+      .response(asJsonSnake[ImageResponse])
 
   /** @param editRequestBody
     *   Edit request body
