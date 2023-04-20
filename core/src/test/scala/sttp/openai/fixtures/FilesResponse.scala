@@ -17,6 +17,12 @@ object FilesResponse {
                                 |  ]
                                 |}""".stripMargin
 
+  val deleteFileJsonResponse: String = """{
+                                         |  "object": "file",
+                                         |  "id": "file-tralala",
+                                         |  "deleted": true
+                                         |}""".stripMargin
+
   val retrieveFileJsonResponse: String = """{
                                            |  "object": "file",
                                            |  "id": "file-tralala",
