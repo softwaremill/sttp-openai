@@ -37,8 +37,8 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     val givenRequest: ImageCreationBody = ImageCreationBody(
       prompt = "cute fish",
       Some(1),
-      size = Some("1024x1024"),
-      Some("url"),
+      size = Some(Size.Custom("1024x1024")),
+      Some(ResponseFormat.Custom("url")),
       Some("user1")
     )
 
@@ -56,11 +56,11 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody._
 
     // given
-    val givenRequest: ImageCreationBody = ImageCreationBody.createImageCreationBody(
+    val givenRequest: ImageCreationBody = ImageCreationBody(
       "cute fish",
-      Size.Large,
-      ResponseFormat.URL,
       Some(1),
+      Some(Size.Large),
+      Some(ResponseFormat.URL),
       Some("user1")
     )
 

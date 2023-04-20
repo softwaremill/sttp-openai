@@ -9,26 +9,12 @@ object ImageCreationRequestBody {
   case class ImageCreationBody(
       prompt: String,
       n: Option[Int] = None,
-      size: Option[String] = None,
-      responseFormat: Option[String] = None,
+      size: Option[Size] = None,
+      responseFormat: Option[ResponseFormat] = None,
       user: Option[String] = None
   )
 
   object ImageCreationBody {
-    def createImageCreationBody(
-        prompt: String,
-        size: Size,
-        responseFormat: ResponseFormat,
-        n: Option[Int] = None,
-        user: Option[String] = None
-    ): ImageCreationBody = ImageCreationBody(
-      prompt = prompt,
-      n = n,
-      size = Some(size.value),
-      responseFormat = Some(responseFormat.value),
-      user = user
-    )
-
     implicit val imageCreationBodyRW: SnakePickle.ReadWriter[ImageCreationBody] = SnakePickle.macroRW[ImageCreationBody]
   }
 
@@ -38,6 +24,8 @@ object ImageCreationRequestBody {
     case object URL extends ResponseFormat("url")
 
     case object B64Json extends ResponseFormat("b64_json")
+
+    case class Custom(customResponseFormat: String) extends ResponseFormat(customResponseFormat)
 
     private case object NotSupportedFormat extends ResponseFormat("format is not supported")
 
@@ -72,6 +60,8 @@ object ImageCreationRequestBody {
     case object Medium extends Size("512x512")
 
     case object Large extends Size("1024x1024")
+
+    case class Custom(customSize: String) extends Size(customSize)
 
     private case object NotSupportedSize extends Size("-1")
 
