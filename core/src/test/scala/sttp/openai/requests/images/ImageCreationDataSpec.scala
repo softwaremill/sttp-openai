@@ -38,7 +38,29 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
       prompt = "cute fish",
       Some(1),
       size = Some("1024x1024"),
-      Some("test"),
+      Some("url"),
+      Some("user1")
+    )
+
+    val jsonRequest = ujson.read(fixtures.ImageCreationFixture.jsonRequest)
+
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+
+    // then
+    serializedJson shouldBe jsonRequest
+  }
+
+  "Given create image request as case class created with enum values" should "be properly serialized to Json" in {
+    import sttp.openai.requests.images.ImageCreationRequestBody._
+    import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody._
+
+    // given
+    val givenRequest: ImageCreationBody = ImageCreationBody.create(
+      "cute fish",
+      Size.Large,
+      ResponseFormat.URL,
+      Some(1),
       Some("user1")
     )
 
