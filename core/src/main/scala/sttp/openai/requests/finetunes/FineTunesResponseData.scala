@@ -3,8 +3,6 @@ package sttp.openai.requests.finetunes
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.files.FilesResponseData.FileData
 
-import scala.collection.immutable.Seq
-
 object FineTunesResponseData {
   case class Event(
       `object`: String,
@@ -18,32 +16,32 @@ object FineTunesResponseData {
 
   case class Hyperparams(
       nEpochs: Int,
-      batchSize: Option[String],
+      batchSize: Option[Int],
       promptLossWeight: Double,
-      learningRateMultiplier: Option[String]
+      learningRateMultiplier: Option[Double]
   )
   object Hyperparams {
     implicit val hyperparamsReadWriter: SnakePickle.ReadWriter[Hyperparams] = SnakePickle.macroRW[Hyperparams]
   }
 
-  case class FineTuneResponse(
+  case class CreateFineTuneResponse(
       fineTuneData: FineTuneData,
       events: Seq[Event]
   )
-  object FineTuneResponse {
-//    implicit val fineTuneResponseReadWriter: SnakePickle.ReadWriter[FineTuneResponse] = // SnakePickle.macroRW[FineTuneResponse]
-//      SnakePickle.readwriter[ujson.Value].bimap[FineTuneResponse] {
-//        fineTuneResponse =>
-//        , jsonValue => ???
-//      }
-    implicit val fineTuneResponseReader: SnakePickle.Reader[FineTuneResponse] =
-      SnakePickle.reader[String].map[FineTuneResponse] { jsonValue =>
+  object CreateFineTuneResponse {
+    implicit val fineTuneResponseReader: SnakePickle.Reader[CreateFineTuneResponse] =
+      SnakePickle.reader[ujson.Value].map[CreateFineTuneResponse] { jsonValue =>
         val fineTuneData: FineTuneData = SnakePickle.read[FineTuneData](jsonValue)
-        val events: Event = SnakePickle.read[Event](jsonValue)
-        FineTuneResponse(fineTuneData, Seq(events))
+        val events: Seq[Event] = SnakePickle.read[Seq[Event]](jsonValue("events"))
+        CreateFineTuneResponse(fineTuneData, events)
       }
   }
 
+  case class GetFineTunesResponse(`object`: String, data: Seq[FineTuneData])
+
+  object GetFineTunesResponse {
+    implicit val getFineTunesResponseReadWriter: SnakePickle.ReadWriter[GetFineTunesResponse] = SnakePickle.macroRW[GetFineTunesResponse]
+  }
   case class FineTuneData(
       `object`: String,
       id: String,
