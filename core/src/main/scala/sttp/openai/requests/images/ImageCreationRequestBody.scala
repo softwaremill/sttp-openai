@@ -25,9 +25,11 @@ object ImageCreationRequestBody {
 
     case object B64Json extends ResponseFormat("b64_json")
 
+    /** Use only as a workaround if API supports a format that's not yet predefined as a case object of Response Format. Otherwise, a custom
+      * format would be rejected. See [[https://platform.openai.com/docs/api-reference/images/create-edit]] for current list of supported
+      * formats
+      */
     case class Custom(customResponseFormat: String) extends ResponseFormat(customResponseFormat)
-
-    private case object NotSupportedFormat extends ResponseFormat("format is not supported")
 
     val values: Set[ResponseFormat] = Set(URL, B64Json)
 
@@ -45,7 +47,7 @@ object ImageCreationRequestBody {
             case Str(value) =>
               withValue(value) match {
                 case Some(responseFormat) => responseFormat
-                case None                 => NotSupportedFormat
+                case None                 => Custom(value)
               }
             case e => throw DeserializationException(e.str, new Exception(s"Could not deserialize: $e"))
           }
@@ -61,9 +63,10 @@ object ImageCreationRequestBody {
 
     case object Large extends Size("1024x1024")
 
+    /** Use only as a workaround if API supports a format that's not yet predefined as a case object of Size. Otherwise, a custom format
+      * would be rejected. See [[https://platform.openai.com/docs/api-reference/images/create-edit]] for current list of supported formats
+      */
     case class Custom(customSize: String) extends Size(customSize)
-
-    private case object NotSupportedSize extends Size("-1")
 
     val values: Set[Size] = Set(Small, Medium, Large)
 
@@ -81,12 +84,7 @@ object ImageCreationRequestBody {
             case Str(value) =>
               withValue(value) match {
                 case Some(size) => size
-                case None       => NotSupportedSize
-                // TODO
-                // There are 3 options in my opinion what can we return in this scenario
-                // 1. We can return default size for image generation, which is Large
-                // 2. We can throw an exception (I'm not a fan of that)
-                // 3. Or go with what I've done
+                case None       => Custom(value)
               }
             case e => throw DeserializationException(e.str, new Exception(s"Could not deserialize: $e"))
           }
