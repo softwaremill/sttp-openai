@@ -9,6 +9,7 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
+import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 
@@ -90,6 +91,12 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  def createEmbeddings(embeddingsBody: EmbeddingsBody) =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EmbeddingsEndpoint)
+      .body(embeddingsBody)
+      .response(asString)
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -98,6 +105,7 @@ private object OpenAIEndpoints {
   val ChatEndpoint: Uri = uri"https://api.openai.com/v1/chat/completions"
   val CompletionsEndpoint: Uri = uri"https://api.openai.com/v1/completions"
   val EditEndpoint: Uri = uri"https://api.openai.com/v1/edits"
+  val EmbeddingsEndpoint: Uri = uri"https://api.openai.com/v1/embeddings"
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
