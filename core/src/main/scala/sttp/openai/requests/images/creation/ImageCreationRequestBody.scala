@@ -15,7 +15,7 @@ object ImageCreationRequestBody {
   )
 
   object ImageCreationBody {
-    implicit val imageCreationBodyRW: SnakePickle.ReadWriter[ImageCreationBody] = SnakePickle.macroRW[ImageCreationBody]
+    implicit val imageCreationBodyW: SnakePickle.Writer[ImageCreationBody] = SnakePickle.macroW[ImageCreationBody]
   }
 
 }

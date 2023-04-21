@@ -15,7 +15,7 @@ object ModelsResponseData {
   )
 
   object ModelData {
-    implicit def dataReadWriter: SnakePickle.ReadWriter[ModelData] = SnakePickle.macroRW[ModelData]
+    implicit def dataReader: SnakePickle.Reader[ModelData] = SnakePickle.macroR[ModelData]
   }
 
   case class ModelPermission(
@@ -34,12 +34,12 @@ object ModelsResponseData {
   )
 
   object ModelPermission {
-    implicit def permissionReadWriter: SnakePickle.ReadWriter[ModelPermission] = SnakePickle.macroRW[ModelPermission]
+    implicit def permissionR: SnakePickle.Reader[ModelPermission] = SnakePickle.macroR[ModelPermission]
   }
 
   case class ModelsResponse(`object`: String, data: Seq[ModelData])
 
   object ModelsResponse {
-    implicit def modelsResponseReadWriter: SnakePickle.ReadWriter[ModelsResponse] = SnakePickle.macroRW[ModelsResponse]
+    implicit def modelsResponseR: SnakePickle.Reader[ModelsResponse] = SnakePickle.macroR[ModelsResponse]
   }
 }

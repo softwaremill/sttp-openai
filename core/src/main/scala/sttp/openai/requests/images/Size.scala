@@ -1,8 +1,6 @@
 package sttp.openai.requests.images
 
 import sttp.openai.json.SnakePickle
-import sttp.client4.DeserializationException
-import ujson.Str
 
 sealed abstract class Size(val value: String)
 
@@ -20,23 +18,7 @@ object Size {
 
   val values: Set[Size] = Set(Small, Medium, Large)
 
-  private val byValue =
-    values.map(s => (s.value, s)).toMap
-
-  private def withValue(size: String): Option[Size] = byValue.get(size)
-
-  implicit val sizeRW: SnakePickle.ReadWriter[Size] = SnakePickle
-    .readwriter[ujson.Value]
-    .bimap[Size](
-      _.value,
-      jsonValue =>
-        SnakePickle.read[ujson.Value](jsonValue) match {
-          case Str(value) =>
-            withValue(value) match {
-              case Some(size) => size
-              case None       => Custom(value)
-            }
-          case e => throw DeserializationException(e.str, new Exception(s"Could not deserialize: $e"))
-        }
-    )
+  implicit val sizeW: SnakePickle.Writer[Size] = SnakePickle
+    .writer[ujson.Value]
+    .comap[Size](_.value)
 }
