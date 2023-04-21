@@ -10,6 +10,7 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
+import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 
@@ -91,11 +92,16 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  /** @param embeddingsBody
+    *   Embeddings request body.
+    * @return
+    *   An embedding vector representing the input text.
+    */
   def createEmbeddings(embeddingsBody: EmbeddingsBody) =
     openApiAuthRequest
       .post(OpenAIEndpoints.EmbeddingsEndpoint)
       .body(embeddingsBody)
-      .response(asString)
+      .response(asJsonSnake[EmbeddingResponse])
 
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
