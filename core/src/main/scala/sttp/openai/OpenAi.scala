@@ -11,7 +11,7 @@ import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
 import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.FineTuneResponse
+import sttp.openai.requests.finetunes.FineTunesResponseData.{CreateFineTuneResponse, GetFineTunesResponse}
 import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.ImageCreationResponseData.ImageCreationResponse
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
@@ -111,11 +111,21 @@ class OpenAi(authToken: String) {
     * @return
     *   Details of the enqueued job including job status and the name of the fine-tuned models once complete.
     */
-  def createFineTune(fineTunesRequestBody: FineTunesRequestBody): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
+  def createFineTune(
+      fineTunesRequestBody: FineTunesRequestBody
+  ): Request[Either[ResponseException[String, Exception], CreateFineTuneResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.FineTunesEndpoint)
       .body(fineTunesRequestBody)
-      .response(asJsonSnake[FineTuneResponse])
+      .response(asJsonSnake[CreateFineTuneResponse])
+
+  /** @return
+    *   List of your organization's fine-tuning jobs.
+    */
+  def getFineTunes: Request[Either[ResponseException[String, Exception], GetFineTunesResponse]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.FineTunesEndpoint)
+      .response(asJsonSnake[GetFineTunesResponse])
 
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)

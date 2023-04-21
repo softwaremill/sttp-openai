@@ -11,20 +11,38 @@ object FineTunesResponseData {
       createdAt: Int
   )
   object Event {
-    implicit val eventsBodyReadWriter: SnakePickle.ReadWriter[Event] = SnakePickle.macroRW[Event]
+    implicit val eventsBodyReader: SnakePickle.Reader[Event] = SnakePickle.macroR[Event]
   }
 
   case class Hyperparams(
       nEpochs: Int,
-      batchSize: Option[String],
+      batchSize: Option[Int],
       promptLossWeight: Double,
-      learningRateMultiplier: Option[String]
+      learningRateMultiplier: Option[Double]
   )
   object Hyperparams {
-    implicit val hyperparamsReadWriter: SnakePickle.ReadWriter[Hyperparams] = SnakePickle.macroRW[Hyperparams]
+    implicit val hyperparamsReader: SnakePickle.Reader[Hyperparams] = SnakePickle.macroR[Hyperparams]
   }
 
-  case class FineTuneResponse(
+  case class CreateFineTuneResponse(
+      fineTuneData: FineTuneData,
+      events: Seq[Event]
+  )
+  object CreateFineTuneResponse {
+    implicit val fineTuneResponseReader: SnakePickle.Reader[CreateFineTuneResponse] =
+      SnakePickle.reader[ujson.Value].map[CreateFineTuneResponse] { jsonValue =>
+        val fineTuneData: FineTuneData = SnakePickle.read[FineTuneData](jsonValue)
+        val events: Seq[Event] = SnakePickle.read[Seq[Event]](jsonValue("events"))
+        CreateFineTuneResponse(fineTuneData, events)
+      }
+  }
+
+  case class GetFineTunesResponse(`object`: String, data: Seq[FineTuneData])
+
+  object GetFineTunesResponse {
+    implicit val getFineTunesResponseReader: SnakePickle.Reader[GetFineTunesResponse] = SnakePickle.macroR[GetFineTunesResponse]
+  }
+  case class FineTuneData(
       `object`: String,
       id: String,
       hyperparams: Hyperparams,
@@ -36,10 +54,9 @@ object FineTunesResponseData {
       createdAt: Int,
       updatedAt: Int,
       status: String,
-      fineTunedModel: Option[String],
-      events: Seq[Event]
+      fineTunedModel: Option[String]
   )
-  object FineTuneResponse {
-    implicit val fineTuneResponseReadWriter: SnakePickle.ReadWriter[FineTuneResponse] = SnakePickle.macroRW[FineTuneResponse]
+  object FineTuneData {
+    implicit val fineTuneDataReader: SnakePickle.Reader[FineTuneData] = SnakePickle.macroR[FineTuneData]
   }
 }
