@@ -65,6 +65,15 @@ class OpenAi(authToken: String) {
       .body(imageCreationBody)
       .response(asJsonSnake[ImageResponse])
 
+  /** Creates an edited or extended image given an original image and a prompt
+    * @param image
+    *   [[java.io.File File]] of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not
+    *   provided, image must have transparency, which will be used as the mask
+    * @param prompt
+    *   A text description of the desired image(s). The maximum length is 1000 characters.
+    * @return
+    *   An url to edited image.
+    */
   def imageEdit(image: File, prompt: String): Request[Either[ResponseException[String, Exception], ImageResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.EditImageEndpoint)
@@ -74,6 +83,16 @@ class OpenAi(authToken: String) {
       )
       .response(asJsonSnake[ImageResponse])
 
+  /** Creates an edited or extended image given an original image and a prompt
+    *
+    * @param systemPath
+    *   [[java.lang.String systemPath]] of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If
+    *   mask is not provided, image must have transparency, which will be used as the mask
+    * @param prompt
+    *   A text description of the desired image(s). The maximum length is 1000 characters.
+    * @return
+    *   An url to edited image.
+    */
   def imageEdit(systemPath: String, prompt: String): Request[Either[ResponseException[String, Exception], ImageResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.EditImageEndpoint)
@@ -83,6 +102,19 @@ class OpenAi(authToken: String) {
       )
       .response(asJsonSnake[ImageResponse])
 
+  /** Creates an edited or extended image given an original image and a prompt
+    *
+    * @param imageEditConfig
+    *   An instance of the case class ImageEditConfig containing the necessary parameters for editing the image
+    *   - image: A file representing the image to be edited.
+    *   - prompt: A string describing the desired edits to be made to the image.
+    *   - mask: An optional file representing a mask to be applied to the image.
+    *   - n: An optional integer specifying the number of edits to be made.
+    *   - size: An optional instance of the Size case class representing the desired size of the output image.
+    *   - responseFormat: An optional instance of the ResponseFormat case class representing the desired format of the response.
+    * @return
+    *   An url to edited image.
+    */
   def imageEdit(
       imageEditConfig: ImageEditConfig
   ): Request[Either[ResponseException[String, Exception], ImageResponse]] =
