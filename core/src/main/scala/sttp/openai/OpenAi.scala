@@ -16,6 +16,7 @@ import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 
 import java.io.File
+import java.nio.file.Paths
 
 class OpenAi(authToken: String) {
 
@@ -70,6 +71,15 @@ class OpenAi(authToken: String) {
       .multipartBody(
         multipart("prompt", prompt),
         multipartFile("image", image)
+      )
+      .response(asJsonSnake[ImageResponse])
+
+  def imageEdit(systemPath: String, prompt: String): Request[Either[ResponseException[String, Exception], ImageResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EditImageEndpoint)
+      .multipartBody(
+        multipart("prompt", prompt),
+        multipartFile("image", Paths.get(systemPath).toFile)
       )
       .response(asJsonSnake[ImageResponse])
 
