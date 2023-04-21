@@ -26,4 +26,14 @@ object FilesResponseData {
   object FilesResponse {
     implicit val filesResponseReadWriter: SnakePickle.ReadWriter[FilesResponse] = SnakePickle.macroRW[FilesResponse]
   }
+
+  case class DeletedFileData(
+      `object`: String,
+      id: String,
+      deleted: Boolean
+  )
+
+  object DeletedFileData {
+    implicit val deleteFileResponseReadWriter: SnakePickle.ReadWriter[DeletedFileData] = SnakePickle.macroRW[DeletedFileData]
+  }
 }

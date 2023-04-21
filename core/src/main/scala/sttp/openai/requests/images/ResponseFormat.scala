@@ -11,9 +11,11 @@ object ResponseFormat {
 
   case object B64Json extends ResponseFormat("b64_json")
 
-  case class Custom(customResponseFormatValue: String) extends ResponseFormat(customResponseFormatValue)
-
-  private case object NotSupportedFormat extends ResponseFormat("format is not supported")
+  /** Use only as a workaround if API supports a format that's not yet predefined as a case object of Response Format. Otherwise, a custom
+    * format would be rejected. See [[https://platform.openai.com/docs/api-reference/images/create-edit]] for current list of supported
+    * formats
+    */
+  case class Custom(customResponseFormat: String) extends ResponseFormat(customResponseFormat)
 
   val values: Set[ResponseFormat] = Set(URL, B64Json)
 
@@ -31,7 +33,7 @@ object ResponseFormat {
           case Str(value) =>
             withValue(value) match {
               case Some(responseFormat) => responseFormat
-              case None                 => NotSupportedFormat
+              case None                 => Custom(value)
             }
           case e => throw DeserializationException(e.str, new Exception(s"Could not deserialize: $e"))
         }
