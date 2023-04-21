@@ -11,6 +11,8 @@ import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
+import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
 
 class OpenAi(authToken: String) {
 
@@ -90,6 +92,12 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  def createModeration(moderationsBody: ModerationsBody) =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.ModerationsEndpoint)
+      .body(moderationsBody)
+      .response(asJsonSnake[ModerationData])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -100,6 +108,7 @@ private object OpenAIEndpoints {
   val EditEndpoint: Uri = uri"https://api.openai.com/v1/edits"
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
+  val ModerationsEndpoint: Uri = uri"https://api.openai.com/v1/moderations"
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
