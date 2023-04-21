@@ -92,6 +92,11 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  /** @param moderationsBody
+    *   Moderation request body.
+    * @return
+    *   Classifies if text violates OpenAI's Content Policy
+    */
   def createModeration(moderationsBody: ModerationsBody) =
     openApiAuthRequest
       .post(OpenAIEndpoints.ModerationsEndpoint)

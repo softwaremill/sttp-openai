@@ -2,6 +2,12 @@ package sttp.openai.requests.moderations
 
 import sttp.openai.json.SnakePickle
 object ModerationsRequestBody {
+
+  /** @param input
+    *   The input text to classify.
+    * @param model
+    *   Specifies content moderation models.
+    */
   case class ModerationsBody(input: String, model: Option[ModerationModel] = None)
 
   object ModerationsBody {
