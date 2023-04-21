@@ -50,6 +50,16 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FilesEndpoint)
       .response(asJsonSnake[FilesResponse])
 
+    /** @param fileId
+      *   The ID of the file to use for this request.
+      * @return
+      *   Information about deleted file.
+      */
+  def deleteFile(fileId: String): Request[Either[ResponseException[String, Exception], DeletedFileData]] =
+    openApiAuthRequest
+      .delete(OpenAIEndpoints.deleteFileEndpoint(fileId))
+      .response(asJsonSnake[DeletedFileData])
+
   /** @param imageCreationBody
     *   Create image request body
     *
@@ -109,6 +119,7 @@ private object OpenAIEndpoints {
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
+  def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
 }
