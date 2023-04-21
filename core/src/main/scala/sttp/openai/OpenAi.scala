@@ -9,9 +9,13 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
+import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
+import sttp.openai.requests.finetunes.FineTunesRequestBody
+import sttp.openai.requests.finetunes.FineTunesResponseData.{CreateFineTuneResponse, GetFineTunesResponse}
+import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody
+import sttp.openai.requests.images.ImageCreationResponseData.ImageCreationResponse
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
-import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 
 class OpenAi(authToken: String) {
@@ -50,15 +54,26 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FilesEndpoint)
       .response(asJsonSnake[FilesResponse])
 
-  /** @param fileId
-    *   The ID of the file to use for this request.
-    * @return
-    *   Information about deleted file.
-    */
+    /** @param fileId
+      *   The ID of the file to use for this request.
+      * @return
+      *   Information about deleted file.
+      */
   def deleteFile(fileId: String): Request[Either[ResponseException[String, Exception], DeletedFileData]] =
     openApiAuthRequest
       .delete(OpenAIEndpoints.deleteFileEndpoint(fileId))
       .response(asJsonSnake[DeletedFileData])
+
+  /** @param imageCreationBody
+    *   Create image request body
+    *
+    * Creates an image given a prompt in request body and send it over to [[https://api.openai.com/v1/images/generations]]
+    */
+  def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageCreationResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.CreateImageEndpoint)
+      .body(imageCreationBody)
+      .response(asJsonSnake[ImageCreationResponse])
 
   /** @param editRequestBody
     *   Edit request body
@@ -92,6 +107,28 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  /** Creates a job that fine-tunes a specified model from a given dataset.
+    * @param fineTunesRequestBody
+    *   Request body that will be used to create a fine-tune.
+    * @return
+    *   Details of the enqueued job including job status and the name of the fine-tuned models once complete.
+    */
+  def createFineTune(
+      fineTunesRequestBody: FineTunesRequestBody
+  ): Request[Either[ResponseException[String, Exception], CreateFineTuneResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.FineTunesEndpoint)
+      .body(fineTunesRequestBody)
+      .response(asJsonSnake[CreateFineTuneResponse])
+
+  /** @return
+    *   List of your organization's fine-tuning jobs.
+    */
+  def getFineTunes: Request[Either[ResponseException[String, Exception], GetFineTunesResponse]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.FineTunesEndpoint)
+      .response(asJsonSnake[GetFineTunesResponse])
+
   /** @param embeddingsBody
     *   Embeddings request body.
     * @return
@@ -108,12 +145,19 @@ class OpenAi(authToken: String) {
 }
 
 private object OpenAIEndpoints {
+  private val ImageEndpointBase: Uri = uri"https://api.openai.com/v1/images"
+
   val ChatEndpoint: Uri = uri"https://api.openai.com/v1/chat/completions"
   val CompletionsEndpoint: Uri = uri"https://api.openai.com/v1/completions"
+  val CreateImageEndpoint: Uri = ImageEndpointBase.addPath("generations")
   val EditEndpoint: Uri = uri"https://api.openai.com/v1/edits"
   val EmbeddingsEndpoint: Uri = uri"https://api.openai.com/v1/embeddings"
+  val EditImageEndpoint: Uri = ImageEndpointBase.addPath("edits")
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
+  val FineTunesEndpoint: Uri = uri"https://api.openai.com/v1/fine-tunes"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
+  val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
+
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
