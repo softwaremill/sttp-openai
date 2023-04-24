@@ -15,6 +15,8 @@ import sttp.openai.requests.images.edit.ImageEditConfig
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.variations.ImageVariationConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+import sttp.openai.requests.audio.AudioResponseData.AudioResponse
+import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 
 import java.io.File
 import java.nio.file.Paths
@@ -239,12 +241,82 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  /** Transcribes audio into the input language
+    *
+    * @param file
+    *   [[java.io.File File]] The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+    * @param model
+    *   [[java.lang.String]] ID of the model to use. Only [[whisper-1]] is currently available.
+    * @return
+    *   Transcription of recorded audio into text.
+    */
+  def createTranscription(file: File, model: String): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.TranscriptionEndpoint)
+      .multipartBody(
+        multipartFile("file", file),
+        multipart("model", model)
+      )
+      .response(asJsonSnake[AudioResponse])
+
+  /** Transcribes audio into the input language
+    *
+    * @param systemPath
+    *   [[java.lang.String]] The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+    * @param model
+    *   [[java.lang.String]] ID of the model to use. Only [[whisper-1]] is currently available.
+    * @return
+    *   Transcription of recorded audio into text.
+    */
+  def createTranscription(systemPath: String, model: String): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.TranscriptionEndpoint)
+      .multipartBody(
+        multipartFile("file", Paths.get(systemPath).toFile),
+        multipart("model", model)
+      )
+      .response(asJsonSnake[AudioResponse])
+
+  /** Creates a variation of a given image
+    *
+    * @param transcriptionConfig
+    *   An instance of the case class TranscriptionConfig containing the necessary parameters for the audio transcription
+    *   - file: The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+    *   - model: ID of the model to use. Only [[whisper-1]] is currently available.
+    *   - prompt: An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio
+    *     language.
+    *   - responseFormat: An optional instance of the ResponseFormat case class representing the desired format of the response.
+    *   - temperature: An optional sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while
+    *     lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to
+    *     automatically increase the temperature until certain thresholds are hit.
+    *     - language: An optional language of the input audio. Supplying the input language in ISO-639-1 format will improve accuracy and
+    *       latency.
+    * @return
+    *   An url to edited image.
+    */
+  def createTranscription(transcriptionConfig: TranscriptionConfig): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.TranscriptionEndpoint)
+      .multipartBody {
+        import transcriptionConfig._
+        Seq(
+          Some(multipartFile("file", file)),
+          Some(multipart("model", model)),
+          prompt.map(multipart("prompt", _)),
+          responseFormat.map(format => multipart("response_format", format.value)),
+          temperature.map(multipart("temperature", _)),
+          language.map(multipart("language", _))
+        ).flatten
+      }
+      .response(asJsonSnake[AudioResponse])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
 
 private object OpenAIEndpoints {
   private val ImageEndpointBase: Uri = uri"https://api.openai.com/v1/images"
+  private val AudioEndpoint: Uri = uri"https://api.openai.com/v1/audio/"
 
   val ChatEndpoint: Uri = uri"https://api.openai.com/v1/chat/completions"
   val CompletionsEndpoint: Uri = uri"https://api.openai.com/v1/completions"
@@ -253,6 +325,7 @@ private object OpenAIEndpoints {
   val EditImageEndpoint: Uri = ImageEndpointBase.addPath("edits")
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
+  val TranscriptionEndpoint: Uri = AudioEndpoint.addPath("transcriptions")
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
