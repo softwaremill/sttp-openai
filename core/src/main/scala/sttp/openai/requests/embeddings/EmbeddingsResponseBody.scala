@@ -9,7 +9,7 @@ object EmbeddingsResponseBody {
       embedding: Seq[Double]
   )
   object EmbeddingData {
-    implicit val embeddingDataReader: SnakePickle.Reader[EmbeddingData] = SnakePickle.macroR[EmbeddingData]
+    implicit val embeddingDataReader: SnakePickle.Reader[EmbeddingData] = SnakePickle.macroR
   }
 
   case class EmbeddingResponse(
@@ -20,7 +20,7 @@ object EmbeddingsResponseBody {
   )
 
   object EmbeddingResponse {
-    implicit val embeddingResponseDataReader: SnakePickle.Reader[EmbeddingResponse] = SnakePickle.macroR[EmbeddingResponse]
+    implicit val embeddingResponseDataReader: SnakePickle.Reader[EmbeddingResponse] = SnakePickle.macroR
   }
   case class Usage(
       promptTokens: Int,
@@ -28,6 +28,6 @@ object EmbeddingsResponseBody {
   )
 
   object Usage {
-    implicit val usageDataReader: SnakePickle.Reader[Usage] = SnakePickle.macroR[Usage]
+    implicit val usageDataReader: SnakePickle.Reader[Usage] = SnakePickle.macroR
   }
 }

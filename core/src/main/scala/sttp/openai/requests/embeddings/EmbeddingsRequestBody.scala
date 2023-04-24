@@ -14,7 +14,7 @@ object EmbeddingsRequestBody {
   case class EmbeddingsBody(model: String, input: EmbeddingsInput, user: Option[String] = None)
 
   object EmbeddingsBody {
-    implicit val embeddingsBodyWriter: SnakePickle.Writer[EmbeddingsBody] = SnakePickle.macroW[EmbeddingsBody]
+    implicit val embeddingsBodyWriter: SnakePickle.Writer[EmbeddingsBody] = SnakePickle.macroW
   }
 
   sealed trait EmbeddingsInput
