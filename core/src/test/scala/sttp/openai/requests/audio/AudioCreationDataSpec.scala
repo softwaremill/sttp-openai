@@ -19,10 +19,10 @@ class AudioCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     )
 
     // when
-    val givenResponse = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val deserializedJsonResponse = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
-    givenResponse.value shouldBe expectedResponse
+    deserializedJsonResponse.value shouldBe expectedResponse
   }
 
 }

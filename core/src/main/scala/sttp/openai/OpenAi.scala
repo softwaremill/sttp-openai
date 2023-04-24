@@ -11,8 +11,8 @@ import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.{CreateFineTuneResponse, GetFineTunesResponse}
 import sttp.openai.requests.images.variations.ImageVariationsConfig
+import sttp.openai.requests.finetunes.FineTunesResponseData.{FineTuneResponse, GetFineTunesResponse}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -87,8 +87,14 @@ class OpenAi(authToken: String) {
   /** Creates edited or extended images given an original image and a prompt
     *
     * @param systemPath
-    *   SystemPath of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided,
-    *   image must have transparency, which will be used as the mask
+    *   <<<<<<< HEAD SystemPath of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is
+    *   not provided, image must have transparency, which will be used as the mask
+    * \=======
+    *
+    * SystemPath of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided,
+    * image must have transparency, which will be used as the mask
+    *
+    * >>>>>>> 7ddcc2c5fbc796c3c585c545ce5aadfccd0e949b
     * @param prompt
     *   A text description of the desired image(s). The maximum length is 1000 characters.
     * @return
@@ -399,6 +405,7 @@ class OpenAi(authToken: String) {
     * @return
     *   Transcription of recorded audio into text.
     */
+
   def createTranscription(file: File, model: RecognitionModel): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranscriptionEndpoint)
@@ -417,7 +424,10 @@ class OpenAi(authToken: String) {
     * @return
     *   Transcription of recorded audio into text.
     */
-  def createTranscription(systemPath: String, model: RecognitionModel): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+  def createTranscription(
+      systemPath: String,
+      model: RecognitionModel
+  ): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranscriptionEndpoint)
       .multipartBody(
@@ -467,11 +477,11 @@ class OpenAi(authToken: String) {
     */
   def createFineTune(
       fineTunesRequestBody: FineTunesRequestBody
-  ): Request[Either[ResponseException[String, Exception], CreateFineTuneResponse]] =
+  ): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.FineTunesEndpoint)
       .body(fineTunesRequestBody)
-      .response(asJsonSnake[CreateFineTuneResponse])
+      .response(asJsonSnake[FineTuneResponse])
 
   /** @return
     *   List of your organization's fine-tuning jobs.
@@ -480,6 +490,16 @@ class OpenAi(authToken: String) {
     openApiAuthRequest
       .get(OpenAIEndpoints.FineTunesEndpoint)
       .response(asJsonSnake[GetFineTunesResponse])
+
+  /** @param fineTuneId
+    *   The ID of the fine-tune job.
+    * @return
+    *   Info about the fine-tune job.
+    */
+  def retrieveFineTune(fineTuneId: String): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.retrieveFineTuneEndpoint(fineTuneId))
+      .response(asJsonSnake[FineTuneResponse])
 
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
@@ -503,5 +523,6 @@ private object OpenAIEndpoints {
 
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
+  def retrieveFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
 }
