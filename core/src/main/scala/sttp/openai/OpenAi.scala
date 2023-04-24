@@ -10,10 +10,12 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.files.FilesResponseData._
+import sttp.openai.requests.images.variations.ImageVariationConfig
+import sttp.openai.requests.finetunes.FineTunesRequestBody
+import sttp.openai.requests.finetunes.FineTunesResponseData.{CreateFineTuneResponse, GetFineTunesResponse}
+import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditConfig
-import sttp.openai.requests.images.ImageResponseData.ImageResponse
-import sttp.openai.requests.images.variations.ImageVariationConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 
 import java.io.File
@@ -239,6 +241,28 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  /** Creates a job that fine-tunes a specified model from a given dataset.
+    * @param fineTunesRequestBody
+    *   Request body that will be used to create a fine-tune.
+    * @return
+    *   Details of the enqueued job including job status and the name of the fine-tuned models once complete.
+    */
+  def createFineTune(
+      fineTunesRequestBody: FineTunesRequestBody
+  ): Request[Either[ResponseException[String, Exception], CreateFineTuneResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.FineTunesEndpoint)
+      .body(fineTunesRequestBody)
+      .response(asJsonSnake[CreateFineTuneResponse])
+
+  /** @return
+    *   List of your organization's fine-tuning jobs.
+    */
+  def getFineTunes: Request[Either[ResponseException[String, Exception], GetFineTunesResponse]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.FineTunesEndpoint)
+      .response(asJsonSnake[GetFineTunesResponse])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -252,6 +276,7 @@ private object OpenAIEndpoints {
   val EditEndpoint: Uri = uri"https://api.openai.com/v1/edits"
   val EditImageEndpoint: Uri = ImageEndpointBase.addPath("edits")
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
+  val FineTunesEndpoint: Uri = uri"https://api.openai.com/v1/fine-tunes"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
