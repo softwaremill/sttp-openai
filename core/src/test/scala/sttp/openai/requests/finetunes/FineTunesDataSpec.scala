@@ -13,7 +13,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // given
     val jsonResponse = fixtures.FineTunesFixture.jsonCreateFineTuneResponse
-    val expectedResponse: CreateFineTuneResponse = CreateFineTuneResponse(
+    val expectedResponse: FineTuneResponse = FineTuneResponse(
       FineTuneData(
         `object` = "fine-tune",
         id = "ft-trala",
@@ -55,8 +55,8 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, CreateFineTuneResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[CreateFineTuneResponse].apply(jsonResponse)
+    val givenResponse: Either[Exception, FineTuneResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
