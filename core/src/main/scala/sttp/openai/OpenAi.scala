@@ -99,6 +99,7 @@ class OpenAi(authToken: String) {
       .response(asJsonSnake[ImageResponse])
 
   /** Creates edited or extended images given an original image and a prompt
+    *
     * @param systemPath
     *   [[java.lang.String systemPath]] of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If
     *   mask is not provided, image must have transparency, which will be used as the mask
@@ -117,6 +118,7 @@ class OpenAi(authToken: String) {
       .response(asJsonSnake[ImageResponse])
 
   /** Creates edited or extended images given an original image and a prompt
+    *
     * @param imageEditsConfig
     *   An instance of the case class ImageEditConfig containing the necessary parameters for editing the image
     *   - image: A file representing the image to be edited.
