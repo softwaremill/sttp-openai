@@ -24,16 +24,16 @@ object FineTunesResponseData {
     implicit val hyperparamsReader: SnakePickle.Reader[Hyperparams] = SnakePickle.macroR[Hyperparams]
   }
 
-  case class CreateFineTuneResponse(
+  case class FineTuneResponse(
       fineTuneData: FineTuneData,
       events: Seq[Event]
   )
-  object CreateFineTuneResponse {
-    implicit val fineTuneResponseReader: SnakePickle.Reader[CreateFineTuneResponse] =
-      SnakePickle.reader[ujson.Value].map[CreateFineTuneResponse] { jsonValue =>
+  object FineTuneResponse {
+    implicit val fineTuneResponseReader: SnakePickle.Reader[FineTuneResponse] =
+      SnakePickle.reader[ujson.Value].map[FineTuneResponse] { jsonValue =>
         val fineTuneData: FineTuneData = SnakePickle.read[FineTuneData](jsonValue)
         val events: Seq[Event] = SnakePickle.read[Seq[Event]](jsonValue("events"))
-        CreateFineTuneResponse(fineTuneData, events)
+        FineTuneResponse(fineTuneData, events)
       }
   }
 

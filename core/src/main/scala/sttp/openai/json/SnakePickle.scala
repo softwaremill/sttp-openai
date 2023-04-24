@@ -45,18 +45,18 @@ object SttpUpickleApiExtension extends SttpUpickleApi {
   implicit def upickleBodySerializerSnake[B](implicit encoder: SnakePickle.Writer[B]): BodySerializer[B] =
     b => StringBody(SnakePickle.write(b), "utf-8", MediaType.ApplicationJson)
 
-  def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[ResponseException[String, Exception], B]] =
+  def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[ResponseException[String, DeserializationException], B]] =
     asString.mapWithMetadata(ResponseAs.deserializeRightWithError(deserializeJsonSnake)).showAsJson
 
-  def deserializeJsonSnake[B: SnakePickle.Reader: IsOption]: String => Either[Exception, B] = { (s: String) =>
+  def deserializeJsonSnake[B: SnakePickle.Reader: IsOption]: String => Either[DeserializationException, B] = { (s: String) =>
     try
       Right(SnakePickle.read[B](JsonInput.sanitize[B].apply(s)))
     catch {
-      case e: Exception => Left(e)
+      case e: Exception => Left(new DeserializationException(e))
       case t: Throwable =>
         // in ScalaJS, ArrayIndexOutOfBoundsException exceptions are wrapped in org.scalajs.linker.runtime.UndefinedBehaviorError
         t.getCause match {
-          case e: ArrayIndexOutOfBoundsException => Left(e)
+          case e: ArrayIndexOutOfBoundsException => Left(new DeserializationException(e))
           case _                                 => throw t
         }
     }

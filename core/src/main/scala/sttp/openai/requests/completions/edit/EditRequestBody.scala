@@ -14,7 +14,7 @@ object EditRequestBody {
   )
 
   object EditBody {
-    implicit val editBodyRW: SnakePickle.ReadWriter[EditBody] = SnakePickle.macroRW[EditBody]
+    implicit val editBodyW: SnakePickle.Writer[EditBody] = SnakePickle.macroW[EditBody]
   }
 
 }
