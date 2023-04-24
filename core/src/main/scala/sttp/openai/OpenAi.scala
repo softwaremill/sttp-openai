@@ -13,6 +13,7 @@ import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditConfig
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
+import sttp.openai.requests.images.variations.ImageVariationConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 
 import java.io.File
@@ -137,8 +138,71 @@ class OpenAi(authToken: String) {
           Some(multipart("prompt", prompt)),
           mask.map(multipartFile("mask", _)),
           n.map(multipart("n", _)),
-          size.map(multipart("size", _)),
-          responseFormat.map(multipart("response_format", _))
+          size.map(s => multipart("size", s.value)),
+          responseFormat.map(format => multipart("response_format", format.value))
+        ).flatten
+      }
+      .response(asJsonSnake[ImageResponse])
+
+  /** Creates a variation of a given image
+    *
+    * @param image
+    *   [[java.io.File File]] of the JSON Lines base image. <p> Must be a valid PNG file, less than 4MB, and square.
+    * @return
+    *   An url to edited image.
+    */
+  def imageVariation(
+      image: File
+  ): Request[Either[ResponseException[String, Exception], ImageResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.VariationsImageEndpoint)
+      .multipartBody(
+        multipartFile("image", image)
+      )
+      .response(asJsonSnake[ImageResponse])
+
+  /** Creates a variation of a given image
+    *
+    * @param systemPath
+    *   [[java.lang.String systemPath]] of the JSON Lines base image. <p> Must be a valid PNG file, less than 4MB, and square.
+    * @return
+    *   An url to edited image.
+    */
+  def imageVariation(
+      systemPath: String
+  ): Request[Either[ResponseException[String, Exception], ImageResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.VariationsImageEndpoint)
+      .multipartBody(
+        multipartFile("image", Paths.get(systemPath).toFile)
+      )
+      .response(asJsonSnake[ImageResponse])
+
+  /** Creates a variation of a given image
+    *
+    * @param imageVariationConfig
+    *   An instance of the case class ImageVariationConfig containing the necessary parameters for the image variation
+    *   - image: A file of base image.
+    *   - n: An optional integer specifying the number of images to generate.
+    *   - size: An optional instance of the Size case class representing the desired size of the output image.
+    *   - responseFormat: An optional instance of the ResponseFormat case class representing the desired format of the response.
+    *   - user: An optional, unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
+    * @return
+    *   An url to edited image.
+    */
+  def imageVariation(
+      imageVariationConfig: ImageVariationConfig
+  ): Request[Either[ResponseException[String, Exception], ImageResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.VariationsImageEndpoint)
+      .multipartBody {
+        import imageVariationConfig._
+        Seq(
+          Some(multipartFile("image", image)),
+          n.map(multipart("n", _)),
+          size.map(s => multipart("size", s.value)),
+          responseFormat.map(format => multipart("response_format", format.value)),
+          user.map(multipart("user", _))
         ).flatten
       }
       .response(asJsonSnake[ImageResponse])
