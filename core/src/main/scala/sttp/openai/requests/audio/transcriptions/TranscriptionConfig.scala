@@ -1,5 +1,6 @@
 package sttp.openai.requests.audio.transcriptions
 
+import sttp.openai.requests.audio.Model
 import sttp.openai.requests.images.ResponseFormat
 
 import java.io.File
@@ -7,7 +8,7 @@ import java.nio.file.Paths
 
 case class TranscriptionConfig(
     file: File,
-    model: String,
+    model: Model,
     prompt: Option[String] = None,
     responseFormat: Option[ResponseFormat] = None,
     temperature: Option[Float] = None,
@@ -17,7 +18,7 @@ case class TranscriptionConfig(
 object TranscriptionConfig {
   def createTranscriptionConfigWithSystemPaths(
       systemPathImage: String,
-      model: String,
+      model: Model,
       prompt: Option[String] = None,
       responseFormat: Option[ResponseFormat] = None,
       temperature: Option[Float] = None,

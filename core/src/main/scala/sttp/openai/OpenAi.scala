@@ -19,6 +19,7 @@ import sttp.openai.requests.images.edit.ImageEditsConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
+import sttp.openai.requests.audio.Model
 
 import java.io.File
 import java.nio.file.Paths
@@ -248,16 +249,16 @@ class OpenAi(authToken: String) {
     * @param file
     *   [[java.io.File File]] The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   [[java.lang.String]] ID of the model to use. Only [[whisper-1]] is currently available.
+    *   ID of the model to use. Only [[whisper-1]] is currently available.
     * @return
     *   Transcription of recorded audio into text.
     */
-  def createTranscription(file: File, model: String): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+  def createTranscription(file: File, model: Model): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranscriptionEndpoint)
       .multipartBody(
         multipartFile("file", file),
-        multipart("model", model)
+        multipart("model", model.value)
       )
       .response(asJsonSnake[AudioResponse])
 
@@ -266,16 +267,16 @@ class OpenAi(authToken: String) {
     * @param systemPath
     *   [[java.lang.String]] The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   [[java.lang.String]] ID of the model to use. Only [[whisper-1]] is currently available.
+    *   ID of the model to use. Only [[whisper-1]] is currently available.
     * @return
     *   Transcription of recorded audio into text.
     */
-  def createTranscription(systemPath: String, model: String): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+  def createTranscription(systemPath: String, model: Model): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranscriptionEndpoint)
       .multipartBody(
         multipartFile("file", Paths.get(systemPath).toFile),
-        multipart("model", model)
+        multipart("model", model.value)
       )
       .response(asJsonSnake[AudioResponse])
 
@@ -303,7 +304,7 @@ class OpenAi(authToken: String) {
         import transcriptionConfig._
         Seq(
           Some(multipartFile("file", file)),
-          Some(multipart("model", model)),
+          Some(multipart("model", model.value)),
           prompt.map(multipart("prompt", _)),
           responseFormat.map(format => multipart("response_format", format.value)),
           temperature.map(multipart("temperature", _)),
