@@ -127,10 +127,11 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FineTunesEndpoint)
       .response(asJsonSnake[GetFineTunesResponse])
 
-  /**
-   * @param fineTuneId The ID of the fine-tune job.
-   * @return Info about the fine-tune job.
-   */
+  /** @param fineTuneId
+    *   The ID of the fine-tune job.
+    * @return
+    *   Info about the fine-tune job.
+    */
   def retrieveFineTune(fineTuneId: String): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
     openApiAuthRequest
       .get(OpenAIEndpoints.retrieveFineTuneEndpoint(fineTuneId))
