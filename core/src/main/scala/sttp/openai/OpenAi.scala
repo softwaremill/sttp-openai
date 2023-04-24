@@ -277,7 +277,7 @@ class OpenAi(authToken: String) {
       )
       .response(asJsonSnake[AudioResponse])
 
-  /** Creates a variation of a given image
+  /** Transcribes audio into the input language
     *
     * @param transcriptionConfig
     *   An instance of the case class TranscriptionConfig containing the necessary parameters for the audio transcription
