@@ -13,7 +13,7 @@ object EditRequestResponseData {
   )
 
   object EditResponse {
-    implicit val editResponseRW: SnakePickle.ReadWriter[EditResponse] = SnakePickle.macroRW[EditResponse]
+    implicit val editResponseR: SnakePickle.Reader[EditResponse] = SnakePickle.macroR[EditResponse]
   }
 
   case class Choices(
@@ -22,7 +22,7 @@ object EditRequestResponseData {
   )
 
   object Choices {
-    implicit val choicesRW: SnakePickle.ReadWriter[Choices] = SnakePickle.macroRW[Choices]
+    implicit val choicesRW: SnakePickle.Reader[Choices] = SnakePickle.macroR[Choices]
   }
 
 }

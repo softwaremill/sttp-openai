@@ -9,12 +9,16 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
-import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
+import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.finetunes.FineTunesRequestBody
 import sttp.openai.requests.finetunes.FineTunesResponseData.{CreateFineTuneResponse, GetFineTunesResponse}
-import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody
-import sttp.openai.requests.images.ImageCreationResponseData.ImageCreationResponse
+import sttp.openai.requests.images.ImageResponseData.ImageResponse
+import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
+import sttp.openai.requests.images.edit.ImageEditConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+
+import java.io.File
+import java.nio.file.Paths
 
 class OpenAi(authToken: String) {
 
@@ -67,11 +71,79 @@ class OpenAi(authToken: String) {
     *
     * Creates an image given a prompt in request body and send it over to [[https://api.openai.com/v1/images/generations]]
     */
-  def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageCreationResponse]] =
+  def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.CreateImageEndpoint)
       .body(imageCreationBody)
-      .response(asJsonSnake[ImageCreationResponse])
+      .response(asJsonSnake[ImageResponse])
+
+  /** Creates an edited or extended image given an original image and a prompt
+    * @param image
+    *   [[java.io.File File]] of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not
+    *   provided, image must have transparency, which will be used as the mask
+    * @param prompt
+    *   A text description of the desired image(s). The maximum length is 1000 characters.
+    * @return
+    *   An url to edited image.
+    */
+  def imageEdit(image: File, prompt: String): Request[Either[ResponseException[String, Exception], ImageResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EditImageEndpoint)
+      .multipartBody(
+        multipart("prompt", prompt),
+        multipartFile("image", image)
+      )
+      .response(asJsonSnake[ImageResponse])
+
+  /** Creates an edited or extended image given an original image and a prompt
+    *
+    * @param systemPath
+    *   [[java.lang.String systemPath]] of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If
+    *   mask is not provided, image must have transparency, which will be used as the mask
+    * @param prompt
+    *   A text description of the desired image(s). The maximum length is 1000 characters.
+    * @return
+    *   An url to edited image.
+    */
+  def imageEdit(systemPath: String, prompt: String): Request[Either[ResponseException[String, Exception], ImageResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EditImageEndpoint)
+      .multipartBody(
+        multipart("prompt", prompt),
+        multipartFile("image", Paths.get(systemPath).toFile)
+      )
+      .response(asJsonSnake[ImageResponse])
+
+  /** Creates an edited or extended image given an original image and a prompt
+    *
+    * @param imageEditConfig
+    *   An instance of the case class ImageEditConfig containing the necessary parameters for editing the image
+    *   - image: A file representing the image to be edited.
+    *   - prompt: A string describing the desired edits to be made to the image.
+    *   - mask: An optional file representing a mask to be applied to the image.
+    *   - n: An optional integer specifying the number of edits to be made.
+    *   - size: An optional instance of the Size case class representing the desired size of the output image.
+    *   - responseFormat: An optional instance of the ResponseFormat case class representing the desired format of the response.
+    * @return
+    *   An url to edited image.
+    */
+  def imageEdit(
+      imageEditConfig: ImageEditConfig
+  ): Request[Either[ResponseException[String, Exception], ImageResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EditImageEndpoint)
+      .multipartBody {
+        import imageEditConfig._
+        Seq(
+          Some(multipartFile("image", image)),
+          Some(multipart("prompt", prompt)),
+          mask.map(multipartFile("mask", _)),
+          n.map(multipart("n", _)),
+          size.map(s => multipart("size", s.value)),
+          responseFormat.map(format => multipart("response_format", format.value))
+        ).flatten
+      }
+      .response(asJsonSnake[ImageResponse])
 
   /** @param editRequestBody
     *   Edit request body
