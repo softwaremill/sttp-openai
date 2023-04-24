@@ -5,7 +5,7 @@ import sttp.openai.requests.images.{ResponseFormat, Size}
 import java.io.File
 import java.nio.file.Paths
 
-case class ImageVariationConfig(
+case class ImageVariationsConfig(
     image: File,
     n: Option[Int] = None,
     size: Option[Size] = None,
@@ -13,15 +13,15 @@ case class ImageVariationConfig(
     user: Option[String] = None
 )
 
-object ImageVariationConfig {
+object ImageVariationsConfig {
   def createImageVariationConfigWithSystemPaths(
       systemPathImage: String,
       n: Option[Int],
       size: Option[Size],
       responseFormat: Option[ResponseFormat],
       user: Option[String]
-  ): ImageVariationConfig =
-    ImageVariationConfig(
+  ): ImageVariationsConfig =
+    ImageVariationsConfig(
       Paths.get(systemPathImage).toFile,
       n,
       size,
