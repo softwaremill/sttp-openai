@@ -35,6 +35,28 @@ class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     givenResponse.value shouldBe expectedResponse
   }
 
+  "Given upload file response as Json" should "be properly deserialized to case class" in {
+    // given
+    val singleFileJsonResponse = fixtures.FilesResponse.singleFileJsonResponse
+    val expectedResponse =
+      FileData(
+        `object` = "file",
+        id = "file-tralala",
+        purpose = "fine-tune",
+        filename = "example.jsonl",
+        bytes = 44,
+        createdAt = 1681375533,
+        status = "uploaded",
+        statusDetails = None
+      )
+
+    // when
+    val givenResponse: Either[Exception, FileData] = SttpUpickleApiExtension.deserializeJsonSnake[FileData].apply(singleFileJsonResponse)
+
+    // then
+    givenResponse.value shouldBe expectedResponse
+  }
+
   "Given delete file response as Json" should "be properly deserialized to case class" in {
     // given
     val listFilesResponse = fixtures.FilesResponse.deleteFileJsonResponse
