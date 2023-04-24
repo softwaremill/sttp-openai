@@ -55,11 +55,11 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, FineTuneResponse] =
+    val deserializedJsonResponse: Either[Exception, FineTuneResponse] =
       SttpUpickleApiExtension.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
 
     // then
-    givenResponse.value shouldBe expectedResponse
+    deserializedJsonResponse.value shouldBe expectedResponse
   }
 
   "Given create fine tunes request as case class" should "be properly serialized to Json" in {
@@ -139,11 +139,11 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, GetFineTunesResponse] =
+    val deserializedJsonResponse: Either[Exception, GetFineTunesResponse] =
       SttpUpickleApiExtension.deserializeJsonSnake[GetFineTunesResponse].apply(jsonResponse)
 
     // then
-    givenResponse.value shouldBe expectedResponse
+    deserializedJsonResponse.value shouldBe expectedResponse
   }
 
   "Given retrieve fine tunes response as Json" should "be properly deserialized to case class" in {
@@ -263,11 +263,11 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, FineTuneResponse] =
+    val deserializedJsonResponse: Either[Exception, FineTuneResponse] =
       SttpUpickleApiExtension.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
 
     // then
-    givenResponse.value shouldBe expectedResponse
+    deserializedJsonResponse.value shouldBe expectedResponse
   }
 
 }
