@@ -147,6 +147,7 @@ class OpenAi(authToken: String) {
       .response(asJsonSnake[ImageResponse])
 
   /** Creates variations of a given image
+    *
     * @param image
     *   [[java.io.File File]] of the JSON Lines base image. <p> Must be a valid PNG file, less than 4MB, and square.
     * @return
@@ -163,6 +164,7 @@ class OpenAi(authToken: String) {
       .response(asJsonSnake[ImageResponse])
 
   /** Creates variations of a given image
+    *
     * @param systemPath
     *   [[java.lang.String systemPath]] of the JSON Lines base image. <p> Must be a valid PNG file, less than 4MB, and square.
     * @return
@@ -179,6 +181,7 @@ class OpenAi(authToken: String) {
       .response(asJsonSnake[ImageResponse])
 
   /** Creates variations of a given image
+    *
     * @param imageVariationsConfig
     *   An instance of the case class ImageVariationsConfig containing the necessary parameters for the image variation
     *   - image: A file of base image.
