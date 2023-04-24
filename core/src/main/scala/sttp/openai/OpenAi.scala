@@ -19,6 +19,8 @@ import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreati
 import sttp.openai.requests.images.edit.ImageEditsConfig
 import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
+import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.Model
@@ -328,6 +330,17 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  /** @param moderationsBody
+    *   Moderation request body.
+    * @return
+    *   Classifies if text violates OpenAI's Content Policy
+    */
+  def createModeration(moderationsBody: ModerationsBody) =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.ModerationsEndpoint)
+      .body(moderationsBody)
+      .response(asJsonSnake[ModerationData])
+
   /** Transcribes audio into the input language
     *
     * @param file
@@ -457,6 +470,7 @@ private object OpenAIEndpoints {
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
   val FineTunesEndpoint: Uri = uri"https://api.openai.com/v1/fine-tunes"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
+  val ModerationsEndpoint: Uri = uri"https://api.openai.com/v1/moderations"
   val TranscriptionEndpoint: Uri = AudioEndpoint.addPath("transcriptions")
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
