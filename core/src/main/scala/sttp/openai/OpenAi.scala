@@ -32,18 +32,6 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.ModelEndpoint)
       .response(asJsonSnake[ModelsResponse])
 
-  /** @param completionBody
-    *   Request body
-    *
-    * Creates a completion for the provided prompt and parameters given in request body and send it over to
-    * [[https://api.openai.com/v1/completions]]
-    */
-  def createCompletion(completionBody: CompletionsBody): Request[Either[ResponseException[String, Exception], CompletionsResponse]] =
-    openApiAuthRequest
-      .post(OpenAIEndpoints.CompletionsEndpoint)
-      .body(completionBody)
-      .response(asJsonSnake[CompletionsResponse])
-
   /** @param modelId
     *   a Model's Id as String
     *
@@ -54,26 +42,22 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveModelEndpoint(modelId))
       .response(asJsonSnake[ModelData])
 
-  /** Fetches all files that belong to the user's organization from [[https://platform.openai.com/docs/api-reference/files]] */
-  def getFiles: Request[Either[ResponseException[String, Exception], FilesResponse]] =
+  /** @param completionBody
+    *   Request body
+    *
+    * Creates a completion for the provided prompt and parameters given in request body. More info:
+    * [[https://platform.openai.com/docs/api-reference/completions/create]]
+    */
+  def createCompletion(completionBody: CompletionsBody): Request[Either[ResponseException[String, Exception], CompletionsResponse]] =
     openApiAuthRequest
-      .get(OpenAIEndpoints.FilesEndpoint)
-      .response(asJsonSnake[FilesResponse])
-
-    /** @param fileId
-      *   The ID of the file to use for this request.
-      * @return
-      *   Information about deleted file.
-      */
-  def deleteFile(fileId: String): Request[Either[ResponseException[String, Exception], DeletedFileData]] =
-    openApiAuthRequest
-      .delete(OpenAIEndpoints.deleteFileEndpoint(fileId))
-      .response(asJsonSnake[DeletedFileData])
+      .post(OpenAIEndpoints.CompletionsEndpoint)
+      .body(completionBody)
+      .response(asJsonSnake[CompletionsResponse])
 
   /** @param imageCreationBody
     *   Create image request body
     *
-    * Creates an image given a prompt in request body and send it over to [[https://api.openai.com/v1/images/generations]]
+    * Creates an image given a prompt in request body. More info: [[https://platform.openai.com/docs/api-reference/images/create]]
     */
   def createImage(imageCreationBody: ImageCreationBody): Request[Either[ResponseException[String, Exception], ImageResponse]] =
     openApiAuthRequest
@@ -83,8 +67,8 @@ class OpenAi(authToken: String) {
 
   /** Creates edited or extended images given an original image and a prompt
     * @param image
-    *   [[java.io.File File]] of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not
-    *   provided, image must have transparency, which will be used as the mask
+    *   JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image must have
+    *   transparency, which will be used as the mask
     * @param prompt
     *   A text description of the desired image(s). The maximum length is 1000 characters.
     * @return
@@ -215,7 +199,7 @@ class OpenAi(authToken: String) {
   /** @param editRequestBody
     *   Edit request body
     *
-    * Creates a new edit for provided request body and send it over to [[https://api.openai.com/v1/chat/completions]]
+    * Creates a new edit for provided request body. More info: [[https://platform.openai.com/docs/api-reference/edits/create]]
     */
   def createEdit(editRequestBody: EditBody): Request[Either[ResponseException[String, Exception], EditResponse]] =
     openApiAuthRequest
@@ -226,13 +210,109 @@ class OpenAi(authToken: String) {
   /** @param chatBody
     *   Chat request body
     *
-    * Creates a completion for the chat message given in request body and send it over to [[https://api.openai.com/v1/chat/completions]]
+    * Creates a completion for the chat message given in request body. More info:
+    * [[https://platform.openai.com/docs/api-reference/chat/create]]
     */
   def createChatCompletion(chatBody: ChatBody): Request[Either[ResponseException[String, Exception], ChatResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.ChatEndpoint)
       .body(chatBody)
       .response(asJsonSnake[ChatResponse])
+
+  /** Fetches all files that belong to the user's organization from [[https://platform.openai.com/docs/api-reference/files]] */
+  def getFiles: Request[Either[ResponseException[String, Exception], FilesResponse]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.FilesEndpoint)
+      .response(asJsonSnake[FilesResponse])
+
+  /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
+    * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
+    * @param file
+    *   JSON Lines file to be uploaded. <p> If the purpose is set to "fine-tune", each line is a JSON record with "prompt" and "completion"
+    *   fields representing your [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
+    * @param purpose
+    *   The intended purpose of the uploaded documents. <p> Use "fine-tune" for Fine-tuning. This allows OpenAI to validate the format of
+    *   the uploaded file.
+    * @return
+    *   Uploaded file's basic information.
+    */
+  def uploadFile(file: File, purpose: String): Request[Either[ResponseException[String, Exception], FileData]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.FilesEndpoint)
+      .multipartBody(
+        multipart("purpose", purpose),
+        multipartFile("file", file)
+      )
+      .response(asJsonSnake[FileData])
+
+  /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
+    * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
+    *
+    * @param file
+    *   JSON Lines file to be uploaded and the purpose is set to "fine-tune", each line is a JSON record with "prompt" and "completion"
+    *   fields representing your [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
+    * @return
+    *   Uploaded file's basic information.
+    */
+  def uploadFile(file: File): Request[Either[ResponseException[String, Exception], FileData]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.FilesEndpoint)
+      .multipartBody(
+        multipart("purpose", "fine-tune"),
+        multipartFile("file", file)
+      )
+      .response(asJsonSnake[FileData])
+
+  /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
+    * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
+    *
+    * @param systemPath
+    *   Path to the JSON Lines file to be uploaded. <p> If the purpose is set to "fine-tune", each line is a JSON record with "prompt" and
+    *   "completion" fields representing your
+    *   [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
+    * @param purpose
+    *   The intended purpose of the uploaded documents. <p> Use "fine-tune" for Fine-tuning. This allows OpenAI to validate the format of
+    *   the uploaded file.
+    * @return
+    *   Uploaded file's basic information.
+    */
+  def uploadFile(systemPath: String, purpose: String): Request[Either[ResponseException[String, Exception], FileData]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.FilesEndpoint)
+      .multipartBody(
+        multipart("purpose", purpose),
+        multipartFile("file", Paths.get(systemPath).toFile)
+      )
+      .response(asJsonSnake[FileData])
+
+  /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
+    * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
+    *
+    * @param systemPath
+    *   Path to the JSON Lines file to be uploaded and the purpose is set to "fine-tune", each line is a JSON record with "prompt" and
+    *   "completion" fields representing your
+    *   [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
+    * @return
+    *   Uploaded file's basic information.
+    */
+  def uploadFile(systemPath: String): Request[Either[ResponseException[String, Exception], FileData]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.FilesEndpoint)
+      .multipartBody(
+        multipart("purpose", "fine-tune"),
+        multipartFile("file", Paths.get(systemPath).toFile)
+      )
+      .response(asJsonSnake[FileData])
+
+  /** @param fileId
+    *   The ID of the file to use for this request.
+    * @return
+    *   Information about deleted file.
+    */
+  def deleteFile(fileId: String): Request[Either[ResponseException[String, Exception], DeletedFileData]] =
+    openApiAuthRequest
+      .delete(OpenAIEndpoints.deleteFileEndpoint(fileId))
+      .response(asJsonSnake[DeletedFileData])
 
   /** @param fileId
     *   The ID of the file to use for this request.
