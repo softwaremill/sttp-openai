@@ -12,7 +12,7 @@ import sttp.openai.requests.completions.edit.EditRequestResponseData.EditRespons
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.{CreateFineTuneResponse, GetFineTunesResponse}
+import sttp.openai.requests.finetunes.FineTunesResponseData.{FineTuneResponse, GetFineTunesResponse}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -64,8 +64,8 @@ class OpenAi(authToken: String) {
 
   /** Creates edited or extended images given an original image and a prompt
     * @param image
-    *   JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not
-    *   provided, image must have transparency, which will be used as the mask
+    *   JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image must have
+    *   transparency, which will be used as the mask
     * @param prompt
     *   A text description of the desired image(s). The maximum length is 1000 characters.
     * @return
@@ -83,8 +83,8 @@ class OpenAi(authToken: String) {
   /** Creates edited or extended images given an original image and a prompt
     *
     * @param systemPath
-    *   Path to the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If
-    *   mask is not provided, image must have transparency, which will be used as the mask
+    *   Path to the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image
+    *   must have transparency, which will be used as the mask
     * @param prompt
     *   A text description of the desired image(s). The maximum length is 1000 characters.
     * @return
@@ -207,7 +207,8 @@ class OpenAi(authToken: String) {
   /** @param chatBody
     *   Chat request body
     *
-    * Creates a completion for the chat message given in request body. More info: [[https://platform.openai.com/docs/api-reference/chat/create]]
+    * Creates a completion for the chat message given in request body. More info:
+    * [[https://platform.openai.com/docs/api-reference/chat/create]]
     */
   def createChatCompletion(chatBody: ChatBody): Request[Either[ResponseException[String, Exception], ChatResponse]] =
     openApiAuthRequest
@@ -224,9 +225,8 @@ class OpenAi(authToken: String) {
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
     * @param file
-    *   JSON Lines file to be uploaded. <p> If the purpose is set to "fine-tune", each line is a JSON record
-    *   with "prompt" and "completion" fields representing your
-    *   [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
+    *   JSON Lines file to be uploaded. <p> If the purpose is set to "fine-tune", each line is a JSON record with "prompt" and "completion"
+    *   fields representing your [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
     * @param purpose
     *   The intended purpose of the uploaded documents. <p> Use "fine-tune" for Fine-tuning. This allows OpenAI to validate the format of
     *   the uploaded file.
@@ -246,9 +246,8 @@ class OpenAi(authToken: String) {
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
     *
     * @param file
-    *   JSON Lines file to be uploaded and the purpose is set to "fine-tune", each line is a JSON record with
-    *   "prompt" and "completion" fields representing your
-    *   [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
+    *   JSON Lines file to be uploaded and the purpose is set to "fine-tune", each line is a JSON record with "prompt" and "completion"
+    *   fields representing your [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
     * @return
     *   Uploaded file's basic information.
     */
@@ -265,8 +264,8 @@ class OpenAi(authToken: String) {
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
     *
     * @param systemPath
-    *   Path to the JSON Lines file to be uploaded. <p> If the purpose is set to "fine-tune", each line is a JSON
-    *   record with "prompt" and "completion" fields representing your
+    *   Path to the JSON Lines file to be uploaded. <p> If the purpose is set to "fine-tune", each line is a JSON record with "prompt" and
+    *   "completion" fields representing your
     *   [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
     * @param purpose
     *   The intended purpose of the uploaded documents. <p> Use "fine-tune" for Fine-tuning. This allows OpenAI to validate the format of
@@ -287,8 +286,8 @@ class OpenAi(authToken: String) {
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
     *
     * @param systemPath
-    *   Path to the JSON Lines file to be uploaded and the purpose is set to "fine-tune", each line is a JSON
-    *   record with "prompt" and "completion" fields representing your
+    *   Path to the JSON Lines file to be uploaded and the purpose is set to "fine-tune", each line is a JSON record with "prompt" and
+    *   "completion" fields representing your
     *   [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
     * @return
     *   Uploaded file's basic information.
@@ -330,11 +329,11 @@ class OpenAi(authToken: String) {
     */
   def createFineTune(
       fineTunesRequestBody: FineTunesRequestBody
-  ): Request[Either[ResponseException[String, Exception], CreateFineTuneResponse]] =
+  ): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.FineTunesEndpoint)
       .body(fineTunesRequestBody)
-      .response(asJsonSnake[CreateFineTuneResponse])
+      .response(asJsonSnake[FineTuneResponse])
 
   /** @return
     *   List of your organization's fine-tuning jobs.
@@ -343,6 +342,16 @@ class OpenAi(authToken: String) {
     openApiAuthRequest
       .get(OpenAIEndpoints.FineTunesEndpoint)
       .response(asJsonSnake[GetFineTunesResponse])
+
+  /** @param fineTuneId
+    *   The ID of the fine-tune job.
+    * @return
+    *   Info about the fine-tune job.
+    */
+  def retrieveFineTune(fineTuneId: String): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.retrieveFineTuneEndpoint(fineTuneId))
+      .response(asJsonSnake[FineTuneResponse])
 
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
@@ -363,5 +372,6 @@ private object OpenAIEndpoints {
 
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
+  def retrieveFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
 }
