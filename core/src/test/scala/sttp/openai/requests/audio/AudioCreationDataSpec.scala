@@ -7,7 +7,7 @@ import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
 
 class AudioCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues {
-  "Given image generation response as Json" should "be properly deserialized to case class" in {
+  "Given audio generation response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.audio.AudioResponseData.AudioResponse
     import sttp.openai.requests.audio.AudioResponseData.AudioResponse._
 
