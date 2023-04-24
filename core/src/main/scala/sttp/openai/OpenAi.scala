@@ -127,6 +127,12 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FineTunesEndpoint)
       .response(asJsonSnake[GetFineTunesResponse])
 
+
+  def cancelFineTune(fineTuneId: String) =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.cancelFineTuneEndpoint(fineTuneId))
+      .response(asString)
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -144,6 +150,7 @@ private object OpenAIEndpoints {
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
+  def cancelFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId, "cancel")
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
