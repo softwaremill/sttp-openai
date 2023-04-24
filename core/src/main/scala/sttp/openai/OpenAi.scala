@@ -127,6 +127,15 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FineTunesEndpoint)
       .response(asJsonSnake[GetFineTunesResponse])
 
+  /**
+   * @param fineTuneId The ID of the fine-tune job.
+   * @return Info about the fine-tune job.
+   */
+  def retrieveFineTune(fineTuneId: String) =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.retrieveFineTuneEndpoint(fineTuneId))
+      .response(asJsonSnake[CreateFineTuneResponse])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -146,5 +155,6 @@ private object OpenAIEndpoints {
 
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
+  def retrieveFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
 }
