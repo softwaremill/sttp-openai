@@ -102,8 +102,8 @@ class OpenAi(authToken: String) {
   /** Creates edited or extended images given an original image and a prompt
     *
     * @param systemPath
-    *   [[java.lang.String systemPath]] of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If
-    *   mask is not provided, image must have transparency, which will be used as the mask
+    *   SystemPath of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided,
+    *   image must have transparency, which will be used as the mask
     * @param prompt
     *   A text description of the desired image(s). The maximum length is 1000 characters.
     * @return
@@ -152,7 +152,7 @@ class OpenAi(authToken: String) {
   /** Creates variations of a given image
     *
     * @param image
-    *   [[java.io.File File]] of the JSON Lines base image. <p> Must be a valid PNG file, less than 4MB, and square.
+    *   File of the JSON Lines base image. <p> Must be a valid PNG file, less than 4MB, and square.
     * @return
     *   An url to edited image.
     */
@@ -169,7 +169,7 @@ class OpenAi(authToken: String) {
   /** Creates variations of a given image
     *
     * @param systemPath
-    *   [[java.lang.String systemPath]] of the JSON Lines base image. <p> Must be a valid PNG file, less than 4MB, and square.
+    *   SystemPath of the JSON Lines base image. <p> Must be a valid PNG file, less than 4MB, and square.
     * @return
     *   An url to edited image.
     */
@@ -247,7 +247,7 @@ class OpenAi(authToken: String) {
   /** Transcribes audio into the input language
     *
     * @param file
-    *   [[java.io.File File]] The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+    *   The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
     *   ID of the model to use. Only [[whisper-1]] is currently available.
     * @return
@@ -265,7 +265,7 @@ class OpenAi(authToken: String) {
   /** Transcribes audio into the input language
     *
     * @param systemPath
-    *   [[java.lang.String]] The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+    *   The audio systemPath to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
     *   ID of the model to use. Only [[whisper-1]] is currently available.
     * @return
