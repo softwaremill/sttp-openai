@@ -12,8 +12,6 @@ import sttp.openai.requests.completions.edit.EditRequestResponseData.EditRespons
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.finetunes.FineTunesRequestBody
 import sttp.openai.requests.finetunes.FineTunesResponseData.{CreateFineTuneResponse, GetFineTunesResponse}
-import sttp.openai.requests.images.ImageCreationRequestBody.ImageCreationBody
-import sttp.openai.requests.images.ImageCreationResponseData.ImageCreationResponse
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditConfig
@@ -135,14 +133,14 @@ class OpenAi(authToken: String) {
     openApiAuthRequest
       .post(OpenAIEndpoints.EditImageEndpoint)
       .multipartBody {
-        import imageEditConfig.*
+        import imageEditConfig._
         Seq(
           Some(multipartFile("image", image)),
           Some(multipart("prompt", prompt)),
           mask.map(multipartFile("mask", _)),
           n.map(multipart("n", _)),
-          size.map(multipart("size", _)),
-          responseFormat.map(multipart("response_format", _))
+          size.map(s => multipart("size", s.value)),
+          responseFormat.map(format => multipart("response_format", format.value))
         ).flatten
       }
       .response(asJsonSnake[ImageResponse])
