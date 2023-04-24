@@ -20,7 +20,7 @@ import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
-import sttp.openai.requests.audio.Model
+import sttp.openai.requests.audio.RecognitionModel
 
 import java.io.File
 import java.nio.file.Paths
@@ -334,7 +334,7 @@ class OpenAi(authToken: String) {
     * @return
     *   Transcription of recorded audio into text.
     */
-  def createTranslation(file: File, model: Model): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+  def createTranslation(file: File, model: RecognitionModel): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranslationEndpoint)
       .multipartBody(
@@ -352,7 +352,7 @@ class OpenAi(authToken: String) {
     * @return
     *   Transcription of recorded audio into text.
     */
-  def createTranslation(systemPath: String, model: Model): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+  def createTranslation(systemPath: String, model: RecognitionModel): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranslationEndpoint)
       .multipartBody(
@@ -399,7 +399,7 @@ class OpenAi(authToken: String) {
     * @return
     *   Transcription of recorded audio into text.
     */
-  def createTranscription(file: File, model: Model): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+  def createTranscription(file: File, model: RecognitionModel): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranscriptionEndpoint)
       .multipartBody(
@@ -417,7 +417,7 @@ class OpenAi(authToken: String) {
     * @return
     *   Transcription of recorded audio into text.
     */
-  def createTranscription(systemPath: String, model: Model): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+  def createTranscription(systemPath: String, model: RecognitionModel): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranscriptionEndpoint)
       .multipartBody(
