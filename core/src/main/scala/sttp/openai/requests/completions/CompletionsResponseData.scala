@@ -10,7 +10,7 @@ object CompletionsResponseData {
       finishReason: String
   )
   object Choices {
-    implicit val choicesRW: SnakePickle.ReadWriter[Choices] = SnakePickle.macroRW[Choices]
+    implicit val choicesR: SnakePickle.Reader[Choices] = SnakePickle.macroR[Choices]
   }
 
   case class CompletionsResponse(
@@ -22,6 +22,6 @@ object CompletionsResponseData {
       usage: Usage
   )
   object CompletionsResponse {
-    implicit val choicesRW: SnakePickle.ReadWriter[CompletionsResponse] = SnakePickle.macroRW[CompletionsResponse]
+    implicit val choicesR: SnakePickle.Reader[CompletionsResponse] = SnakePickle.macroR[CompletionsResponse]
   }
 }
