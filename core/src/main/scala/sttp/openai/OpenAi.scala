@@ -87,14 +87,9 @@ class OpenAi(authToken: String) {
   /** Creates edited or extended images given an original image and a prompt
     *
     * @param systemPath
-    *   <<<<<<< HEAD SystemPath of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is
-    *   not provided, image must have transparency, which will be used as the mask
-    * \=======
+    *   SystemPath of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided,
+    *   image must have transparency, which will be used as the mask
     *
-    * SystemPath of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided,
-    * image must have transparency, which will be used as the mask
-    *
-    * >>>>>>> 7ddcc2c5fbc796c3c585c545ce5aadfccd0e949b
     * @param prompt
     *   A text description of the desired image(s). The maximum length is 1000 characters.
     * @return
@@ -336,7 +331,7 @@ class OpenAi(authToken: String) {
     * @param file
     *   File The audio file to translate, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only [[whisper-1]] is currently available.
+    *   ID of the model to use. Only whisper-1 is currently available.
     * @return
     *   Transcription of recorded audio into text.
     */
@@ -354,7 +349,7 @@ class OpenAi(authToken: String) {
     * @param systemPath
     *   The audio systemPath to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only [[whisper-1]] is currently available.
+    *   ID of the model to use. Only whisper-1 is currently available.
     * @return
     *   Transcription of recorded audio into text.
     */
@@ -372,7 +367,7 @@ class OpenAi(authToken: String) {
     * @param translationConfig
     *   An instance of the case class TranslationConfig containing the necessary parameters for the audio translation
     *   - file: The audio file to translate, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
-    *   - model: ID of the model to use. Only [[whisper-1]] is currently available.
+    *   - model: ID of the model to use. Only whisper-1 is currently available.
     *   - prompt: An optional text to guide the model's style or continue a previous audio segment. The prompt should be in English.
     *   - responseFormat: An optional instance of the ResponseFormat case class representing the desired format of the response.
     *   - temperature: An optional sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while
@@ -401,7 +396,7 @@ class OpenAi(authToken: String) {
     * @param file
     *   The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only [[whisper-1]] is currently available.
+    *   ID of the model to use. Only whisper-1 is currently available.
     * @return
     *   Transcription of recorded audio into text.
     */
@@ -420,7 +415,7 @@ class OpenAi(authToken: String) {
     * @param systemPath
     *   The audio systemPath to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only [[whisper-1]] is currently available.
+    *   ID of the model to use. Only whisper-1 is currently available.
     * @return
     *   Transcription of recorded audio into text.
     */
@@ -441,7 +436,7 @@ class OpenAi(authToken: String) {
     * @param transcriptionConfig
     *   An instance of the case class TranscriptionConfig containing the necessary parameters for the audio transcription
     *   - file: The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
-    *   - model: ID of the model to use. Only [[whisper-1]] is currently available.
+    *   - model: ID of the model to use. Only whisper-1 is currently available.
     *   - prompt: An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio
     *     language.
     *   - responseFormat: An optional instance of the ResponseFormat case class representing the desired format of the response.
