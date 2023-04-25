@@ -501,6 +501,18 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FineTunesEndpoint)
       .response(asJsonSnake[GetFineTunesResponse])
 
+  /** Immediately cancel a fine-tune job.
+    *
+    * @param fineTuneId
+    *   The ID of the fine-tune job to cancel.
+    * @return
+    *   Cancelled fine-tune job.
+    */
+  def cancelFineTune(fineTuneId: String): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.cancelFineTuneEndpoint(fineTuneId))
+      .response(asJsonSnake[FineTuneResponse])
+
   /** @param embeddingsBody
     *   Embeddings request body.
     * @return
@@ -544,6 +556,7 @@ private object OpenAIEndpoints {
   val TranslationEndpoint: Uri = AudioEndpoint.addPath("translations")
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
+  def cancelFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId, "cancel")
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId)
