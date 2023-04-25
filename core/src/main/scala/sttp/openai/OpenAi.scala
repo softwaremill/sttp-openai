@@ -9,14 +9,18 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
+import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
+import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.finetunes.FineTunesResponseData.{FineTuneResponse, GetFineTunesResponse}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
+import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
+import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
@@ -391,6 +395,17 @@ class OpenAi(authToken: String) {
       }
       .response(asJsonSnake[AudioResponse])
 
+  /** @param moderationsBody
+    *   Moderation request body.
+    * @return
+    *   Classifies if text violates OpenAI's Content Policy
+    */
+  def createModeration(moderationsBody: ModerationsBody) =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.ModerationsEndpoint)
+      .body(moderationsBody)
+      .response(asJsonSnake[ModerationData])
+
   /** Transcribes audio into the input language
     *
     * @param file
@@ -486,6 +501,17 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FineTunesEndpoint)
       .response(asJsonSnake[GetFineTunesResponse])
 
+  /** @param embeddingsBody
+    *   Embeddings request body.
+    * @return
+    *   An embedding vector representing the input text.
+    */
+  def createEmbeddings(embeddingsBody: EmbeddingsBody) =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.EmbeddingsEndpoint)
+      .body(embeddingsBody)
+      .response(asJsonSnake[EmbeddingResponse])
+
   /** @param fineTuneId
     *   The ID of the fine-tune job.
     * @return
@@ -508,12 +534,14 @@ private object OpenAIEndpoints {
   val CompletionsEndpoint: Uri = uri"https://api.openai.com/v1/completions"
   val CreateImageEndpoint: Uri = ImageEndpointBase.addPath("generations")
   val EditEndpoint: Uri = uri"https://api.openai.com/v1/edits"
+  val EmbeddingsEndpoint: Uri = uri"https://api.openai.com/v1/embeddings"
   val EditImageEndpoint: Uri = ImageEndpointBase.addPath("edits")
   val FilesEndpoint: Uri = uri"https://api.openai.com/v1/files"
   val FineTunesEndpoint: Uri = uri"https://api.openai.com/v1/fine-tunes"
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
-  val TranslationEndpoint: Uri = AudioEndpoint.addPath("translations")
+  val ModerationsEndpoint: Uri = uri"https://api.openai.com/v1/moderations"
   val TranscriptionEndpoint: Uri = AudioEndpoint.addPath("transcriptions")
+  val TranslationEndpoint: Uri = AudioEndpoint.addPath("translations")
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
