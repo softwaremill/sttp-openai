@@ -330,6 +330,16 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  /** @param fileId
+    *   The ID of the file.
+    * @return
+    *   the contents of the specified file.
+    */
+  def retrieveFileContent(fileId: String): Request[Either[String, String]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.retrieveFileContentEndpoint(fileId))
+      .response(asString)
+
   /** @param moderationsBody
     *   Moderation request body.
     * @return
@@ -475,6 +485,7 @@ private object OpenAIEndpoints {
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
+  def retrieveFileContentEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId, "content")
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
