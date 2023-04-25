@@ -270,4 +270,150 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     deserializedJsonResponse.value shouldBe expectedResponse
   }
 
+  "Given delete fine tune model response as Json" should "be properly deserialized to case class" in {
+
+    // given
+    val jsonResponse = fixtures.FineTunesFixture.jsonDeleteFineTuneModel
+    val expectedResponse: DeleteFineTuneModelResponse = DeleteFineTuneModelResponse(
+      id = "curie:ft-personal-2023-04-18-09-48-38",
+      `object` = "model",
+      deleted = true
+    )
+    // when
+    val deserializedJsonResponse: Either[Exception, DeleteFineTuneModelResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[DeleteFineTuneModelResponse].apply(jsonResponse)
+
+    // then
+    deserializedJsonResponse.value shouldBe expectedResponse
+  }
+
+  "Given list fine tunes events response as Json" should "be properly deserialized to case class" in {
+
+    // given
+    val jsonResponse = fixtures.FineTunesFixture.jsonListFineTuneEventsResponse
+    val expectedResponse: FineTuneEventsResponse = FineTuneEventsResponse(
+      `object` = "list",
+      data = Seq(
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Created fine-tune: ft-qSvHXdwMhuZZqWbXhJFmg21n",
+          createdAt = 1681810958
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Fine-tune costs $0.00",
+          createdAt = 1681811232
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Fine-tune enqueued. Queue number: 0",
+          createdAt = 1681811233
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Fine-tune started",
+          createdAt = 1681811237
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Completed epoch 1/4",
+          createdAt = 1681811298
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Completed epoch 2/4",
+          createdAt = 1681811298
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Completed epoch 3/4",
+          createdAt = 1681811299
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Completed epoch 4/4",
+          createdAt = 1681811299
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Uploaded model: curie:ft-personal-2023-04-18-09-48-38",
+          createdAt = 1681811319
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Uploaded result file: file-6kmg4GvzAumtDSeZ2jlcg3r5",
+          createdAt = 1681811320
+        ),
+        Event(
+          `object` = "fine-tune-event",
+          level = "info",
+          message = "Fine-tune succeeded",
+          createdAt = 1681811320
+        )
+      )
+    )
+
+    // when
+    val deserializedJsonResponse: Either[Exception, FineTuneEventsResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[FineTuneEventsResponse].apply(jsonResponse)
+
+    // then
+    deserializedJsonResponse.value shouldBe expectedResponse
+  }
+
+  "Given cancel fine tunes response as Json" should "be properly deserialized to case class" in {
+
+    // given
+    val jsonResponse = fixtures.FineTunesFixture.jsonCancelFineTuneResponse
+    val expectedResponse: FineTuneResponse = FineTuneResponse(
+      FineTuneData(
+        id = "ft-xhrpBbvVUzYGo8oUO1FY4nI7",
+        `object` = "fine-tune",
+        model = "curie",
+        createdAt = 1614807770,
+        fineTunedModel = None,
+        hyperparams = Hyperparams(
+          nEpochs = 4,
+          batchSize = Some(1),
+          promptLossWeight = 0.01,
+          learningRateMultiplier = Some(0.1)
+        ),
+        organizationId = "org-org1233",
+        trainingFiles = Seq(
+          FileData(
+            `object` = "file",
+            id = "file-train231",
+            purpose = "fine-tune-train",
+            filename = "my-data-train.jsonl",
+            bytes = 1547276,
+            createdAt = 1610062281,
+            status = "cancelled",
+            statusDetails = None
+          )
+        ),
+        validationFiles = Seq.empty[FileData],
+        resultFiles = Seq.empty[FileData],
+        updatedAt = 1614807789,
+        status = "cancelled"
+      ),
+      Seq.empty[Event]
+    )
+
+    // when
+    val deserializedJsonResponse: Either[Exception, FineTuneResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
+
+    // then
+    deserializedJsonResponse.value shouldBe expectedResponse
+  }
 }
