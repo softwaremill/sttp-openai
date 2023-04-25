@@ -13,7 +13,12 @@ import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.{DeleteFineTuneModelResponse, FineTuneResponse, GetFineTunesResponse}
+import sttp.openai.requests.finetunes.FineTunesResponseData.{
+  DeleteFineTuneModelResponse,
+  FineTuneEventsResponse,
+  FineTuneResponse,
+  GetFineTunesResponse
+}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -23,7 +28,8 @@ import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
-import sttp.openai.requests.audio.Model
+import sttp.openai.requests.audio.translations.TranslationConfig
+import sttp.openai.requests.audio.RecognitionModel
 
 import java.io.File
 import java.nio.file.Paths
@@ -90,9 +96,8 @@ class OpenAi(authToken: String) {
   /** Creates edited or extended images given an original image and a prompt
     *
     * @param systemPath
-    *
-    * SystemPath of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided,
-    * image must have transparency, which will be used as the mask
+    *   SystemPath of the JSON Lines image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided,
+    *   image must have transparency, which will be used as the mask
     *
     * @param prompt
     *   A text description of the desired image(s). The maximum length is 1000 characters.
@@ -330,6 +335,71 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFileEndpoint(fileId))
       .response(asJsonSnake[FileData])
 
+  /** Translates audio into into English
+    *
+    * @param file
+    *   File The audio file to translate, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+    * @param model
+    *   ID of the model to use. Only whisper-1 is currently available.
+    * @return
+    *   Transcription of recorded audio into text.
+    */
+  def createTranslation(file: File, model: RecognitionModel): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.TranslationEndpoint)
+      .multipartBody(
+        multipartFile("file", file),
+        multipart("model", model.value)
+      )
+      .response(asJsonSnake[AudioResponse])
+
+  /** Translates audio into into English
+    *
+    * @param systemPath
+    *   The audio systemPath to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+    * @param model
+    *   ID of the model to use. Only whisper-1 is currently available.
+    * @return
+    *   Transcription of recorded audio into text.
+    */
+  def createTranslation(systemPath: String, model: RecognitionModel): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.TranslationEndpoint)
+      .multipartBody(
+        multipartFile("file", Paths.get(systemPath).toFile),
+        multipart("model", model)
+      )
+      .response(asJsonSnake[AudioResponse])
+
+  /** Translates audio into into English
+    *
+    * @param translationConfig
+    *   An instance of the case class TranslationConfig containing the necessary parameters for the audio translation
+    *   - file: The audio file to translate, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+    *   - model: ID of the model to use. Only whisper-1 is currently available.
+    *   - prompt: An optional text to guide the model's style or continue a previous audio segment. The prompt should be in English.
+    *   - responseFormat: An optional instance of the ResponseFormat case class representing the desired format of the response.
+    *   - temperature: An optional sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while
+    *     lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to
+    *     automatically increase the temperature until certain thresholds are hit.
+    * @return
+    *   An url to edited image.
+    */
+  def createTranslation(translationConfig: TranslationConfig): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.TranslationEndpoint)
+      .multipartBody {
+        import translationConfig._
+        Seq(
+          Some(multipartFile("file", file)),
+          Some(multipart("model", model.value)),
+          prompt.map(multipart("prompt", _)),
+          responseFormat.map(format => multipart("response_format", format)),
+          temperature.map(multipart("temperature", _))
+        ).flatten
+      }
+      .response(asJsonSnake[AudioResponse])
+
   /** @param moderationsBody
     *   Moderation request body.
     * @return
@@ -346,11 +416,12 @@ class OpenAi(authToken: String) {
     * @param file
     *   The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only [[whisper-1]] is currently available.
+    *   ID of the model to use. Only whisper-1 is currently available.
     * @return
     *   Transcription of recorded audio into text.
     */
-  def createTranscription(file: File, model: Model): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+
+  def createTranscription(file: File, model: RecognitionModel): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranscriptionEndpoint)
       .multipartBody(
@@ -364,11 +435,14 @@ class OpenAi(authToken: String) {
     * @param systemPath
     *   The audio systemPath to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only [[whisper-1]] is currently available.
+    *   ID of the model to use. Only whisper-1 is currently available.
     * @return
     *   Transcription of recorded audio into text.
     */
-  def createTranscription(systemPath: String, model: Model): Request[Either[ResponseException[String, Exception], AudioResponse]] =
+  def createTranscription(
+      systemPath: String,
+      model: RecognitionModel
+  ): Request[Either[ResponseException[String, Exception], AudioResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.TranscriptionEndpoint)
       .multipartBody(
@@ -382,7 +456,7 @@ class OpenAi(authToken: String) {
     * @param transcriptionConfig
     *   An instance of the case class TranscriptionConfig containing the necessary parameters for the audio transcription
     *   - file: The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
-    *   - model: ID of the model to use. Only [[whisper-1]] is currently available.
+    *   - model: ID of the model to use. Only whisper-1 is currently available.
     *   - prompt: An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio
     *     language.
     *   - responseFormat: An optional instance of the ResponseFormat case class representing the desired format of the response.
@@ -432,6 +506,18 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FineTunesEndpoint)
       .response(asJsonSnake[GetFineTunesResponse])
 
+  /** Immediately cancel a fine-tune job.
+    *
+    * @param fineTuneId
+    *   The ID of the fine-tune job to cancel.
+    * @return
+    *   Cancelled fine-tune job.
+    */
+  def cancelFineTune(fineTuneId: String): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
+    openApiAuthRequest
+      .post(OpenAIEndpoints.cancelFineTuneEndpoint(fineTuneId))
+      .response(asJsonSnake[FineTuneResponse])
+
   /** @param embeddingsBody
     *   Embeddings request body.
     * @return
@@ -465,6 +551,16 @@ class OpenAi(authToken: String) {
       .delete(OpenAIEndpoints.deleteFineTuneModel(model))
       .response(asJsonSnake[DeleteFineTuneModelResponse])
 
+  /** @param fineTuneId
+    *   The ID of the fine-tune job to get events for.
+    * @return
+    *   Fine-grained status updates for a fine-tune job.
+    */
+  def getFineTuneEvents(fineTuneId: String): Request[Either[ResponseException[String, Exception], FineTuneEventsResponse]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.listFineTunesEndpoint(fineTuneId))
+      .response(asJsonSnake[FineTuneEventsResponse])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -484,10 +580,13 @@ private object OpenAIEndpoints {
   val ModelEndpoint: Uri = uri"https://api.openai.com/v1/models"
   val ModerationsEndpoint: Uri = uri"https://api.openai.com/v1/moderations"
   val TranscriptionEndpoint: Uri = AudioEndpoint.addPath("transcriptions")
+  val TranslationEndpoint: Uri = AudioEndpoint.addPath("translations")
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
+  def cancelFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId, "cancel")
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def deleteFineTuneModel(model: String): Uri = ModelEndpoint.addPath(model)
+  def listFineTunesEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId, "events")
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)
