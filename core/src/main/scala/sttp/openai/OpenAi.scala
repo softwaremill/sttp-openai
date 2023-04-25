@@ -548,7 +548,7 @@ class OpenAi(authToken: String) {
     */
   def deleteFineTuneModel(model: String): Request[Either[ResponseException[String, Exception], DeleteFineTuneModelResponse]] =
     openApiAuthRequest
-      .delete(OpenAIEndpoints.deleteFineTuneModel(model))
+      .delete(OpenAIEndpoints.deleteFineTuneModelUri(model))
       .response(asJsonSnake[DeleteFineTuneModelResponse])
 
   /** @param fineTuneId
@@ -585,7 +585,7 @@ private object OpenAIEndpoints {
 
   def cancelFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId, "cancel")
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
-  def deleteFineTuneModel(model: String): Uri = ModelEndpoint.addPath(model)
+  def deleteFineTuneModelUri(model: String): Uri = ModelEndpoint.addPath(model)
   def listFineTunesEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId, "events")
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId)
