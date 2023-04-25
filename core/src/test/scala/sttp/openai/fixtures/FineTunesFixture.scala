@@ -217,4 +217,10 @@ object FineTunesFixture {
                                        |  ]
                                        |}
                                        |""".stripMargin
+
+  val jsonDeleteFineTuneModel: String = """{
+                                          |  "id": "curie:ft-personal-2023-04-18-09-48-38",
+                                          |  "object": "model",
+                                          |  "deleted": true
+                                          |}""".stripMargin
 }

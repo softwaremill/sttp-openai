@@ -13,7 +13,7 @@ import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.{FineTuneResponse, GetFineTunesResponse}
+import sttp.openai.requests.finetunes.FineTunesResponseData.{DeleteFineTuneModelResponse, FineTuneResponse, GetFineTunesResponse}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -453,6 +453,18 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFineTuneEndpoint(fineTuneId))
       .response(asJsonSnake[FineTuneResponse])
 
+  /** Delete a fine-tuned model. You must have the Owner role in your organization.
+    *
+    * @param model
+    *   The model to delete.
+    * @return
+    *   Deleted fine-tuned model information.
+    */
+  def deleteFineTuneModel(model: String): Request[Either[ResponseException[String, Exception], DeleteFineTuneModelResponse]] =
+    openApiAuthRequest
+      .delete(OpenAIEndpoints.deleteFineTuneModel(model))
+      .response(asJsonSnake[DeleteFineTuneModelResponse])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -475,6 +487,7 @@ private object OpenAIEndpoints {
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
+  def deleteFineTuneModel(model: String): Uri = ModelEndpoint.addPath(model)
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)

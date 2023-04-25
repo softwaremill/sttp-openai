@@ -270,4 +270,20 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     deserializedJsonResponse.value shouldBe expectedResponse
   }
 
+  "Given delete fine tune model response as Json" should "be properly deserialized to case class" in {
+
+    // given
+    val jsonResponse = fixtures.FineTunesFixture.jsonDeleteFineTuneModel
+    val expectedResponse: DeleteFineTuneModelResponse = DeleteFineTuneModelResponse(
+      id = "curie:ft-personal-2023-04-18-09-48-38",
+      `object` = "model",
+      deleted = true
+    )
+    // when
+    val deserializedJsonResponse: Either[Exception, DeleteFineTuneModelResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[DeleteFineTuneModelResponse].apply(jsonResponse)
+
+    // then
+    deserializedJsonResponse.value shouldBe expectedResponse
+  }
 }
