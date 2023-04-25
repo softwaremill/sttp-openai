@@ -13,7 +13,7 @@ import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.{FineTuneResponse, GetFineTunesResponse}
+import sttp.openai.requests.finetunes.FineTunesResponseData.{FineTuneEventsResponse, FineTuneResponse, GetFineTunesResponse}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -453,6 +453,16 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.retrieveFineTuneEndpoint(fineTuneId))
       .response(asJsonSnake[FineTuneResponse])
 
+  /** @param fineTuneId
+    *   The ID of the fine-tune job to get events for.
+    * @return
+    *   Fine-grained status updates for a fine-tune job.
+    */
+  def getFineTuneEvents(fineTuneId: String): Request[Either[ResponseException[String, Exception], FineTuneEventsResponse]] =
+    openApiAuthRequest
+      .get(OpenAIEndpoints.listFineTunesEndpoint(fineTuneId))
+      .response(asJsonSnake[FineTuneEventsResponse])
+
   private val openApiAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 }
@@ -475,6 +485,7 @@ private object OpenAIEndpoints {
   val VariationsImageEndpoint: Uri = ImageEndpointBase.addPath("variations")
 
   def deleteFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
+  def listFineTunesEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId, "events")
   def retrieveFileEndpoint(fileId: String): Uri = FilesEndpoint.addPath(fileId)
   def retrieveFineTuneEndpoint(fineTuneId: String): Uri = FineTunesEndpoint.addPath(fineTuneId)
   def retrieveModelEndpoint(modelId: String): Uri = ModelEndpoint.addPath(modelId)

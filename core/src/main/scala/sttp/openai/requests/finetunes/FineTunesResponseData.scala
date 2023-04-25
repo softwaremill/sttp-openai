@@ -59,4 +59,9 @@ object FineTunesResponseData {
   object FineTuneData {
     implicit val fineTuneDataReader: SnakePickle.Reader[FineTuneData] = SnakePickle.macroR[FineTuneData]
   }
+
+  case class FineTuneEventsResponse(`object`: String, data: Seq[Event])
+  object FineTuneEventsResponse {
+    implicit val fineTuneDataReader: SnakePickle.Reader[FineTuneEventsResponse] = SnakePickle.macroR[FineTuneEventsResponse]
+  }
 }
