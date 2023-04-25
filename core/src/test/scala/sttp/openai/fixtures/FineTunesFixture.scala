@@ -217,4 +217,36 @@ object FineTunesFixture {
                                        |  ]
                                        |}
                                        |""".stripMargin
+
+  val jsonCancelFineTuneResponse: String = """{
+                                     |  "id": "ft-xhrpBbvVUzYGo8oUO1FY4nI7",
+                                     |  "object": "fine-tune",
+                                     |  "model": "curie",
+                                     |  "created_at": 1614807770,
+                                     |  "events": [],
+                                     |  "fine_tuned_model": null,
+                                     |  "hyperparams": {
+                                     |    "n_epochs": 4,
+                                     |    "batch_size": 1,
+                                     |    "prompt_loss_weight": 0.01,
+                                     |    "learning_rate_multiplier": 0.1
+                                     |  },
+                                     |  "organization_id": "org-org1233",
+                                     |  "result_files": [],
+                                     |  "status": "cancelled",
+                                     |  "validation_files": [],
+                                     |  "training_files": [
+                                     |    {
+                                     |      "id": "file-train231",
+                                     |      "object": "file",
+                                     |      "bytes": 1547276,
+                                     |      "created_at": 1610062281,
+                                     |      "filename": "my-data-train.jsonl",
+                                     |      "purpose": "fine-tune-train",
+                                     |      "status": "cancelled",
+                                     |      "status_details": null
+                                     |    }
+                                     |  ],
+                                     |  "updated_at": 1614807789
+                                     |}""".stripMargin
 }

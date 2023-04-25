@@ -432,10 +432,17 @@ class OpenAi(authToken: String) {
       .get(OpenAIEndpoints.FineTunesEndpoint)
       .response(asJsonSnake[GetFineTunesResponse])
 
-  def cancelFineTune(fineTuneId: String) =
+  /** Immediately cancel a fine-tune job.
+    *
+    * @param fineTuneId
+    *   The ID of the fine-tune job to cancel.
+    * @return
+    *   Cancelled fine-tune.
+    */
+  def cancelFineTune(fineTuneId: String): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
     openApiAuthRequest
       .post(OpenAIEndpoints.cancelFineTuneEndpoint(fineTuneId))
-      .response(asString)
+      .response(asJsonSnake[FineTuneResponse])
 
   /** @param embeddingsBody
     *   Embeddings request body.
