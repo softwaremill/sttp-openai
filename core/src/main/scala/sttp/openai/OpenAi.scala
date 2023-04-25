@@ -437,7 +437,7 @@ class OpenAi(authToken: String) {
     * @param fineTuneId
     *   The ID of the fine-tune job to cancel.
     * @return
-    *   Cancelled fine-tune.
+    *   Cancelled fine-tune job.
     */
   def cancelFineTune(fineTuneId: String): Request[Either[ResponseException[String, Exception], FineTuneResponse]] =
     openApiAuthRequest
