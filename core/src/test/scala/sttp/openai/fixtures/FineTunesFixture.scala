@@ -218,6 +218,78 @@ object FineTunesFixture {
                                        |}
                                        |""".stripMargin
 
+  val jsonListFineTuneEventsResponse: String = """{
+                                    |  "object": "list",
+                                    |  "data": [
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Created fine-tune: ft-qSvHXdwMhuZZqWbXhJFmg21n",
+                                    |      "created_at": 1681810958
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Fine-tune costs $0.00",
+                                    |      "created_at": 1681811232
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Fine-tune enqueued. Queue number: 0",
+                                    |      "created_at": 1681811233
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Fine-tune started",
+                                    |      "created_at": 1681811237
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Completed epoch 1/4",
+                                    |      "created_at": 1681811298
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Completed epoch 2/4",
+                                    |      "created_at": 1681811298
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Completed epoch 3/4",
+                                    |      "created_at": 1681811299
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Completed epoch 4/4",
+                                    |      "created_at": 1681811299
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Uploaded model: curie:ft-personal-2023-04-18-09-48-38",
+                                    |      "created_at": 1681811319
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Uploaded result file: file-6kmg4GvzAumtDSeZ2jlcg3r5",
+                                    |      "created_at": 1681811320
+                                    |    },
+                                    |    {
+                                    |      "object": "fine-tune-event",
+                                    |      "level": "info",
+                                    |      "message": "Fine-tune succeeded",
+                                    |      "created_at": 1681811320
+                                    |    }
+                                    |  ]
+                                    |}""".stripMargin
+
   val jsonCancelFineTuneResponse: String = """{
                                      |  "id": "ft-xhrpBbvVUzYGo8oUO1FY4nI7",
                                      |  "object": "fine-tune",
