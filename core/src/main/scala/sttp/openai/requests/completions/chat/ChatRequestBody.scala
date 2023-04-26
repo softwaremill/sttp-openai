@@ -11,7 +11,6 @@ object ChatRequestBody {
       temperature: Option[Double] = None,
       topP: Option[Double] = None,
       n: Option[Int] = None,
-      stream: Option[Boolean] = None,
       stop: Option[Stop] = None,
       maxTokens: Option[Int] = None,
       presencePenalty: Option[Double] = None,

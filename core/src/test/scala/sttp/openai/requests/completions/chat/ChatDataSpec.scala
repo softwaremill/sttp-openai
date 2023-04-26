@@ -65,7 +65,6 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       temperature = Some(1),
       topP = Some(1),
       n = Some(1),
-      stream = Some(false),
       stop = Some(SingleStop("\n")),
       maxTokens = Some(7),
       presencePenalty = Some(0),

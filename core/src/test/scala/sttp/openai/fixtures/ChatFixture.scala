@@ -8,7 +8,6 @@ object ChatFixture {
       |  "temperature": 1,
       |  "top_p": 1,
       |  "n": 1,
-      |  "stream": false,
       |  "stop": "\n",
       |  "max_tokens": 7,
       |  "presence_penalty": 0,

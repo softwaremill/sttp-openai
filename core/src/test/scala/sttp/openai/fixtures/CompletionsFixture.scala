@@ -56,7 +56,6 @@ object CompletionsFixture {
                               |  "temperature": 0,
                               |  "top_p": 1,
                               |  "n": 1,
-                              |  "stream": false,
                               |  "stop": "\n"
                               |}""".stripMargin
 
@@ -67,7 +66,6 @@ object CompletionsFixture {
                               |  "temperature": 0,
                               |  "top_p": 1,
                               |  "n": 1,
-                              |  "stream": false,
                               |  "stop": "\n"
                               |}""".stripMargin
 }
