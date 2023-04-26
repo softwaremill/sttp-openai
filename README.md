@@ -1,4 +1,4 @@
-![sttp-model](https://github.com/softwaremill/sttp-model/raw/master/banner.png) Banner should be changed to sttp openAi
+![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.png) Banner should be changed to sttp openAi
 
 [![Join the chat at https://gitter.im/softwaremill/sttp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/softwaremill/sttp)
 [![CI](https://github.com/softwaremill/sttp-openai/workflows/CI/badge.svg)](https://github.com/softwaremill/sttp-openai/actions?query=workflow%3ACI+branch%3Amaster)
@@ -18,7 +18,7 @@ Add the following dependency:
 "com.softwaremill.sttp.openai" %% "core" % "?.?.?"
 ```
 
-sttp openai is available for Scala 2.12 and Scala 3.0.0
+sttp openai is available for Scala 2.12 and Scala 3.2.2
 
 ## Project content
 
@@ -108,4 +108,4 @@ We offer commercial support for sttp and related technologies, as well as develo
 
 ## Copyright
 
-Copyright (C) 2019-2021 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
+Copyright (C) 2019-2023 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
