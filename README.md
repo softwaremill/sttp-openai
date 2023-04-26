@@ -56,3 +56,56 @@ Available endpoints with modeled response classes include:
   * Delete a fine-tuned model providing fine-tune's ID
 * Moderation
   * Classifies if text violates OpenAI's Content Policy
+
+## Example
+
+### To use ChatGPT
+
+```scala mdoc:compile-only 
+import sttp.client4._
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
+import sttp.openai.requests.completions.chat.Message
+
+// Create an instance of OpenAi providing your API secret-key
+
+val openAi: OpenAi = new OpenAi("your-secret-key")
+
+// Create body of Chat Completions Request
+
+val bodyMessages: Seq[Message] = Seq(
+  Message(
+    role = "user",
+    content = "Hello!"
+  )
+)
+
+val chatRequestBody: ChatBody = ChatBody(
+  model = "gpt-3.5-turbo",
+  messages = bodyMessages
+)
+
+// Use createChatCompletion and pass created request body to create sttp request
+
+val request: Request[Either[ResponseException[String, Exception], ChatResponse]] = openAi.createChatCompletion(chatRequestBody)
+
+// To invoke request and get a response provide your wished backend and call send method
+
+val backend: SyncBackend = DefaultSyncBackend()
+
+val response: Response[Either[ResponseException[String, Exception], ChatResponse]] = request.send(backend)
+```
+
+## Contributing
+
+If you have a question, or hit a problem, feel free to ask on our [gitter channel](https://gitter.im/softwaremill/sttp-model)!
+
+Or, if you encounter a bug, something is unclear in the code or documentation, don’t hesitate and open an issue on GitHub.
+
+## Commercial Support
+
+We offer commercial support for sttp and related technologies, as well as development services. [Contact us](https://softwaremill.com) to learn more about our offer!
+
+## Copyright
+
+Copyright (C) 2019-2021 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
