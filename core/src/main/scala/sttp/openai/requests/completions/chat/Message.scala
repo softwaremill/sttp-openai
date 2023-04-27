@@ -7,7 +7,7 @@ import sttp.openai.json.SnakePickle
   * @param content
   *   The contents of the message.
   */
-case class Message(role: String, content: String)
+case class Message(role: String, content: String, name: Option[String] = None)
 
 object Message {
   implicit val messageRW: SnakePickle.ReadWriter[Message] = SnakePickle.macroRW[Message]
