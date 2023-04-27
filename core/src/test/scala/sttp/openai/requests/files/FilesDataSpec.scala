@@ -8,10 +8,10 @@ import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
 import sttp.openai.requests.files.FilesResponseData.FilesResponse._
 
-class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues {
+class FilesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given list files response as Json" should "be properly deserialized to case class" in {
     // given
-    val listFilesResponse = fixtures.FilesResponse.listFilesJsonResponse
+    val listFilesResponse = fixtures.FilesFixture.listFilesJsonResponse
     val expectedResponse = FilesResponse(
       `object` = "list",
       Seq(
@@ -37,7 +37,7 @@ class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
   "Given upload file response as Json" should "be properly deserialized to case class" in {
     // given
-    val singleFileJsonResponse = fixtures.FilesResponse.singleFileJsonResponse
+    val singleFileJsonResponse = fixtures.FilesFixture.singleFileJsonResponse
     val expectedResponse =
       FileData(
         `object` = "file",
@@ -59,7 +59,7 @@ class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
   "Given delete file response as Json" should "be properly deserialized to case class" in {
     // given
-    val listFilesResponse = fixtures.FilesResponse.deleteFileJsonResponse
+    val listFilesResponse = fixtures.FilesFixture.deleteFileJsonResponse
     val expectedResponse = DeletedFileData(
       `object` = "file",
       id = "file-tralala",
@@ -76,7 +76,7 @@ class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
   "Given retrieve file response as Json" should "be properly deserialized to case class" in {
     // given
-    val retrieveFileJsonResponse = fixtures.FilesResponse.retrieveFileJsonResponse
+    val retrieveFileJsonResponse = fixtures.FilesFixture.retrieveFileJsonResponse
     val expectedResponse = FileData(
       `object` = "file",
       id = "file-tralala",

@@ -1,6 +1,6 @@
 package sttp.openai.fixtures
 
-object ModelsGetResponse {
+object ModelsFixture {
   val responseJson: String =
     """{
       |  "object":"list",

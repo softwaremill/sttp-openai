@@ -8,12 +8,12 @@ import ModelsResponseData.ModelsResponse._
 import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
 
-class ModelsGetResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues {
+class ModelsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given models response as Json" should "be properly deserialized to case class" in {
 
     // given
-    val response: String = fixtures.ModelsGetResponse.responseJson
+    val response: String = fixtures.ModelsFixture.responseJson
 
     val babbagePermission: Seq[ModelPermission] = Seq(
       ModelPermission(

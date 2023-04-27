@@ -1,6 +1,6 @@
 package sttp.openai.fixtures
 
-object FilesResponse {
+object FilesFixture {
   val listFilesJsonResponse: String = """{
                                 |  "object": "list",
                                 |  "data": [
