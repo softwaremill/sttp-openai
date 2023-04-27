@@ -4,16 +4,11 @@ import Dependencies._
 val scala2 = List("2.13.10")
 val scala3 = List("3.2.2")
 
-
-
 def dependenciesFor(version: String)(deps: (Option[(Long, Long)] => ModuleID)*): Seq[ModuleID] =
   deps.map(_.apply(CrossVersion.partialVersion(version)))
 
 lazy val commonSettings = commonSmlBuildSettings ++ Seq(
-  organization := "com.softwaremill.sttp.openai",
-  libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % scalaTestVersion % Test
-  )
+  organization := "com.softwaremill.sttp.openai"
 )
 
 lazy val root = (project in file("."))
