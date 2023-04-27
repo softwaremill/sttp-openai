@@ -5,14 +5,17 @@ import sttp.openai.requests.images.{ResponseFormat, Size}
 import java.io.File
 import java.nio.file.Paths
 
-/*
-todo: add scaladocs
- *   - image: A file of base image.
- *   - n: An optional integer specifying the number of images to generate.
- *   - size: An optional instance of the Size case class representing the desired size of the output image.
- *   - responseFormat: An optional instance of the ResponseFormat case class representing the desired format of the response.
- *   - user: An optional, unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
- */
+/** @param image
+  *   The image to use as the basis for the variation(s). Must be a valid PNG file, less than 4MB, and square.
+  * @param n
+  *   The number of images to generate. Must be between 1 and 10.
+  * @param size
+  *   The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024`.
+  * @param responseFormat
+  *   The format in which the generated images are returned. Must be one of `url` or `b64_json`.
+  * @param user
+  *   A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
+  */
 case class ImageVariationsConfig(
     image: File,
     n: Option[Int] = None,
