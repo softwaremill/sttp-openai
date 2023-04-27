@@ -1,4 +1,4 @@
-![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.png) Banner should be changed to sttp openAi
+![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.png)
 
 [![Join the chat at https://gitter.im/softwaremill/sttp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/softwaremill/sttp)
 [![CI](https://github.com/softwaremill/sttp-openai/workflows/CI/badge.svg)](https://github.com/softwaremill/sttp-openai/actions?query=workflow%3ACI+branch%3Amaster)
@@ -9,7 +9,7 @@ sttp is a family of Scala HTTP-related projects, and currently includes:
 
 * [sttp client](https://github.com/softwaremill/sttp): The Scala HTTP client you always wanted!
 * [sttp tapir](https://github.com/softwaremill/tapir): Typed API descRiptions
-* sttp openai: this project. Scala client wrapper for OpenAi API. Use the power of ChatGPT inside your code!
+* sttp openai: this project. Scala client wrapper for OpenAI API. Use the power of ChatGPT inside your code!
 
 ## Quickstart with sbt
 
@@ -19,7 +19,7 @@ Add the following dependency:
 [//]: # ("com.softwaremill.sttp.openai" %% "core" % "?.?.?")
 [//]: # (```)
 
-sttp openai is available for Scala 2.12 and Scala 3.2.2
+sttp openai is available for Scala 2.12 and Scala 3
 
 ## Project content
 
@@ -99,7 +99,7 @@ val response: Response[Either[ResponseException[String, Exception], ChatResponse
 
 ## Contributing
 
-If you have a question, or hit a problem, feel free to ask on our [gitter channel](https://gitter.im/softwaremill/sttp-model)!
+If you have a question, or hit a problem, feel free to post on our https://softwaremill.community/c/sttp-client/
 
 Or, if you encounter a bug, something is unclear in the code or documentation, don’t hesitate and open an issue on GitHub.
 
