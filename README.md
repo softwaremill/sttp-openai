@@ -89,7 +89,7 @@ val chatRequestBody: ChatBody = ChatBody(
 
 val request: Request[Either[ResponseException[String, Exception], ChatResponse]] = openAi.createChatCompletion(chatRequestBody)
 
-// To invoke request and get a response provide your wished backend and call send method
+// To invoke request and get a response provide your wished backend and send created request
 
 val backend: SyncBackend = DefaultSyncBackend()
 
@@ -108,4 +108,4 @@ We offer commercial support for sttp and related technologies, as well as develo
 
 ## Copyright
 
-Copyright (C) 2019-2023 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
+Copyright (C) 2023 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
