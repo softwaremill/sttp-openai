@@ -2,7 +2,8 @@
 
 [![Join the chat at https://gitter.im/softwaremill/sttp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/softwaremill/sttp)
 [![CI](https://github.com/softwaremill/sttp-openai/workflows/CI/badge.svg)](https://github.com/softwaremill/sttp-openai/actions?query=workflow%3ACI+branch%3Amaster)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.softwaremill.sttp)(https://maven-badges.herokuapp.com/maven-central/com.softwaremill.sttp)
+
+[//]: # ([![Maven Central]&#40;https://maven-badges.herokuapp.com/maven-central/com.softwaremill.sttp&#41;&#40;https://maven-badges.herokuapp.com/maven-central/com.softwaremill.sttp&#41;)
 
 sttp is a family of Scala HTTP-related projects, and currently includes:
 
@@ -14,9 +15,9 @@ sttp is a family of Scala HTTP-related projects, and currently includes:
 
 Add the following dependency:
 
-```scala
-"com.softwaremill.sttp.openai" %% "core" % "?.?.?"
-```
+[//]: # (```scala)
+[//]: # ("com.softwaremill.sttp.openai" %% "core" % "?.?.?")
+[//]: # (```)
 
 sttp openai is available for Scala 2.12 and Scala 3.2.2
 
