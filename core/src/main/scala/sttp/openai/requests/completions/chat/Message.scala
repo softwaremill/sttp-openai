@@ -10,5 +10,5 @@ import sttp.openai.json.SnakePickle
 case class Message(role: String, content: String, name: Option[String] = None)
 
 object Message {
-  implicit val messageRW: SnakePickle.ReadWriter[Message] = SnakePickle.macroRW[Message]
+  implicit val messageRW: SnakePickle.ReadWriter[Message] = SnakePickle.macroRW
 }

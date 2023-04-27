@@ -16,8 +16,6 @@ object Size {
     */
   case class Custom(customSize: String) extends Size(customSize)
 
-  val values: Set[Size] = Set(Small, Medium, Large)
-
   implicit val sizeW: SnakePickle.Writer[Size] = SnakePickle
     .writer[ujson.Value]
     .comap[Size](_.value)

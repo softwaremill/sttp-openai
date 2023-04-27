@@ -4,14 +4,16 @@ import sttp.openai.json.SnakePickle
 import sttp.openai.requests.files.FilesResponseData.FileData
 
 object FineTunesResponseData {
+
   case class Event(
       `object`: String,
       level: String,
       message: String,
       createdAt: Int
   )
+
   object Event {
-    implicit val eventsBodyReader: SnakePickle.Reader[Event] = SnakePickle.macroR[Event]
+    implicit val eventsBodyReader: SnakePickle.Reader[Event] = SnakePickle.macroR
   }
 
   case class Hyperparams(
@@ -20,14 +22,16 @@ object FineTunesResponseData {
       promptLossWeight: Double,
       learningRateMultiplier: Option[Double]
   )
+
   object Hyperparams {
-    implicit val hyperparamsReader: SnakePickle.Reader[Hyperparams] = SnakePickle.macroR[Hyperparams]
+    implicit val hyperparamsReader: SnakePickle.Reader[Hyperparams] = SnakePickle.macroR
   }
 
   case class FineTuneResponse(
       fineTuneData: FineTuneData,
       events: Seq[Event]
   )
+
   object FineTuneResponse {
     implicit val fineTuneResponseReader: SnakePickle.Reader[FineTuneResponse] =
       SnakePickle.reader[ujson.Value].map[FineTuneResponse] { jsonValue =>
@@ -40,8 +44,9 @@ object FineTunesResponseData {
   case class GetFineTunesResponse(`object`: String, data: Seq[FineTuneData])
 
   object GetFineTunesResponse {
-    implicit val getFineTunesResponseReader: SnakePickle.Reader[GetFineTunesResponse] = SnakePickle.macroR[GetFineTunesResponse]
+    implicit val getFineTunesResponseReader: SnakePickle.Reader[GetFineTunesResponse] = SnakePickle.macroR
   }
+
   case class FineTuneData(
       `object`: String,
       id: String,
@@ -56,16 +61,19 @@ object FineTunesResponseData {
       status: String,
       fineTunedModel: Option[String]
   )
+
   object FineTuneData {
-    implicit val fineTuneDataReader: SnakePickle.Reader[FineTuneData] = SnakePickle.macroR[FineTuneData]
+    implicit val fineTuneDataReader: SnakePickle.Reader[FineTuneData] = SnakePickle.macroR
   }
 
   case class DeleteFineTuneModelResponse(id: String, `object`: String, deleted: Boolean)
+
   object DeleteFineTuneModelResponse {
-    implicit val fineTuneDataReader: SnakePickle.Reader[DeleteFineTuneModelResponse] = SnakePickle.macroR[DeleteFineTuneModelResponse]
+    implicit val fineTuneDataReader: SnakePickle.Reader[DeleteFineTuneModelResponse] = SnakePickle.macroR
   }
   case class FineTuneEventsResponse(`object`: String, data: Seq[Event])
+
   object FineTuneEventsResponse {
-    implicit val fineTuneDataReader: SnakePickle.Reader[FineTuneEventsResponse] = SnakePickle.macroR[FineTuneEventsResponse]
+    implicit val fineTuneDataReader: SnakePickle.Reader[FineTuneEventsResponse] = SnakePickle.macroR
   }
 }

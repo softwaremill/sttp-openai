@@ -3,6 +3,7 @@ package sttp.openai.requests.completions
 import sttp.openai.json.SnakePickle
 
 sealed trait Stop
+
 object Stop {
   implicit val stopW: SnakePickle.Writer[Stop] = SnakePickle
     .writer[ujson.Value]

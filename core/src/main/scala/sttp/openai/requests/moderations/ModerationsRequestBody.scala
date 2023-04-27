@@ -1,6 +1,7 @@
 package sttp.openai.requests.moderations
 
 import sttp.openai.json.SnakePickle
+
 object ModerationsRequestBody {
 
   /** @param input
@@ -11,7 +12,7 @@ object ModerationsRequestBody {
   case class ModerationsBody(input: String, model: Option[ModerationModel] = None)
 
   object ModerationsBody {
-    implicit val moderationsBodyWriter: SnakePickle.Writer[ModerationsBody] = SnakePickle.macroW[ModerationsBody]
+    implicit val moderationsBodyWriter: SnakePickle.Writer[ModerationsBody] = SnakePickle.macroW
   }
   sealed trait ModerationModel
   object ModerationModel {

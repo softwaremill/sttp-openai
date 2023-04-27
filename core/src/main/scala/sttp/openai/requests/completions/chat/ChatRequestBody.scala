@@ -47,7 +47,6 @@ object ChatRequestBody {
   )
 
   object ChatBody {
-    implicit val chatRequestW: SnakePickle.Writer[ChatBody] = SnakePickle.macroW[ChatBody]
+    implicit val chatRequestW: SnakePickle.Writer[ChatBody] = SnakePickle.macroW
   }
-
 }

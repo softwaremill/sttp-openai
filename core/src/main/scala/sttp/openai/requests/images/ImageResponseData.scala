@@ -10,13 +10,12 @@ object ImageResponseData {
   )
 
   object ImageResponse {
-    implicit val imageCreationResponseR: SnakePickle.Reader[ImageResponse] = SnakePickle.macroR[ImageResponse]
+    implicit val imageCreationResponseR: SnakePickle.Reader[ImageResponse] = SnakePickle.macroR
   }
 
   case class GeneratedImageData(url: String)
 
   object GeneratedImageData {
-    implicit val generatedImageDataR: SnakePickle.Reader[GeneratedImageData] = SnakePickle.macroR[GeneratedImageData]
+    implicit val generatedImageDataR: SnakePickle.Reader[GeneratedImageData] = SnakePickle.macroR
   }
-
 }

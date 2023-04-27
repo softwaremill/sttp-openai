@@ -11,7 +11,7 @@ object ChatRequestResponseData {
   )
 
   object Choices {
-    implicit val choicesR: SnakePickle.Reader[Choices] = SnakePickle.macroR[Choices]
+    implicit val choicesR: SnakePickle.Reader[Choices] = SnakePickle.macroR
   }
 
   case class ChatResponse(
@@ -24,7 +24,6 @@ object ChatRequestResponseData {
   )
 
   object ChatResponse {
-    implicit val chatResponseR: SnakePickle.Reader[ChatResponse] = SnakePickle.macroR[ChatResponse]
+    implicit val chatResponseR: SnakePickle.Reader[ChatResponse] = SnakePickle.macroR
   }
-
 }

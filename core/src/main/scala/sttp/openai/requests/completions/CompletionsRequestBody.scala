@@ -61,7 +61,7 @@ object CompletionsRequestBody {
   )
 
   object CompletionsBody {
-    implicit val completionBodyW: SnakePickle.Writer[CompletionsBody] = SnakePickle.macroW[CompletionsBody]
+    implicit val completionBodyW: SnakePickle.Writer[CompletionsBody] = SnakePickle.macroW
   }
 
   sealed trait Prompt

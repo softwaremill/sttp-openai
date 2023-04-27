@@ -48,6 +48,7 @@ case class FineTunesRequestBody(
     classificationBetas: Option[Seq[Double]] = None,
     suffix: Option[String] = None
 )
+
 object FineTunesRequestBody {
-  implicit val fineTunesRequestBodyWriter: SnakePickle.Writer[FineTunesRequestBody] = SnakePickle.macroW[FineTunesRequestBody]
+  implicit val fineTunesRequestBodyWriter: SnakePickle.Writer[FineTunesRequestBody] = SnakePickle.macroW
 }

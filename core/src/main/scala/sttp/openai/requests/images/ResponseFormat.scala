@@ -15,8 +15,6 @@ object ResponseFormat {
     */
   case class Custom(customResponseFormat: String) extends ResponseFormat(customResponseFormat)
 
-  val values: Set[ResponseFormat] = Set(URL, B64Json)
-
   implicit val responseFormatW: SnakePickle.Writer[ResponseFormat] = SnakePickle
     .writer[ujson.Value]
     .comap[ResponseFormat](_.value)

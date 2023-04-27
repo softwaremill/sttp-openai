@@ -3,6 +3,7 @@ package sttp.openai.requests.files
 import sttp.openai.json.SnakePickle
 
 object FilesResponseData {
+
   case class FileData(
       `object`: String,
       id: String,
@@ -15,7 +16,7 @@ object FilesResponseData {
   )
 
   object FileData {
-    implicit val fileInfoReadWriter: SnakePickle.ReadWriter[FileData] = SnakePickle.macroRW[FileData]
+    implicit val fileInfoReadWriter: SnakePickle.ReadWriter[FileData] = SnakePickle.macroRW
   }
 
   case class FilesResponse(
@@ -24,7 +25,7 @@ object FilesResponseData {
   )
 
   object FilesResponse {
-    implicit val filesResponseReadWriter: SnakePickle.ReadWriter[FilesResponse] = SnakePickle.macroRW[FilesResponse]
+    implicit val filesResponseReadWriter: SnakePickle.ReadWriter[FilesResponse] = SnakePickle.macroRW
   }
 
   case class DeletedFileData(
@@ -34,6 +35,6 @@ object FilesResponseData {
   )
 
   object DeletedFileData {
-    implicit val deleteFileResponseReadWriter: SnakePickle.ReadWriter[DeletedFileData] = SnakePickle.macroRW[DeletedFileData]
+    implicit val deleteFileResponseReadWriter: SnakePickle.ReadWriter[DeletedFileData] = SnakePickle.macroRW
   }
 }
