@@ -99,7 +99,7 @@ val response: Response[Either[ResponseException[String, Exception], ChatResponse
 
 ## Contributing
 
-If you have a question, or hit a problem, feel free to post on our https://softwaremill.community/c/sttp-client/
+If you have a question, or hit a problem, feel free to post on our community https://softwaremill.community/c/sttp-client/
 
 Or, if you encounter a bug, something is unclear in the code or documentation, don’t hesitate and open an issue on GitHub.
 
