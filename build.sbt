@@ -24,3 +24,4 @@ lazy val core = (projectMatrix in file("core"))
   .settings(
     libraryDependencies ++= Seq(Libraries.uPickle) ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
   )
+  .settings(commonSettings: _*)
