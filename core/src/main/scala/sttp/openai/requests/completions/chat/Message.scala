@@ -37,7 +37,7 @@ object Role {
       jsonValue => {
         println(jsonValue)
         SnakePickle.read[ujson.Value](jsonValue) match {
-          case Str(value) => byRoleValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize $value")))
+          case Str(value) => byRoleValue.getOrElse(value, Custom(value))
           case e          => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
         }
       }
