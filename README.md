@@ -39,13 +39,14 @@ OpenAI API Offical Documentation https://platform.openai.com/docs/api-reference/
 
 ```scala mdoc:compile-only 
 import sttp.client4._
+import sttp.openai.OpenAI
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.Message
 
-// Create an instance of OpenAi providing your API secret-key
+// Create an instance of OpenAI providing your API secret-key
 
-val openAi: OpenAi = new OpenAi("your-secret-key")
+val openAi: OpenAI = new OpenAI("your-secret-key")
 
 // Create body of Chat Completions Request
 
@@ -63,7 +64,7 @@ val chatRequestBody: ChatBody = ChatBody(
 
 // Use createChatCompletion and pass created request body to create sttp request
 
-val request = openAi.createChatCompletion(chatRequestBody)
+val request = openAI.createChatCompletion(chatRequestBody)
 
 // To invoke request and get a response provide your wished backend and send created request
 
