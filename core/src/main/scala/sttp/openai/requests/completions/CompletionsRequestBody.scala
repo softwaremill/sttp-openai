@@ -34,7 +34,7 @@ object CompletionsRequestBody {
     *   Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing
     *   the model's likelihood to repeat the same line verbatim.
     * @param bestOf
-    *   Generates [[best_of]] completions server-side and returns the "best" (the one with the highest log probability per token).
+    *   Generates `best_of` completions server-side and returns the "best" (the one with the highest log probability per token).
     * @param logitBias
     *   Modify the likelihood of specified tokens appearing in the completion.
     * @param user

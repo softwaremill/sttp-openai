@@ -13,7 +13,7 @@ import java.nio.file.Paths
   * @param prompt
   *   An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language.
   * @param responseFormat
-  *   The format of the transcript output, one of [[ResponseFormat]]
+  *   The format of the transcript output, one of ResponseFormat
   * @param temperature
   *   The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will
   *   make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature
