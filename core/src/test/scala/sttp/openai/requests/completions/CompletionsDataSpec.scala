@@ -53,7 +53,6 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       temperature = Some(0),
       topP = Some(1),
       n = Some(1),
-      stream = Some(false),
       logprobs = None,
       stop = Some(SingleStop("\n"))
     )
@@ -118,7 +117,6 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       temperature = Some(0),
       topP = Some(1),
       n = Some(1),
-      stream = Some(false),
       logprobs = None,
       stop = Some(SingleStop("\n"))
     )

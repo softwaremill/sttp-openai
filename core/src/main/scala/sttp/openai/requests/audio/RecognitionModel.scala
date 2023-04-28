@@ -12,8 +12,6 @@ object RecognitionModel {
     */
   case class Custom(customModel: String) extends RecognitionModel(customModel)
 
-  val values: Set[RecognitionModel] = Set(Whisper1)
-
   implicit val ModelW: SnakePickle.Writer[RecognitionModel] = SnakePickle
     .writer[ujson.Value]
     .comap(_.value)
