@@ -1,4 +1,4 @@
-![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.png)
+![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.jpg)
 
 
 [![Ideas, suggestions, problems, questions](https://img.shields.io/badge/Discourse-ask%20question-blue)](https://softwaremill.community/c/tapir)
@@ -9,7 +9,6 @@ sttp is a family of Scala HTTP-related projects, and currently includes:
 
 * [sttp client](https://github.com/softwaremill/sttp): The Scala HTTP client you always wanted!
 * [sttp tapir](https://github.com/softwaremill/tapir): Typed API descRiptions
-
 * sttp openai: this project. Scala client wrapper for OpenAI API. Use the power of ChatGPT inside your code!
 
 ## Intro
@@ -30,9 +29,9 @@ sttp openai is available for Scala 2.13 and Scala 3
 OpenAI API Offical Documentation https://platform.openai.com/docs/api-reference/completions
 
 ### Not yet implemented:
-  * Create chat completions SSE
-  * Create completions SSE
-  * List fine-tune events SSE
+* Create chat completions SSE
+* Create completions SSE
+* List fine-tune events SSE
 
 ## Example
 
