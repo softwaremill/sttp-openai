@@ -6,6 +6,8 @@ import sttp.openai.json.SnakePickle
   *   The role of the author of this message. One of `system`, `user`, or `assistant`.
   * @param content
   *   The contents of the message.
+  * @param name
+  *   The name of the author of this message. May contain a-z, A-Z, 0-9, and underscores, with a maximum length of 64 characters.
   */
 case class Message(role: String, content: String, name: Option[String] = None)
 
