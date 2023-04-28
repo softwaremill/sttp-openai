@@ -40,7 +40,7 @@ object CompletionsRequestBody {
     * @param user
     *   A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
     *
-    * <p>For more information please visit: [[https://platform.openai.com/docs/api-reference/completions/create]]
+    * For more information please visit: [[https://platform.openai.com/docs/api-reference/completions/create]]
     */
   case class CompletionsBody(
       model: String,
