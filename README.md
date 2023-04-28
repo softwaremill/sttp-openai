@@ -18,9 +18,9 @@ Sttp-openai uses sttp client to describe requests and responses used in OpenAI e
 
 Add the following dependency:
 
-[//]: # (```scala)
-[//]: # ("com.softwaremill.sttp.openai" %% "core" % "?.?.?")
-[//]: # (```)
+```sbt
+("com.softwaremill.sttp.openai" %% "core" % "0.0.0")
+```
 
 sttp openai is available for Scala 2.13 and Scala 3
 
