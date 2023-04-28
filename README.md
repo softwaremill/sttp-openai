@@ -30,8 +30,8 @@ OpenAI API Offical Documentation https://platform.openai.com/docs/api-reference/
 
 ### Not yet implemented:
   * Create chat completions SSE
-    * Create completions SSE
-    * List fine-tune events SSE
+  * Create completions SSE
+  * List fine-tune events SSE
 
 ## Example
 
