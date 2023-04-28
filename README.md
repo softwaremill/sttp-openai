@@ -1,4 +1,4 @@
-![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.png)
+![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.jpg)
 
 
 [![Ideas, suggestions, problems, questions](https://img.shields.io/badge/Discourse-ask%20question-blue)](https://softwaremill.community/c/tapir)
@@ -12,7 +12,7 @@ sttp is a family of Scala HTTP-related projects, and currently includes:
 * sttp openai: this project. Scala client wrapper for OpenAI API. Use the power of ChatGPT inside your code!
 
 ## Intro
-Sttp-openai uses sttp client to describe requests and responses used in OpenAI endpoints. 
+Sttp-openai uses sttp client to describe requests and responses used in OpenAI endpoints.
 
 ## Quickstart with sbt
 

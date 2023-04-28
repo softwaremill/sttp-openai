@@ -4,7 +4,7 @@ object ChatFixture {
 
   val jsonRequest: String = """{
       |  "model": "gpt-3.5-turbo",
-      |  "messages": [{"role": "user", "content": "Hello!"}],
+      |  "messages": [{"role": "user", "content": "Hello!", "name": "Andrzej"}],
       |  "temperature": 1,
       |  "top_p": 1,
       |  "n": 1,
@@ -29,7 +29,8 @@ object ChatFixture {
       |     {
       |       "message": {
       |         "role": "assistance",
-      |         "content": "Hi there! How can I assist you today?"
+      |         "content": "Hi there! How can I assist you today?",
+      |         "name": "Fish"
       |       },
       |       "finish_reason": "stop",
       |       "index": 0

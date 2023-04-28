@@ -25,7 +25,8 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val message: Message = Message(
       role = "assistance",
-      content = "Hi there! How can I assist you today?"
+      content = "Hi there! How can I assist you today?",
+      name = Some("Fish")
     )
 
     val choices: Choices = Choices(
@@ -55,7 +56,8 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val messages: Seq[Message] = Seq(
       Message(
         role = "user",
-        content = "Hello!"
+        content = "Hello!",
+        name = Some("Andrzej")
       )
     )
 

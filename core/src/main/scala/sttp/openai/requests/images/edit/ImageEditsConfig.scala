@@ -19,6 +19,8 @@ import java.nio.file.Paths
   *   The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024`.
   * @param responseFormat
   *   The format in which the generated images are returned. Must be one of `url`` or `b64_json`.
+  * @param user
+  *   A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse
   */
 case class ImageEditsConfig(
     image: File,
@@ -26,7 +28,8 @@ case class ImageEditsConfig(
     mask: Option[File] = None,
     n: Option[Int] = None,
     size: Option[Size] = None,
-    responseFormat: Option[ResponseFormat] = None
+    responseFormat: Option[ResponseFormat] = None,
+    user: Option[String] = None
 )
 
 object ImageEditsConfig {
@@ -36,11 +39,12 @@ object ImageEditsConfig {
       systemPathMask: Option[String],
       n: Option[Int],
       size: Option[Size],
-      responseFormat: Option[ResponseFormat]
+      responseFormat: Option[ResponseFormat],
+      user: Option[String]
   ): ImageEditsConfig = {
     val image: File = Paths.get(systemPathImage).toFile
     val mask: Option[File] = systemPathMask.map(Paths.get(_).toFile)
 
-    ImageEditsConfig(image, prompt, mask, n, size, responseFormat)
+    ImageEditsConfig(image, prompt, mask, n, size, responseFormat, user)
   }
 }
