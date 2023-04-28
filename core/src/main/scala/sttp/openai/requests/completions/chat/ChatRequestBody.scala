@@ -50,4 +50,22 @@ object ChatRequestBody {
     implicit val chatRequestW: SnakePickle.Writer[ChatBody] = SnakePickle.macroW[ChatBody]
   }
 
+  sealed abstract class ChatCompletionModel(val value: String)
+
+  object ChatCompletionModel {
+    implicit val chatCompletionModelRW: SnakePickle.ReadWriter[ChatCompletionModel] = ???
+
+    case object GPT4 extends ChatCompletionModel("gpt-4")
+
+    case object GPT40314 extends ChatCompletionModel("gpt-4-0314")
+
+    case object GPT432k extends ChatCompletionModel("gpt-4-32k")
+
+    case object GPT432k0314 extends ChatCompletionModel("gpt-4-32k-0314")
+
+    case object GPT35Turbo extends ChatCompletionModel("gpt-3.5-turbo")
+
+    case object GPT35Turbo0301 extends ChatCompletionModel("gpt-3.5-turbo-0301")
+  }
+
 }
