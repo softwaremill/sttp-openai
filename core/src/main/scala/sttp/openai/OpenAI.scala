@@ -2,7 +2,7 @@ package sttp.openai
 
 import sttp.client4._
 import sttp.model.Uri
-import sttp.openai.json.SttpUpickleApiExtension.{asJsonSnake, upickleBodySerializerSnake}
+import sttp.openai.json.SttpUpickleApiExtension.{asJsonSnake, asStringEither, upickleBodySerializerSnake}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -355,17 +355,17 @@ class OpenAI(authToken: String) {
     * @param fileId
     *   The ID of the file.
     */
-  def retrieveFileContent(fileId: String): Request[Either[String, String]] =
+  def retrieveFileContent(fileId: String): Request[Either[ResponseException[String, Exception], String]] =
     openApiAuthRequest
       .get(OpenAIUris.fileContent(fileId))
-      .response(asString)
+      .response(asStringEither)
 
   /** Translates audio into English text.
     *
     * [[https://platform.openai.com/docs/api-reference/audio/create]]
     *
     * @param file
-    *   File The audio file to translate, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+    *   The audio file to translate, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */

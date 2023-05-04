@@ -1,8 +1,8 @@
 package sttp.openai.json
 
-import sttp.client4.json.RichResponseAs
+import sttp.client4.json._
 import sttp.client4.upicklejson.SttpUpickleApi
-import sttp.client4.{asString, BodySerializer, IsOption, JsonInput, ResponseAs, ResponseException, StringBody}
+import sttp.client4.{asString, asStringAlways, BodySerializer, HttpError, IsOption, JsonInput, ResponseAs, ResponseException, StringBody}
 import sttp.model.MediaType
 
 /** An object that transforms all snake_case keys into camelCase [[https://com-lihaoyi.github.io/upickle/#CustomConfiguration]] */
@@ -61,4 +61,11 @@ object SttpUpickleApiExtension extends SttpUpickleApi {
         }
     }
   }
+
+  def asStringEither: ResponseAs[Either[ResponseException[String, Exception], String]] =
+    asStringAlways
+      .mapWithMetadata { (string, metadata) =>
+        if (metadata.isSuccess) Right(string) else Left(HttpError(string, metadata.code))
+      }
+      .showAs("either(as error, as string)")
 }
