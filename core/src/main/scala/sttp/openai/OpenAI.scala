@@ -88,8 +88,10 @@ class OpenAI(authToken: String) {
     * [[https://platform.openai.com/docs/api-reference/images/create-edit]]
     *
     * @param image
-    *   The image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image must have
-    *   transparency, which will be used as the mask.
+    *   The image to be edited.
+    *
+    * Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image must have transparency, which will be used as the
+    * mask.
     * @param prompt
     *   A text description of the desired image. The maximum length is 1000 characters.
     */
@@ -107,8 +109,10 @@ class OpenAI(authToken: String) {
     * [[https://platform.openai.com/docs/api-reference/images/create-edit]]
     *
     * @param systemPath
-    *   Path to the image to be edited. <p> Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image must have
-    *   transparency, which will be used as the mask
+    *   Path to the image to be edited.
+    *
+    * Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image must have transparency, which will be used as the
+    * mask
     * @param prompt
     *   A text description of the desired image. The maximum length is 1000 characters.
     */
@@ -151,7 +155,9 @@ class OpenAI(authToken: String) {
     * [[https://platform.openai.com/docs/api-reference/images/create-variation]]
     *
     * @param image
-    *   The image to use as the basis for the variation. <p> Must be a valid PNG file, less than 4MB, and square.
+    *   The image to use as the basis for the variation.
+    *
+    * Must be a valid PNG file, less than 4MB, and square.
     */
   def imageVariations(
       image: File
@@ -168,7 +174,9 @@ class OpenAI(authToken: String) {
     * [[https://platform.openai.com/docs/api-reference/images/create-variation]]
     *
     * @param systemPath
-    *   Path to the image to use as the basis for the variation. <p> Must be a valid PNG file, less than 4MB, and square.
+    *   Path to the image to use as the basis for the variation.
+    *
+    * Must be a valid PNG file, less than 4MB, and square.
     */
   def imageVariations(
       systemPath: String
@@ -425,7 +433,7 @@ class OpenAI(authToken: String) {
     * @param moderationsBody
     *   Moderation request body.
     */
-  def createModeration(moderationsBody: ModerationsBody) =
+  def createModeration(moderationsBody: ModerationsBody): Request[Either[ResponseException[String, Exception], ModerationData]] =
     openApiAuthRequest
       .post(OpenAIUris.Moderations)
       .body(moderationsBody)
@@ -536,7 +544,7 @@ class OpenAI(authToken: String) {
     * @param embeddingsBody
     *   Embeddings request body.
     */
-  def createEmbeddings(embeddingsBody: EmbeddingsBody) =
+  def createEmbeddings(embeddingsBody: EmbeddingsBody): Request[Either[ResponseException[String, Exception], EmbeddingResponse]] =
     openApiAuthRequest
       .post(OpenAIUris.Embeddings)
       .body(embeddingsBody)
