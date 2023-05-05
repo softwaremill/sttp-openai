@@ -19,14 +19,14 @@ Sttp-openai uses sttp client to describe requests and responses used in OpenAI e
 Add the following dependency:
 
 ```sbt
-("com.softwaremill.sttp.openai" %% "core" % "0.0.5")
+"com.softwaremill.sttp.openai" %% "core" % "0.0.5"
 ```
 
 sttp openai is available for Scala 2.13 and Scala 3
 
 ## Project content
 
-OpenAI API Offical Documentation https://platform.openai.com/docs/api-reference/completions
+OpenAI API Official Documentation https://platform.openai.com/docs/api-reference/completions
 
 ### Not yet implemented:
   * Create chat completions SSE
@@ -39,17 +39,16 @@ OpenAI API Offical Documentation https://platform.openai.com/docs/api-reference/
 
 ```scala mdoc:compile-only 
 import sttp.client4._
-import sttp.openai.OpenAI
+import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.Message
 
-// Create an instance of OpenAI providing your API secret-key
-
-val openAi: OpenAI = new OpenAI("your-secret-key")
+// Create an instance of OpenAI providing your API secret-key and sync backend instance
+val backend: SyncBackend = DefaultSyncBackend()
+val openAI: OpenAISyncClient = OpenAISyncClient("your-secret-key", backend)
 
 // Create body of Chat Completions Request
-
 val bodyMessages: Seq[Message] = Seq(
   Message(
     role = "user",
@@ -62,17 +61,9 @@ val chatRequestBody: ChatBody = ChatBody(
   messages = bodyMessages
 )
 
-// Use createChatCompletion and pass created request body to create sttp request
+val chatResponse = openAI.createChatCompletion(chatRequestBody)
 
-val request = openAI.createChatCompletion(chatRequestBody)
-
-// To invoke request and get a response provide your wished backend and send created request
-
-val backend: SyncBackend = DefaultSyncBackend()
-
-val response = request.send(backend)
-
-println(response)
+println(chatResponse)
 /*
  Right(
  ChatResponse(
@@ -88,7 +79,66 @@ println(response)
 )
 */
 ```
+#### Currently only two backend implementations are available:
+* `OpenAISyncBackend` which uses `Identity` as an effect `F[_]`
+* `OpenAI` which provides raw sttp `Request`s. 
+If you want to make use of other effects, you have to use `OpenAI` and pass the chosen backend directly to `request.send(backend)` function.
+E.g.
 
+```scala mdoc:compile-only 
+import sttp.client4._
+import sttp.client4.httpclient.HttpClientFutureBackend
+import sttp.openai.OpenAI
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
+import sttp.openai.requests.completions.chat.Message
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+val backend: SyncBackend = HttpClientFutureBackend()
+val openAI: OpenAI = OpenAI("your-secret-key")
+
+val bodyMessages: Seq[Message] = Seq(
+  Message(
+    role = "user",
+    content = "Hello!"
+  )
+)
+
+val chatRequestBody: ChatBody = ChatBody(
+  model = "gpt-3.5-turbo",
+  messages = bodyMessages
+)
+
+val chatResponse = openAI
+  .createChatCompletion(chatRequestBody)
+  .send(backend)
+  .map(_.body)
+
+Thread.sleep(1000) // wait for the future to complete, just for test case
+
+println(chatResponse)
+/*
+Future(
+  Success(
+    Right(
+      ChatResponse(
+        chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
+        1682589572,
+        gpt-3.5-turbo-0301,
+        Usage(10,10,20),
+        List(
+          Choices(
+            Message(assistant, Hello there! How can I assist you today?), stop, 0)
+          )
+        )
+      )
+    )
+  )
+)
+*/
+```
 ## Contributing
 
 If you have a question, or hit a problem, feel free to post on our community https://softwaremill.community/c/open-source/
