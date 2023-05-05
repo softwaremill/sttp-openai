@@ -44,7 +44,7 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.Message
 
-// Create an instance of OpenAI providing your API secret-key and sync backend instance
+// Create an instance of OpenAISyncClient providing your API secret-key and sync backend instance
 val backend: SyncBackend = DefaultSyncBackend()
 val openAI: OpenAISyncClient = OpenAISyncClient("your-secret-key", backend)
 
@@ -116,7 +116,7 @@ val chatResponse = openAI
   .send(backend)
   .map(_.body)
 
-Thread.sleep(1000) // wait for the future to complete, just for test case
+Thread.sleep(1000) // wait for the future to complete, just for a test case
 
 println(chatResponse)
 /*
