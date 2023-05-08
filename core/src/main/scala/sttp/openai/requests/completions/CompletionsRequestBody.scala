@@ -76,8 +76,8 @@ object CompletionsRequestBody {
         jsonValue =>
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
-              byCompletionModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not serialize: $value")))
-            case e => throw new DeserializationException(new Exception(s"Could not serialize: $e"))
+              byCompletionModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
+            case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
           }
       )
 
