@@ -16,7 +16,7 @@ object EmbeddingsFixture {
                                        |        ]
                                        |    }
                                        |  ],
-                                       |  "model": "text-embedding-ada-002-v2",
+                                       |  "model": "text-embedding-ada-002",
                                        |  "usage": {
                                        |    "prompt_tokens": 8,
                                        |    "total_tokens": 8
