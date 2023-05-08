@@ -7,7 +7,7 @@ object ModerationsRequestBody {
   /** @param input
     *   The input text to classify.
     * @param model
-    *   Specifies content moderation models.
+    *   Specifies content moderation models of [[ModerationModel]].
     */
   case class ModerationsBody(input: String, model: Option[ModerationModel] = None)
 
