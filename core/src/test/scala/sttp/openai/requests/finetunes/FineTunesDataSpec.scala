@@ -67,7 +67,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val givenRequest = FineTunesRequestBody(
       trainingFile = "file-train231",
       validationFile = Some("file-valid2"),
-      model = Some("curie"),
+      model = Some(FineTuneModel.Curie),
       nEpochs = Some(3),
       batchSize = Some(2),
       learningRateMultiplier = Some(0.04d),
