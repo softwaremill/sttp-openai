@@ -29,9 +29,9 @@ sttp openai is available for Scala 2.13 and Scala 3
 OpenAI API Offical Documentation https://platform.openai.com/docs/api-reference/completions
 
 ### Not yet implemented:
-  * Create chat completions SSE
-  * Create completions SSE
-  * List fine-tune events SSE
+    * Create chat completions SSE
+    * Create completions SSE
+    * List fine-tune events SSE
 
 ## Example
 
@@ -46,7 +46,7 @@ import sttp.openai.requests.completions.chat.Message
 
 // Create an instance of OpenAI providing your API secret-key
 
-val openAi: OpenAI = new OpenAI("your-secret-key")
+val openAI: OpenAI = new OpenAI("your-secret-key")
 
 // Create body of Chat Completions Request
 
