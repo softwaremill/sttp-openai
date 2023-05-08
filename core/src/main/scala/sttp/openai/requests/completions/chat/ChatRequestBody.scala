@@ -61,8 +61,8 @@ object ChatRequestBody {
         jsonValue =>
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
-              byChatModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not serialize: $value")))
-            case e => throw new DeserializationException(new Exception(s"Could not serialize: $e"))
+              byChatModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
+            case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
           }
       )
 
