@@ -91,6 +91,8 @@ object CompletionsRequestBody {
 
     case object TextAda001 extends CompletionModel("text-ada-001")
 
+    case class CustomCompletionModel(customCompletionModel: String) extends CompletionModel(customCompletionModel)
+
     val values: Set[CompletionModel] = Set(TextDavinci003, TextDavinci002, TextCurie001, TextBabbage001, TextAda001)
 
     private val byCompletionModelValue = values.map(model => model.value -> model).toMap
