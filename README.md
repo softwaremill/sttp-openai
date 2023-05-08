@@ -44,9 +44,8 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.Message
 
-// Create an instance of OpenAISyncClient providing your API secret-key and sync backend instance
-val backend: SyncBackend = DefaultSyncBackend()
-val openAI: OpenAISyncClient = OpenAISyncClient("your-secret-key", backend)
+// Create an instance of OpenAISyncClient providing your API secret-key
+val openAI: OpenAISyncClient = OpenAISyncClient("your-secret-key")
 
 // Create body of Chat Completions Request
 val bodyMessages: Seq[Message] = Seq(
@@ -80,7 +79,7 @@ println(chatResponse)
 */
 ```
 #### Currently only two backend implementations are available:
-* `OpenAISyncBackend` which uses `Identity` as an effect `F[_]`
+* `OpenAISyncBackend` which uses identity monad `Id[A]` as an effect `F[A]`
 * `OpenAI` which provides raw sttp `Request`s. 
 If you want to make use of other effects, you have to use `OpenAI` and pass the chosen backend directly to `request.send(backend)` function.
 E.g.
