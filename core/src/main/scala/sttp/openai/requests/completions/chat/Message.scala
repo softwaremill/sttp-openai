@@ -4,7 +4,7 @@ import sttp.openai.json.{DeserializationException, SnakePickle}
 import ujson.Str
 
 /** @param role
-  *   The role of the author of this message. One of `Role`.
+  *   The role of the author of this message. One of [[Role]].
   * @param content
   *   The contents of the message.
   * @param name
@@ -34,12 +34,10 @@ object Role {
     .readwriter[ujson.Value]
     .bimap[Role](
       role => SnakePickle.writeJs(role.value),
-      jsonValue => {
-        println(jsonValue)
+      jsonValue =>
         SnakePickle.read[ujson.Value](jsonValue) match {
           case Str(value) => byRoleValue.getOrElse(value, Custom(value))
           case e          => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
         }
-      }
     )
 }

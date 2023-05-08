@@ -162,7 +162,7 @@ object Language {
   case object Welsh extends Language("cy")
 
   /** @param customLanguage
-   *   use ISO-639-1 format to use desired language
-   */
+    *   use ISO-639-1 format to use desired language
+    */
   case class Custom(customLanguage: String) extends Language(customLanguage)
 }
