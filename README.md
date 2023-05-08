@@ -60,7 +60,7 @@ val chatRequestBody: ChatBody = ChatBody(
   messages = bodyMessages
 )
 
-val chatResponse = openAI.createChatCompletion(chatRequestBody)
+val chatResponse: CompletionsResponse = openAI.createChatCompletion(chatRequestBody)
 
 println(chatResponse)
 /*

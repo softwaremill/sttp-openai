@@ -1,6 +1,7 @@
 package sttp.openai.requests.completions.chat
 
-import sttp.openai.json.{DeserializationException, SnakePickle}
+import sttp.openai.OpenAIExceptions
+import sttp.openai.json.SnakePickle
 import ujson.Str
 
 /** @param role
@@ -37,7 +38,7 @@ object Role {
       jsonValue =>
         SnakePickle.read[ujson.Value](jsonValue) match {
           case Str(value) => byRoleValue.getOrElse(value, Custom(value))
-          case e          => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
+          case e => throw OpenAIExceptions.OpenAIException.DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
         }
     )
 }

@@ -6,21 +6,22 @@ import org.scalatest.matchers.should.Matchers
 import sttp.client4._
 import sttp.model.StatusCode._
 import sttp.client4.testing._
-import sttp.openai.OpenAIErrors.OpenAIError._
+import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai.OpenAIExceptions.OpenAIException._
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.models.ModelsResponseData._
 
 class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
   private val testData = List(
-    (TooManyRequests, classOf[RateLimitError]),
-    (BadRequest, classOf[InvalidRequestError]),
-    (NotFound, classOf[InvalidRequestError]),
-    (UnsupportedMediaType, classOf[InvalidRequestError]),
-    (Unauthorized, classOf[AuthenticationError]),
-    (Forbidden, classOf[PermissionError]),
+    (TooManyRequests, classOf[RateLimitException]),
+    (BadRequest, classOf[InvalidRequestException]),
+    (NotFound, classOf[InvalidRequestException]),
+    (UnsupportedMediaType, classOf[InvalidRequestException]),
+    (Unauthorized, classOf[AuthenticationException]),
+    (Forbidden, classOf[PermissionException]),
     (Conflict, classOf[TryAgain]),
-    (ServiceUnavailable, classOf[ServiceUnavailableError]),
-    (Gone, classOf[APIError])
+    (ServiceUnavailable, classOf[ServiceUnavailableException]),
+    (Gone, classOf[APIException])
   )
   private val errorResponse =
     """
@@ -37,7 +38,9 @@ class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     s"Service response with status code: $statusCode" should s"return ${expectedError.getSimpleName}" in {
       val syncBackendStub: SyncBackendStub = DefaultSyncBackend.stub.whenAnyRequest.thenRespondWithCode(statusCode, errorResponse)
       val syncClient = OpenAISyncClient(authToken = "test-token", backend = syncBackendStub)
-      syncClient.getModels.left.value.getClass.getName shouldBe expectedError.getName
+      val caught = intercept[OpenAIException](syncClient.getModels)
+      caught.getClass shouldBe expectedError
+
     }
 
   "Fetching models with successful response" should "return properly deserialized list of available models" in {
@@ -73,6 +76,6 @@ class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
         )
       )
     )
-    syncClient.getModels.value shouldBe deserializedModels
+    syncClient.getModels shouldBe deserializedModels
   }
 }

@@ -2,8 +2,10 @@ package sttp.openai.json
 
 import sttp.client4.json._
 import sttp.client4.upicklejson.SttpUpickleApi
-import sttp.client4.{asString, asStringAlways, BodySerializer, HttpError, IsOption, JsonInput, ResponseAs, ResponseException, StringBody}
-import sttp.model.MediaType
+import sttp.client4._
+import sttp.model.{MediaType, ResponseMetadata}
+import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai.OpenAIExceptions.OpenAIException._
 
 /** An object that transforms all snake_case keys into camelCase [[https://com-lihaoyi.github.io/upickle/#CustomConfiguration]] */
 object SnakePickle extends upickle.AttributeTagged {
@@ -45,27 +47,55 @@ object SttpUpickleApiExtension extends SttpUpickleApi {
   implicit def upickleBodySerializerSnake[B](implicit encoder: SnakePickle.Writer[B]): BodySerializer[B] =
     b => StringBody(SnakePickle.write(b), "utf-8", MediaType.ApplicationJson)
 
-  def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[ResponseException[String, DeserializationException], B]] =
-    asString.mapWithMetadata(ResponseAs.deserializeRightWithError(deserializeJsonSnake)).showAsJson
+//  def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[ResponseException[String, Exception], B]] =
+//    asString.mapWithMetadata(ResponseAs.deserializeRightWithError(deserializeJsonSnake)).showAsJson
 
-  def deserializeJsonSnake[B: SnakePickle.Reader: IsOption]: String => Either[DeserializationException, B] = { (s: String) =>
+  def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[OpenAIException, B]] =
+    asString.mapWithMetadata(deserializeRightWithMappedExceptions(deserializeJsonSnake)).showAsJson
+
+  private def deserializeRightWithMappedExceptions[T](
+      doDeserialize: String => Either[DeserializationOpenAIException, T]
+  ): (Either[String, String], ResponseMetadata) => Either[OpenAIException, T] = {
+    case (Left(body), meta) =>
+      Left(httpToOpenAIError(HttpError(body, meta.code)))
+    case (Right(body), _) => doDeserialize.apply(body)
+  }
+
+  def deserializeJsonSnake[B: SnakePickle.Reader: IsOption]: String => Either[DeserializationOpenAIException, B] = { (s: String) =>
     try
       Right(SnakePickle.read[B](JsonInput.sanitize[B].apply(s)))
     catch {
-      case e: Exception => Left(new DeserializationException(e))
+      case e: Exception => Left(DeserializationOpenAIException(e))
       case t: Throwable =>
         // in ScalaJS, ArrayIndexOutOfBoundsException exceptions are wrapped in org.scalajs.linker.runtime.UndefinedBehaviorError
         t.getCause match {
-          case e: ArrayIndexOutOfBoundsException => Left(new DeserializationException(e))
+          case e: ArrayIndexOutOfBoundsException => Left(DeserializationOpenAIException(e))
           case _                                 => throw t
         }
     }
   }
 
-  def asStringEither: ResponseAs[Either[ResponseException[String, Exception], String]] =
+  def asStringEither: ResponseAs[Either[OpenAIException, String]] =
     asStringAlways
       .mapWithMetadata { (string, metadata) =>
-        if (metadata.isSuccess) Right(string) else Left(HttpError(string, metadata.code))
+        if (metadata.isSuccess) Right(string) else Left(httpToOpenAIError(HttpError(string, metadata.code)))
       }
       .showAs("either(as error, as string)")
+
+  private def httpToOpenAIError(he: HttpError[String]): OpenAIException = {
+    import sttp.model.StatusCode._
+    val errorMessageBody = SnakePickle.read[ujson.Value](he.body).apply("error").obj.values
+    val (message, typ, param, code) =
+      SnakePickle.read[(Option[String], Option[String], Option[String], Option[String])](errorMessageBody)
+    he.statusCode match {
+      case TooManyRequests                              => RateLimitException(message, typ, param, code, he)
+      case BadRequest | NotFound | UnsupportedMediaType => InvalidRequestException(message, typ, param, code, he)
+      case Unauthorized                                 => AuthenticationException(message, typ, param, code, he)
+      case Forbidden                                    => PermissionException(message, typ, param, code, he)
+      case Conflict                                     => TryAgain(message, typ, param, code, he)
+      case ServiceUnavailable                           => ServiceUnavailableException(message, typ, param, code, he)
+      case _                                            => APIException(message, typ, param, code, he)
+    }
+  }
+
 }

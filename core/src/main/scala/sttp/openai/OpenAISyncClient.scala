@@ -1,8 +1,8 @@
 package sttp.openai
 
 import sttp.client4.{DefaultSyncBackend, DeserializationException, HttpError, Request, Response, ResponseException, SyncBackend}
-import sttp.openai.OpenAIErrors.OpenAIError
-import sttp.openai.OpenAIErrors.OpenAIError._
+import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai.OpenAIExceptions.OpenAIException._
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
@@ -47,8 +47,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     *
     * [[https://platform.openai.com/docs/api-reference/models]]
     */
-  def getModels: Either[OpenAIError, ModelsResponse] =
-    sendAndHandleResponse(openAI.getModels)
+  def getModels =
+    sendOrThrow(openAI.getModels)
 
   /** Retrieves a model instance, providing basic information about the model such as the owner and permissions.
     *
@@ -57,8 +57,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param modelId
     *   The ID of the model to use for this request.
     */
-  def retrieveModel(modelId: String): Either[OpenAIError, ModelData] =
-    sendAndHandleResponse(openAI.retrieveModel(modelId))
+  def retrieveModel(modelId: String) =
+    sendOrThrow(openAI.retrieveModel(modelId))
 
   /** Creates a completion for the provided prompt and parameters given in request body.
     *
@@ -67,8 +67,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param completionBody
     *   Create completion request body.
     */
-  def createCompletion(completionBody: CompletionsBody): Either[OpenAIError, CompletionsResponse] =
-    sendAndHandleResponse(openAI.createCompletion(completionBody))
+  def createCompletion(completionBody: CompletionsBody) =
+    sendOrThrow(openAI.createCompletion(completionBody))
 
   /** Creates an image given a prompt in request body.
     *
@@ -77,8 +77,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param imageCreationBody
     *   Create image request body.
     */
-  def createImage(imageCreationBody: ImageCreationBody): Either[OpenAIError, ImageResponse] =
-    sendAndHandleResponse(openAI.createImage(imageCreationBody))
+  def createImage(imageCreationBody: ImageCreationBody) =
+    sendOrThrow(openAI.createImage(imageCreationBody))
 
   /** Creates edited or extended images given an original image and a prompt.
     *
@@ -92,8 +92,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param prompt
     *   A text description of the desired image. The maximum length is 1000 characters.
     */
-  def imageEdits(image: File, prompt: String): Either[OpenAIError, ImageResponse] =
-    sendAndHandleResponse(openAI.imageEdits(image, prompt))
+  def imageEdits(image: File, prompt: String) =
+    sendOrThrow(openAI.imageEdits(image, prompt))
 
   /** Creates edited or extended images given an original image and a prompt.
     *
@@ -107,8 +107,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param prompt
     *   A text description of the desired image. The maximum length is 1000 characters.
     */
-  def imageEdits(systemPath: String, prompt: String): Either[OpenAIError, ImageResponse] =
-    sendAndHandleResponse(openAI.imageEdits(systemPath, prompt))
+  def imageEdits(systemPath: String, prompt: String) =
+    sendOrThrow(openAI.imageEdits(systemPath, prompt))
 
   /** Creates edited or extended images given an original image and a prompt.
     *
@@ -117,8 +117,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param imageEditsConfig
     *   An instance of the case class ImageEditConfig containing the necessary parameters for editing the image.
     */
-  def imageEdits(imageEditsConfig: ImageEditsConfig): Either[OpenAIError, ImageResponse] =
-    sendAndHandleResponse(openAI.imageEdits(imageEditsConfig))
+  def imageEdits(imageEditsConfig: ImageEditsConfig) =
+    sendOrThrow(openAI.imageEdits(imageEditsConfig))
 
   /** Creates a variation of a given image.
     *
@@ -129,8 +129,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     *
     * Must be a valid PNG file, less than 4MB, and square.
     */
-  def imageVariations(image: File): Either[OpenAIError, ImageResponse] =
-    sendAndHandleResponse(openAI.imageVariations(image))
+  def imageVariations(image: File) =
+    sendOrThrow(openAI.imageVariations(image))
 
   /** Creates a variation of a given image.
     *
@@ -141,8 +141,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     *
     * Must be a valid PNG file, less than 4MB, and square.
     */
-  def imageVariations(systemPath: String): Either[OpenAIError, ImageResponse] =
-    sendAndHandleResponse(openAI.imageVariations(systemPath))
+  def imageVariations(systemPath: String) =
+    sendOrThrow(openAI.imageVariations(systemPath))
 
   /** Creates a variation of a given image.
     *
@@ -151,8 +151,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param imageVariationsConfig
     *   An instance of the case class ImageVariationsConfig containing the necessary parameters for the image variation.
     */
-  def imageVariations(imageVariationsConfig: ImageVariationsConfig): Either[OpenAIError, ImageResponse] =
-    sendAndHandleResponse(openAI.imageVariations(imageVariationsConfig))
+  def imageVariations(imageVariationsConfig: ImageVariationsConfig) =
+    sendOrThrow(openAI.imageVariations(imageVariationsConfig))
 
   /** Creates a new edit for provided request body.
     *
@@ -161,8 +161,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param editRequestBody
     *   Edit request body.
     */
-  def createEdit(editRequestBody: EditBody): Either[OpenAIError, EditResponse] =
-    sendAndHandleResponse(openAI.createEdit(editRequestBody))
+  def createEdit(editRequestBody: EditBody) =
+    sendOrThrow(openAI.createEdit(editRequestBody))
 
   /** Creates a model response for the given chat conversation defined in chatBody.
     *
@@ -171,15 +171,15 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param chatBody
     *   Chat request body.
     */
-  def createChatCompletion(chatBody: ChatBody): Either[OpenAIError, ChatResponse] =
-    sendAndHandleResponse(openAI.createChatCompletion(chatBody))
+  def createChatCompletion(chatBody: ChatBody) =
+    sendOrThrow(openAI.createChatCompletion(chatBody))
 
   /** Returns a list of files that belong to the user's organization.
     *
     * [[https://platform.openai.com/docs/api-reference/files]]
     */
-  def getFiles: Either[OpenAIError, FilesResponse] =
-    sendAndHandleResponse(openAI.getFiles)
+  def getFiles =
+    sendOrThrow(openAI.getFiles)
 
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
@@ -196,8 +196,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     *
     * Use "fine-tune" for Fine-tuning. This allows OpenAI to validate the format of the uploaded file.
     */
-  def uploadFile(file: File, purpose: String): Either[OpenAIError, FileData] =
-    sendAndHandleResponse(openAI.uploadFile(file, purpose))
+  def uploadFile(file: File, purpose: String) =
+    sendOrThrow(openAI.uploadFile(file, purpose))
 
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
@@ -208,8 +208,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     *   JSON Lines file to be uploaded and the purpose is set to "fine-tune", each line is a JSON record with "prompt" and "completion"
     *   fields representing your [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
     */
-  def uploadFile(file: File): Either[OpenAIError, FileData] =
-    sendAndHandleResponse(openAI.uploadFile(file))
+  def uploadFile(file: File) =
+    sendOrThrow(openAI.uploadFile(file))
 
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
@@ -226,8 +226,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     *
     * Use "fine-tune" for Fine-tuning. This allows OpenAI to validate the format of the uploaded file.
     */
-  def uploadFile(systemPath: String, purpose: String): Either[OpenAIError, FileData] =
-    sendAndHandleResponse(openAI.uploadFile(systemPath, purpose))
+  def uploadFile(systemPath: String, purpose: String) =
+    sendOrThrow(openAI.uploadFile(systemPath, purpose))
 
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
@@ -239,8 +239,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     *   "completion" fields representing your
     *   [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
     */
-  def uploadFile(systemPath: String): Either[OpenAIError, FileData] =
-    sendAndHandleResponse(openAI.uploadFile(systemPath))
+  def uploadFile(systemPath: String) =
+    sendOrThrow(openAI.uploadFile(systemPath))
 
   /** Delete a file.
     *
@@ -249,8 +249,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param fileId
     *   The ID of the file to use for this request.
     */
-  def deleteFile(fileId: String): Either[OpenAIError, DeletedFileData] =
-    sendAndHandleResponse(openAI.deleteFile(fileId))
+  def deleteFile(fileId: String) =
+    sendOrThrow(openAI.deleteFile(fileId))
 
   /** Returns information about a specific file.
     *
@@ -259,8 +259,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param fileId
     *   The ID of the file to use for this request.
     */
-  def retrieveFile(fileId: String): Either[OpenAIError, FileData] =
-    sendAndHandleResponse(openAI.retrieveFile(fileId))
+  def retrieveFile(fileId: String) =
+    sendOrThrow(openAI.retrieveFile(fileId))
 
   /** Returns the contents of the specified file.
     *
@@ -269,8 +269,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param fileId
     *   The ID of the file.
     */
-  def retrieveFileContent(fileId: String): Either[OpenAIError, String] =
-    sendAndHandleResponse(openAI.retrieveFileContent(fileId))
+  def retrieveFileContent(fileId: String) =
+    sendOrThrow(openAI.retrieveFileContent(fileId))
 
   /** Translates audio into English text.
     *
@@ -281,8 +281,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(file: File, model: RecognitionModel): Either[OpenAIError, AudioResponse] =
-    sendAndHandleResponse(openAI.createTranslation(file, model))
+  def createTranslation(file: File, model: RecognitionModel) =
+    sendOrThrow(openAI.createTranslation(file, model))
 
   /** Translates audio into English text.
     *
@@ -293,8 +293,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(systemPath: String, model: RecognitionModel): Either[OpenAIError, AudioResponse] =
-    sendAndHandleResponse(openAI.createTranslation(systemPath, model))
+  def createTranslation(systemPath: String, model: RecognitionModel) =
+    sendOrThrow(openAI.createTranslation(systemPath, model))
 
   /** Translates audio into English text.
     *
@@ -303,8 +303,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param translationConfig
     *   An instance of the case class TranslationConfig containing the necessary parameters for the audio translation.
     */
-  def createTranslation(translationConfig: TranslationConfig): Either[OpenAIError, AudioResponse] =
-    sendAndHandleResponse(openAI.createTranslation(translationConfig))
+  def createTranslation(translationConfig: TranslationConfig) =
+    sendOrThrow(openAI.createTranslation(translationConfig))
 
   /** Classifies if text violates OpenAI's Content Policy.
     *
@@ -313,8 +313,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param moderationsBody
     *   Moderation request body.
     */
-  def createModeration(moderationsBody: ModerationsBody): Either[OpenAIError, ModerationData] =
-    sendAndHandleResponse(openAI.createModeration(moderationsBody))
+  def createModeration(moderationsBody: ModerationsBody) =
+    sendOrThrow(openAI.createModeration(moderationsBody))
 
   /** Transcribes audio into the input language.
     *
@@ -325,8 +325,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranscription(file: File, model: RecognitionModel): Either[OpenAIError, AudioResponse] =
-    sendAndHandleResponse(openAI.createTranscription(file, model))
+  def createTranscription(file: File, model: RecognitionModel) =
+    sendOrThrow(openAI.createTranscription(file, model))
 
   /** Transcribes audio into the input language.
     *
@@ -337,8 +337,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranscription(systemPath: String, model: RecognitionModel): Either[OpenAIError, AudioResponse] =
-    sendAndHandleResponse(openAI.createTranscription(systemPath, model))
+  def createTranscription(systemPath: String, model: RecognitionModel) =
+    sendOrThrow(openAI.createTranscription(systemPath, model))
 
   /** Transcribes audio into the input language.
     *
@@ -347,8 +347,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @return
     *   An url to edited image.
     */
-  def createTranscription(transcriptionConfig: TranscriptionConfig): Either[OpenAIError, AudioResponse] =
-    sendAndHandleResponse(openAI.createTranscription(transcriptionConfig))
+  def createTranscription(transcriptionConfig: TranscriptionConfig) =
+    sendOrThrow(openAI.createTranscription(transcriptionConfig))
 
   /** Creates a job that fine-tunes a specified model from a given dataset.
     *
@@ -357,15 +357,15 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param fineTunesRequestBody
     *   Request body that will be used to create a fine-tune.
     */
-  def createFineTune(fineTunesRequestBody: FineTunesRequestBody): Either[OpenAIError, FineTuneResponse] =
-    sendAndHandleResponse(openAI.createFineTune(fineTunesRequestBody))
+  def createFineTune(fineTunesRequestBody: FineTunesRequestBody) =
+    sendOrThrow(openAI.createFineTune(fineTunesRequestBody))
 
   /** List of your organization's fine-tuning jobs.
     *
     * [[https://platform.openai.com/docs/api-reference/fine-tunes/list]]
     */
-  def getFineTunes: Either[OpenAIError, GetFineTunesResponse] =
-    sendAndHandleResponse(openAI.getFineTunes)
+  def getFineTunes =
+    sendOrThrow(openAI.getFineTunes)
 
   /** Immediately cancel a fine-tune job.
     *
@@ -374,8 +374,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param fineTuneId
     *   The ID of the fine-tune job to cancel.
     */
-  def cancelFineTune(fineTuneId: String): Either[OpenAIError, FineTuneResponse] =
-    sendAndHandleResponse(openAI.cancelFineTune(fineTuneId))
+  def cancelFineTune(fineTuneId: String) =
+    sendOrThrow(openAI.cancelFineTune(fineTuneId))
 
   /** Gets info about the fine-tune job.
     *
@@ -384,8 +384,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param embeddingsBody
     *   Embeddings request body.
     */
-  def createEmbeddings(embeddingsBody: EmbeddingsBody): Either[OpenAIError, EmbeddingResponse] =
-    sendAndHandleResponse(openAI.createEmbeddings(embeddingsBody))
+  def createEmbeddings(embeddingsBody: EmbeddingsBody) =
+    sendOrThrow(openAI.createEmbeddings(embeddingsBody))
 
   /** Gets info about the fine-tune job.
     *
@@ -394,8 +394,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param fineTuneId
     *   The ID of the fine-tune job.
     */
-  def retrieveFineTune(fineTuneId: String): Either[OpenAIError, FineTuneResponse] =
-    sendAndHandleResponse(openAI.retrieveFineTune(fineTuneId))
+  def retrieveFineTune(fineTuneId: String) =
+    sendOrThrow(openAI.retrieveFineTune(fineTuneId))
 
   /** Delete a fine-tuned model. You must have the Owner role in your organization.
     *
@@ -404,8 +404,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param model
     *   The model to delete.
     */
-  def deleteFineTuneModel(model: String): Either[OpenAIError, DeleteFineTuneModelResponse] =
-    sendAndHandleResponse(openAI.deleteFineTuneModel(model))
+  def deleteFineTuneModel(model: String) =
+    sendOrThrow(openAI.deleteFineTuneModel(model))
 
   /** Get fine-grained status updates for a fine-tune job.
     *
@@ -414,30 +414,15 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend) {
     * @param fineTuneId
     *   The ID of the fine-tune job to get events for.
     */
-  def getFineTuneEvents(fineTuneId: String): Either[OpenAIError, FineTuneEventsResponse] =
-    sendAndHandleResponse(openAI.getFineTuneEvents(fineTuneId))
+  def getFineTuneEvents(fineTuneId: String) =
+    sendOrThrow(openAI.getFineTuneEvents(fineTuneId))
 
   def close(): Unit = backend.close()
 
-  private def sendAndHandleResponse[A](
-      request: Request[Either[ResponseException[String, Exception], A]]
-  ): Either[OpenAIError, A] =
-    request.send(backend).body.left.map {
-      case e @ HttpError(body, statusCode) =>
-        import sttp.model.StatusCode._
-        val errorMessageBody = SnakePickle.read[ujson.Value](body).apply("error").obj.values
-        val (message, typ, param, code) =
-          SnakePickle.read[(Option[String], Option[String], Option[String], Option[String])](errorMessageBody)
-        statusCode match {
-          case TooManyRequests                              => RateLimitError(message, typ, param, code, e)
-          case BadRequest | NotFound | UnsupportedMediaType => InvalidRequestError(message, typ, param, code, e)
-          case Unauthorized                                 => AuthenticationError(message, typ, param, code, e)
-          case Forbidden                                    => PermissionError(message, typ, param, code, e)
-          case Conflict                                     => TryAgain(message, typ, param, code, e)
-          case ServiceUnavailable                           => ServiceUnavailableError(message, typ, param, code, e)
-          case _                                            => APIError(message, typ, param, code, e)
-        }
-      case DeserializationException(_, error) => throw new json.DeserializationException(error)
+  private def sendOrThrow[A](request: Request[Either[OpenAIException, A]]): A =
+    request.send(backend).body match {
+      case Right(value)    => value
+      case Left(exception) => throw exception
     }
 }
 
