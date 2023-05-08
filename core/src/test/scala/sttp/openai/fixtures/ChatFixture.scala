@@ -28,7 +28,7 @@ object ChatFixture {
       |   "choices": [
       |     {
       |       "message": {
-      |         "role": "assistance",
+      |         "role": "assistant",
       |         "content": "Hi there! How can I assist you today?",
       |         "name": "Fish"
       |       },

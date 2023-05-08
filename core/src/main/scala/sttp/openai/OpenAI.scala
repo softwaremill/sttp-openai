@@ -496,7 +496,7 @@ class OpenAI(authToken: String) {
           prompt.map(multipart("prompt", _)),
           responseFormat.map(format => multipart("response_format", format.value)),
           temperature.map(multipart("temperature", _)),
-          language.map(multipart("language", _))
+          language.map(lang => multipart("language", lang.value))
         ).flatten
       }
       .response(asJsonSnake[AudioResponse])
