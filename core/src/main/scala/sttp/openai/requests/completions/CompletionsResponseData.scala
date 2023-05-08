@@ -1,6 +1,7 @@
 package sttp.openai.requests.completions
 
 import sttp.openai.json.SnakePickle
+import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel
 
 object CompletionsResponseData {
   case class Choices(
@@ -17,7 +18,7 @@ object CompletionsResponseData {
       id: String,
       `object`: String,
       created: Int,
-      model: String,
+      model: CompletionModel,
       choices: Seq[Choices],
       usage: Usage
   )

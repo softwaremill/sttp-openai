@@ -1,6 +1,7 @@
 package sttp.openai.requests.completions
 
-import sttp.openai.json.SnakePickle
+import sttp.openai.json.{DeserializationException, SnakePickle}
+import ujson.Str
 
 object CompletionsRequestBody {
 
@@ -43,7 +44,7 @@ object CompletionsRequestBody {
     * For more information please visit: [[https://platform.openai.com/docs/api-reference/completions/create]]
     */
   case class CompletionsBody(
-      model: String,
+      model: CompletionModel,
       prompt: Option[Prompt] = None,
       suffix: Option[String] = None,
       maxTokens: Option[Int] = None,
@@ -62,6 +63,39 @@ object CompletionsRequestBody {
 
   object CompletionsBody {
     implicit val completionBodyW: SnakePickle.Writer[CompletionsBody] = SnakePickle.macroW[CompletionsBody]
+  }
+
+  sealed abstract class CompletionModel(val value: String)
+
+  object CompletionModel {
+
+    implicit val completionModelRW: SnakePickle.ReadWriter[CompletionModel] = SnakePickle
+      .readwriter[ujson.Value]
+      .bimap[CompletionModel](
+        model => SnakePickle.writeJs(model.value),
+        jsonValue =>
+          SnakePickle.read[ujson.Value](jsonValue) match {
+            case Str(value) =>
+              byCompletionModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
+            case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
+          }
+      )
+
+    case object TextDavinci003 extends CompletionModel("text-davinci-003")
+
+    case object TextDavinci002 extends CompletionModel("text-davinci-002")
+
+    case object TextCurie001 extends CompletionModel("text-curie-001")
+
+    case object TextBabbage001 extends CompletionModel("text-babbage-001")
+
+    case object TextAda001 extends CompletionModel("text-ada-001")
+
+    case class CustomCompletionModel(customCompletionModel: String) extends CompletionModel(customCompletionModel)
+
+    val values: Set[CompletionModel] = Set(TextDavinci003, TextDavinci002, TextCurie001, TextBabbage001, TextAda001)
+
+    private val byCompletionModelValue = values.map(model => model.value -> model).toMap
   }
 
   sealed trait Prompt
