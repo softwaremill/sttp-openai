@@ -7,12 +7,14 @@ import sttp.openai.fixtures
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.completions.Usage
 import sttp.openai.requests.completions.Stop.SingleStop
+import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel
 
 class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given chat completions response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.completions.chat.ChatRequestResponseData._
     import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse._
+    import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel
 
     // given
     val jsonResponse = fixtures.ChatFixture.jsonResponse
@@ -62,7 +64,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     val givenRequest = ChatRequestBody.ChatBody(
-      model = "gpt-3.5-turbo",
+      model = ChatCompletionModel.GPT35Turbo,
       messages = messages,
       temperature = Some(1),
       topP = Some(1),
