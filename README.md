@@ -1,4 +1,4 @@
-![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.png)
+![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.jpg)
 
 
 [![Ideas, suggestions, problems, questions](https://img.shields.io/badge/Discourse-ask%20question-blue)](https://softwaremill.community/c/tapir)
@@ -12,15 +12,15 @@ sttp is a family of Scala HTTP-related projects, and currently includes:
 * sttp openai: this project. Scala client wrapper for OpenAI API. Use the power of ChatGPT inside your code!
 
 ## Intro
-Sttp-openai uses sttp client to describe requests and responses used in OpenAI endpoints. 
+Sttp-openai uses sttp client to describe requests and responses used in OpenAI endpoints.
 
 ## Quickstart with sbt
 
 Add the following dependency:
 
-[//]: # (```scala)
-[//]: # ("com.softwaremill.sttp.openai" %% "core" % "?.?.?")
-[//]: # (```)
+```sbt
+("com.softwaremill.sttp.openai" %% "core" % "0.0.5")
+```
 
 sttp openai is available for Scala 2.13 and Scala 3
 
@@ -29,9 +29,9 @@ sttp openai is available for Scala 2.13 and Scala 3
 OpenAI API Offical Documentation https://platform.openai.com/docs/api-reference/completions
 
 ### Not yet implemented:
-  * Create chat completions SSE
-  * Create completions SSE
-  * List fine-tune events SSE
+    * Create chat completions SSE
+    * Create completions SSE
+    * List fine-tune events SSE
 
 ## Example
 
@@ -39,13 +39,14 @@ OpenAI API Offical Documentation https://platform.openai.com/docs/api-reference/
 
 ```scala mdoc:compile-only 
 import sttp.client4._
+import sttp.openai.OpenAI
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.Message
 
-// Create an instance of OpenAi providing your API secret-key
+// Create an instance of OpenAI providing your API secret-key
 
-val openAi: OpenAi = new OpenAi("your-secret-key")
+val openAI: OpenAI = new OpenAI("your-secret-key")
 
 // Create body of Chat Completions Request
 
@@ -63,7 +64,7 @@ val chatRequestBody: ChatBody = ChatBody(
 
 // Use createChatCompletion and pass created request body to create sttp request
 
-val request = openAi.createChatCompletion(chatRequestBody)
+val request = openAI.createChatCompletion(chatRequestBody)
 
 // To invoke request and get a response provide your wished backend and send created request
 

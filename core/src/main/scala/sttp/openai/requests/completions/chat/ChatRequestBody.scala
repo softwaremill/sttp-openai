@@ -59,10 +59,11 @@ object ChatRequestBody {
       .bimap[ChatCompletionModel](
         model => SnakePickle.writeJs(model.value),
         jsonValue =>
-          SnakePickle.read[ujson.Value](jsonValue) match
+          SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
               byChatModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not serialize: $value")))
             case e => throw new DeserializationException(new Exception(s"Could not serialize: $e"))
+          }
       )
 
     case object GPT4 extends ChatCompletionModel("gpt-4")

@@ -34,13 +34,13 @@ object CompletionsRequestBody {
     *   Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing
     *   the model's likelihood to repeat the same line verbatim.
     * @param bestOf
-    *   Generates [[best_of]] completions server-side and returns the "best" (the one with the highest log probability per token).
+    *   Generates `best_of` completions server-side and returns the "best" (the one with the highest log probability per token).
     * @param logitBias
     *   Modify the likelihood of specified tokens appearing in the completion.
     * @param user
     *   A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
     *
-    * <p>For more information please visit: [[https://platform.openai.com/docs/api-reference/completions/create]]
+    * For more information please visit: [[https://platform.openai.com/docs/api-reference/completions/create]]
     */
   case class CompletionsBody(
       model: String,
@@ -63,7 +63,7 @@ object CompletionsRequestBody {
   object CompletionsBody {
     implicit val completionBodyW: SnakePickle.Writer[CompletionsBody] = SnakePickle.macroW[CompletionsBody]
   }
-  
+
   sealed trait Prompt
   object Prompt {
     implicit val promptRW: SnakePickle.Writer[Prompt] = SnakePickle
