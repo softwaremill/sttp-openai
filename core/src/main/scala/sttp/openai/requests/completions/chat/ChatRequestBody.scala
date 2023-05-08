@@ -78,6 +78,8 @@ object ChatRequestBody {
 
     case object GPT35Turbo0301 extends ChatCompletionModel("gpt-3.5-turbo-0301")
 
+    case class CustomChatCompletionModel(customChatCompletionModel: String) extends ChatCompletionModel(customChatCompletionModel)
+
     val values: Set[ChatCompletionModel] = Set(GPT4, GPT40314, GPT432k, GPT432k0314, GPT35Turbo, GPT35Turbo0301)
 
     private val byChatModelValue = values.map(model => model.value -> model).toMap
