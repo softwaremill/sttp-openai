@@ -6,6 +6,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.completions.edit.EditRequestBody._
+import sttp.openai.requests.completions.edit.EditRequestBody.EditModel.TextDavinciEdit001
 
 class EditDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -44,7 +45,7 @@ class EditDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given completions request as case class" should "be properly serialized to Json" in {
     // given
     val givenRequest: EditBody = EditBody(
-      model = "text-davinci-edit-001",
+      model = TextDavinciEdit001,
       input = Some("What day of the wek is it?"),
       instruction = "Fix the spelling mistakes"
     )

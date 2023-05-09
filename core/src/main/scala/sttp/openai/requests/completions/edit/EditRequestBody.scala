@@ -1,11 +1,12 @@
 package sttp.openai.requests.completions.edit
 
-import sttp.openai.json.SnakePickle
+import sttp.openai.json.{DeserializationException, SnakePickle}
+import ujson.Str
 
 object EditRequestBody {
 
   /** @param model
-    *   ID of the model to use. You can use the `text-davinci-edit-001` or `code-davinci-edit-001` model with this endpoint.
+    *   ID of the [[EditModel]] to use.
     * @param input
     *   The input text to use as a starting point for the edit.
     * @param instruction
@@ -20,7 +21,7 @@ object EditRequestBody {
     *   probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
     */
   case class EditBody(
-      model: String,
+      model: EditModel,
       input: Option[String] = None,
       instruction: String,
       n: Option[Int] = None,
@@ -31,4 +32,29 @@ object EditRequestBody {
   object EditBody {
     implicit val editBodyW: SnakePickle.Writer[EditBody] = SnakePickle.macroW[EditBody]
   }
+
+  sealed abstract class EditModel(val value: String)
+
+  object EditModel {
+    implicit val editModelRW: SnakePickle.ReadWriter[EditModel] = SnakePickle
+      .readwriter[ujson.Value]
+      .bimap[EditModel](
+        model => SnakePickle.writeJs(model.value),
+        jsonValue =>
+          SnakePickle.read[ujson.Value](jsonValue) match {
+            case Str(value) =>
+              byEditModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
+            case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
+          }
+      )
+
+    case object TextDavinciEdit001 extends EditModel("text-davinci-edit-001")
+    case object CodeDavinciEdit001 extends EditModel("code-davinci-edit-001")
+    case class CustomEditModel(customEditModel: String) extends EditModel(customEditModel)
+
+    val values: Set[EditModel] = Set(TextDavinciEdit001, CodeDavinciEdit001)
+
+    private val byEditModelValue = values.map(model => model.value -> model).toMap
+  }
+
 }
