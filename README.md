@@ -94,9 +94,12 @@ import sttp.openai.requests.completions.chat.Message
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 
-val backend: SyncBackend = HttpClientFutureBackend()
-val openAI: OpenAI = OpenAI("your-secret-key")
+
+val backend = HttpClientFutureBackend()
+val openAI: OpenAI = new OpenAI("your-secret-key")
 
 val bodyMessages: Seq[Message] = Seq(
   Message(
@@ -110,28 +113,24 @@ val chatRequestBody: ChatBody = ChatBody(
   messages = bodyMessages
 )
 
-val chatResponse = openAI
+val chatResponseFuture = openAI
   .createChatCompletion(chatRequestBody)
   .send(backend)
   .map(_.body)
 
-Thread.sleep(1000) // wait for the future to complete, just for a test case
+val chatResponse = Await.result(chatResponseFuture, 2.seconds)
 
 println(chatResponse)
 /*
-Future(
-  Success(
-    Right(
-      ChatResponse(
-        chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
-        1682589572,
-        gpt-3.5-turbo-0301,
-        Usage(10,10,20),
-        List(
-          Choices(
-            Message(assistant, Hello there! How can I assist you today?), stop, 0)
-          )
-        )
+Right(
+  ChatResponse(
+    chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
+    1682589572,
+    gpt-3.5-turbo-0301,
+    Usage(10,10,20),
+    List(
+      Choices(
+        Message(assistant, Hello there! How can I assist you today?), stop, 0)
       )
     )
   )
