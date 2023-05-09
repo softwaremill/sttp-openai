@@ -6,6 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
 import EmbeddingsResponseBody._
+import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsModel
 
 class EmbeddingsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given list files response as Json" should "be properly deserialized to case class" in {
@@ -22,7 +23,7 @@ class EmbeddingsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           )
         )
       ),
-      model = "text-embedding-ada-002-v2",
+      model = EmbeddingsModel.TextEmbeddingAda002,
       usage = Usage(
         promptTokens = 8,
         totalTokens = 8
