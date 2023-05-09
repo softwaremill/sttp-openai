@@ -81,18 +81,21 @@ object SttpUpickleApiExtension extends SttpUpickleApi {
 
   private def httpToOpenAIError(he: HttpError[String]): OpenAIException = {
     import sttp.model.StatusCode._
-    val errorMessageBody = SnakePickle.read[ujson.Value](he.body).apply("error").obj.values
-    val (message, typ, param, code) =
-      SnakePickle.read[(Option[String], Option[String], Option[String], Option[String])](errorMessageBody)
+    val errorMessageBody = SnakePickle.read[ujson.Value](he.body).apply("error")
+    val error = SnakePickle.read[Error](errorMessageBody)
+    import error._
     he.statusCode match {
-      case TooManyRequests                              => RateLimitException(message, typ, param, code, he)
-      case BadRequest | NotFound | UnsupportedMediaType => InvalidRequestException(message, typ, param, code, he)
-      case Unauthorized                                 => AuthenticationException(message, typ, param, code, he)
-      case Forbidden                                    => PermissionException(message, typ, param, code, he)
-      case Conflict                                     => TryAgain(message, typ, param, code, he)
-      case ServiceUnavailable                           => ServiceUnavailableException(message, typ, param, code, he)
-      case _                                            => APIException(message, typ, param, code, he)
+      case TooManyRequests                              => new RateLimitException(message, `type`, param, code, he)
+      case BadRequest | NotFound | UnsupportedMediaType => new InvalidRequestException(message, `type`, param, code, he)
+      case Unauthorized                                 => new AuthenticationException(message, `type`, param, code, he)
+      case Forbidden                                    => new PermissionException(message, `type`, param, code, he)
+      case Conflict                                     => new TryAgain(message, `type`, param, code, he)
+      case ServiceUnavailable                           => new ServiceUnavailableException(message, `type`, param, code, he)
+      case _                                            => new APIException(message, `type`, param, code, he)
     }
   }
-
+  private case class Error(message: Option[String], `type`: Option[String], param: Option[String], code: Option[String])
+  private object Error {
+    implicit val errorR: SnakePickle.Reader[Error] = SnakePickle.macroR
+  }
 }

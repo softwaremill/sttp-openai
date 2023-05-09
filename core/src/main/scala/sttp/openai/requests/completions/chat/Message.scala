@@ -1,6 +1,5 @@
 package sttp.openai.requests.completions.chat
 
-import sttp.openai.OpenAIExceptions
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.json.SnakePickle
 import ujson.Str
