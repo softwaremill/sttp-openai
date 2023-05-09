@@ -47,9 +47,6 @@ object SttpUpickleApiExtension extends SttpUpickleApi {
   implicit def upickleBodySerializerSnake[B](implicit encoder: SnakePickle.Writer[B]): BodySerializer[B] =
     b => StringBody(SnakePickle.write(b), "utf-8", MediaType.ApplicationJson)
 
-//  def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[ResponseException[String, Exception], B]] =
-//    asString.mapWithMetadata(ResponseAs.deserializeRightWithError(deserializeJsonSnake)).showAsJson
-
   def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[OpenAIException, B]] =
     asString.mapWithMetadata(deserializeRightWithMappedExceptions(deserializeJsonSnake)).showAsJson
 
