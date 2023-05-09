@@ -47,7 +47,7 @@ object FineTunesResponseData {
       id: String,
       hyperparams: Hyperparams,
       organizationId: String,
-      model: String,
+      model: FineTuneModel,
       trainingFiles: Seq[FileData],
       validationFiles: Seq[FileData],
       resultFiles: Seq[FileData],

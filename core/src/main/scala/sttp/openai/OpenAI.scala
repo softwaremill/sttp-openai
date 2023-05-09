@@ -12,7 +12,7 @@ import sttp.openai.requests.completions.edit.EditRequestResponseData.EditRespons
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
-import sttp.openai.requests.finetunes.FineTunesRequestBody
+import sttp.openai.requests.finetunes.{FineTuneModel, FineTunesRequestBody}
 import sttp.openai.requests.finetunes.FineTunesResponseData.{
   DeleteFineTuneModelResponse,
   FineTuneEventsResponse,
@@ -561,9 +561,9 @@ class OpenAI(authToken: String) {
     * @param model
     *   The model to delete.
     */
-  def deleteFineTuneModel(model: String): Request[Either[ResponseException[String, Exception], DeleteFineTuneModelResponse]] =
+  def deleteFineTuneModel(model: FineTuneModel): Request[Either[ResponseException[String, Exception], DeleteFineTuneModelResponse]] =
     openApiAuthRequest
-      .delete(OpenAIUris.fineTuneModel(model))
+      .delete(OpenAIUris.fineTuneModel(model.value))
       .response(asJsonSnake[DeleteFineTuneModelResponse])
 
   /** Get fine-grained status updates for a fine-tune job.

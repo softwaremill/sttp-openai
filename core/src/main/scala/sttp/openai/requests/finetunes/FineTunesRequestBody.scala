@@ -1,6 +1,7 @@
 package sttp.openai.requests.finetunes
 
-import sttp.openai.json.SnakePickle
+import sttp.openai.json.{DeserializationException, SnakePickle}
+import ujson.Str
 
 /** @param trainingFile
   *   The ID of an uploaded file that contains training data.
@@ -37,7 +38,7 @@ import sttp.openai.json.SnakePickle
 case class FineTunesRequestBody(
     trainingFile: String,
     validationFile: Option[String] = None,
-    model: Option[String] = None,
+    model: Option[FineTuneModel] = None,
     nEpochs: Option[Int] = None,
     batchSize: Option[Int] = None,
     learningRateMultiplier: Option[Double] = None,
@@ -50,4 +51,32 @@ case class FineTunesRequestBody(
 )
 object FineTunesRequestBody {
   implicit val fineTunesRequestBodyWriter: SnakePickle.Writer[FineTunesRequestBody] = SnakePickle.macroW[FineTunesRequestBody]
+}
+
+sealed abstract class FineTuneModel(val value: String)
+
+object FineTuneModel {
+
+  implicit val fineTuneModelRW: SnakePickle.ReadWriter[FineTuneModel] = SnakePickle
+    .readwriter[ujson.Value]
+    .bimap[FineTuneModel](
+      model => SnakePickle.writeJs(model.value),
+      jsonValue =>
+        SnakePickle.read[ujson.Value](jsonValue) match {
+          case Str(value) =>
+            byFineTuneModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
+          case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
+        }
+    )
+
+  case object Davinci extends FineTuneModel("davinci")
+  case object Curie extends FineTuneModel("curie")
+  case object Babbage extends FineTuneModel("babbage")
+  case object Ada extends FineTuneModel("ada")
+
+  case class CustomFineTuneModel(customFineTuneModel: String) extends FineTuneModel(customFineTuneModel)
+
+  val values: Set[FineTuneModel] = Set(Davinci, Curie, Babbage, Ada)
+
+  private val byFineTuneModelValue = values.map(model => model.value -> model).toMap
 }
