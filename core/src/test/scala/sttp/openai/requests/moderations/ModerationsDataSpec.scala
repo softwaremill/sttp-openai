@@ -5,6 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
+import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationModel
 import sttp.openai.requests.moderations.ModerationsResponseData._
 
 class ModerationsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
@@ -13,7 +14,7 @@ class ModerationsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val listFilesResponse = fixtures.ModerationsFixture.jsonCreateModerationResponse
     val expectedResponse = ModerationData(
       id = "modr-5MWoLO",
-      model = "text-moderation-001",
+      model = ModerationModel.TextModerationStable,
       results = Seq(
         Result(
           flagged = true,

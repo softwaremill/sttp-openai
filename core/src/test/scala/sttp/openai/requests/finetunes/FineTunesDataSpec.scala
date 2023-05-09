@@ -24,7 +24,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           learningRateMultiplier = None
         ),
         organizationId = "org-org123",
-        model = "curie",
+        model = FineTuneModel.Curie,
         trainingFiles = Seq(
           FileData(
             `object` = "file",
@@ -67,7 +67,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val givenRequest = FineTunesRequestBody(
       trainingFile = "file-train231",
       validationFile = Some("file-valid2"),
-      model = Some("curie"),
+      model = Some(FineTuneModel.Curie),
       nEpochs = Some(3),
       batchSize = Some(2),
       learningRateMultiplier = Some(0.04d),
@@ -104,7 +104,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
             learningRateMultiplier = Some(0.1)
           ),
           organizationId = "org-9Pr8JxSaUX4Czeu1It3IT3hz",
-          model = "curie",
+          model = FineTuneModel.Curie,
           trainingFiles = Seq(
             FileData(
               `object` = "file",
@@ -161,7 +161,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           learningRateMultiplier = Some(0.1)
         ),
         organizationId = "org-org123",
-        model = "curie",
+        model = FineTuneModel.Curie,
         trainingFiles = Seq(
           FileData(
             `object` = "file",
@@ -379,7 +379,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       FineTuneData(
         id = "ft-xhrpBbvVUzYGo8oUO1FY4nI7",
         `object` = "fine-tune",
-        model = "curie",
+        model = FineTuneModel.Curie,
         createdAt = 1614807770,
         fineTunedModel = None,
         hyperparams = Hyperparams(

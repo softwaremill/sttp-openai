@@ -4,7 +4,7 @@ object ModerationsFixture {
 
   val jsonCreateModerationResponse = """{
                                        |  "id": "modr-5MWoLO",
-                                       |  "model": "text-moderation-001",
+                                       |  "model": "text-moderation-stable",
                                        |  "results": [
                                        |    {
                                        |      "categories": {
