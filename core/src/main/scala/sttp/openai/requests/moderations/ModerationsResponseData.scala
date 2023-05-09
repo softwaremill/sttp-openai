@@ -1,6 +1,7 @@
 package sttp.openai.requests.moderations
 
 import sttp.openai.json.SnakePickle
+import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationModel
 
 object ModerationsResponseData {
   case class CategoryScores(
@@ -40,7 +41,7 @@ object ModerationsResponseData {
   }
   case class ModerationData(
       id: String,
-      model: String,
+      model: ModerationModel,
       results: Seq[Result]
   )
   object ModerationData {
