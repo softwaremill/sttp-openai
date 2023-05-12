@@ -41,97 +41,105 @@ OpenAI API Official Documentation https://platform.openai.com/docs/api-reference
 import sttp.client4._
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.Message
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
+import sttp.openai.requests.completions.chat.{Message, Role}
 
-// Create an instance of OpenAISyncClient providing your API secret-key
-val openAI: OpenAISyncClient = OpenAISyncClient("your-secret-key")
 
-// Create body of Chat Completions Request
-val bodyMessages: Seq[Message] = Seq(
-  Message(
-    role = "user",
-    content = "Hello!"
+object Main extends App {
+  // Create an instance of OpenAISyncClient providing your API secret-key
+  val openAI: OpenAISyncClient = OpenAISyncClient("your-secret-key")
+
+  // Create body of Chat Completions Request
+  val bodyMessages: Seq[Message] = Seq(
+    Message(
+      role = Role.User,
+      content = "Hello!"
+    )
   )
-)
 
-val chatRequestBody: ChatBody = ChatBody(
-  model = "gpt-3.5-turbo",
-  messages = bodyMessages
-)
+  val chatRequestBody: ChatBody = ChatBody(
+    model = ChatCompletionModel.GPT35Turbo,
+    messages = bodyMessages
+  )
 
-val chatResponse: CompletionsResponse = openAI.createChatCompletion(chatRequestBody)
+  // be aware that calling `createChatCompletion` may throw an OpenAIException
+  // e.g. AuthenticationException, RateLimitException and many more
+  val chatResponse: ChatResponse = openAI.createChatCompletion(chatRequestBody)
 
-println(chatResponse)
+  println(chatResponse)
+}
 /*
-
-ChatResponse(
- chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
- 1682589572,
- gpt-3.5-turbo-0301,
- Usage(10,10,20),
- List(
-   Choices(
-     Message(assistant, Hello there! How can I assist you today?), stop, 0)
+  ChatResponse(
+   chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
+   1682589572,
+   gpt-3.5-turbo-0301,
+   Usage(10,10,20),
+   List(
+     Choices(
+       Message(assistant, Hello there! How can I assist you today?), stop, 0)
+     )
    )
- )
-*/
+  */
 ```
 #### Currently only two backend implementations are available:
 * `OpenAISyncBackend` which uses identity monad `Id[A]` as an effect `F[A]` and throws `OpenAIException`
 * `OpenAI` which provides raw sttp `Request`s and wraps `Response`s into `Either[OpenAIException, A]`
 
 If you want to make use of other effects, you have to use `OpenAI` and pass the chosen backend directly to `request.send(backend)` function.
-E.g.
+
+Example below uses `HttpClientCatsBackend` as a backend, make sure to [add it to the dependencies](https://sttp.softwaremill.com/en/latest/backends/catseffect.html)
+or use backend of your choice.
 
 ```scala mdoc:compile-only 
+import cats.effect.{ExitCode, IO, IOApp}
 import sttp.client4._
-import sttp.client4.httpclient.HttpClientFutureBackend
-import sttp.openai.OpenAI
+import sttp.client4.httpclient.cats.HttpClientCatsBackend
+import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai._
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.Message
+import sttp.openai.requests.completions.chat.{Message, Role}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
+object Main extends IOApp {
+  override def run(args: List[String]): IO[ExitCode] = {
+    val openAI: OpenAI = new OpenAI("your-secret-key")
 
-
-val backend = HttpClientFutureBackend()
-val openAI: OpenAI = new OpenAI("your-secret-key")
-
-val bodyMessages: Seq[Message] = Seq(
-  Message(
-    role = "user",
-    content = "Hello!"
-  )
-)
-
-val chatRequestBody: ChatBody = ChatBody(
-  model = "gpt-3.5-turbo",
-  messages = bodyMessages
-)
-
-val chatResponseFuture = openAI
-  .createChatCompletion(chatRequestBody)
-  .send(backend)
-  .map(_.body)
-
-val chatResponse = Await.result(chatResponseFuture, 2.seconds)
-
-println(chatResponse)
-/*
-Right(
-  ChatResponse(
-    chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
-    1682589572,
-    gpt-3.5-turbo-0301,
-    Usage(10,10,20),
-    List(
-      Choices(
-        Message(assistant, Hello there! How can I assist you today?), stop, 0)
+    val bodyMessages: Seq[Message] = Seq(
+      Message(
+        role = Role.User,
+        content = "Hello!"
       )
+    )
+
+    val chatRequestBody: ChatBody = ChatBody(
+      model = ChatCompletionModel.GPT35Turbo,
+      messages = bodyMessages
+    )
+    HttpClientCatsBackend.resource[IO]().use { backend =>
+      val response: IO[Either[OpenAIException, ChatResponse]] =
+        openAI
+          .createChatCompletion(chatRequestBody)
+          .send(backend)
+          .map(_.body)
+      val rethrownResponse: IO[ChatResponse] = response.rethrow
+      val redeemedResponse: IO[String] = rethrownResponse.redeem(
+        error => error.getMessage,
+        chatResponse => chatResponse.toString
+      )
+      redeemedResponse.flatMap(IO.println)
+        .as(ExitCode.Success)
+    }
+  }
+}
+/*
+ChatResponse(
+  chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
+  1682589572,
+  gpt-3.5-turbo-0301,
+  Usage(10,10,20),
+  List(
+    Choices(
+      Message(assistant, Hello there! How can I assist you today?), stop, 0)
     )
   )
 )
