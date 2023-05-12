@@ -60,6 +60,8 @@ jobs:
           key: sbt-cache-${{ runner.os }}-${{ hashFiles('project/build.properties') }}
       - name: Compile
         run: sbt compile
+      - name: Compile documentation
+        run: sbt compileDocs
       - name: Publish artifacts
         run: sbt ci-release
         env:

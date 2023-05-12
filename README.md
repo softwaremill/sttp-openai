@@ -38,7 +38,6 @@ OpenAI API Official Documentation https://platform.openai.com/docs/api-reference
 ### To use ChatGPT
 
 ```scala mdoc:compile-only 
-import sttp.client4._
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
@@ -92,7 +91,6 @@ or use backend of your choice.
 
 ```scala mdoc:compile-only 
 import cats.effect.{ExitCode, IO, IOApp}
-import sttp.client4._
 import sttp.client4.httpclient.cats.HttpClientCatsBackend
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai._
