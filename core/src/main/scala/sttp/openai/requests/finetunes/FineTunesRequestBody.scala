@@ -1,6 +1,7 @@
 package sttp.openai.requests.finetunes
 
-import sttp.openai.json.{DeserializationException, SnakePickle}
+import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
+import sttp.openai.json.SnakePickle
 import ujson.Str
 
 /** @param trainingFile
@@ -64,8 +65,8 @@ object FineTuneModel {
       jsonValue =>
         SnakePickle.read[ujson.Value](jsonValue) match {
           case Str(value) =>
-            byFineTuneModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
-          case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
+            byFineTuneModelValue.getOrElse(value, throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value")))
+          case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
         }
     )
 

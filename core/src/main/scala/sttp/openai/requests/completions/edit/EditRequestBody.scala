@@ -1,6 +1,7 @@
 package sttp.openai.requests.completions.edit
 
-import sttp.openai.json.{DeserializationException, SnakePickle}
+import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
+import sttp.openai.json.SnakePickle
 import ujson.Str
 
 object EditRequestBody {
@@ -43,8 +44,8 @@ object EditRequestBody {
         jsonValue =>
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
-              byEditModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
-            case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
+              byEditModelValue.getOrElse(value, throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value")))
+            case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
           }
       )
 

@@ -14,7 +14,6 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given chat completions response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.completions.chat.ChatRequestResponseData._
     import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse._
-    import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel
 
     // given
     val jsonResponse = fixtures.ChatFixture.jsonResponse

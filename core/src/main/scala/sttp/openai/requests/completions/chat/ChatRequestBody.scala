@@ -1,6 +1,7 @@
 package sttp.openai.requests.completions.chat
 
-import sttp.openai.json.{DeserializationException, SnakePickle}
+import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.Stop
 import ujson.Str
 
@@ -61,8 +62,8 @@ object ChatRequestBody {
         jsonValue =>
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
-              byChatModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
-            case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
+              byChatModelValue.getOrElse(value, throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value")))
+            case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
           }
       )
 

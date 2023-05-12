@@ -1,6 +1,7 @@
 package sttp.openai.requests.completions
 
-import sttp.openai.json.{DeserializationException, SnakePickle}
+import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
+import sttp.openai.json.SnakePickle
 import ujson.Str
 
 object CompletionsRequestBody {
@@ -76,8 +77,8 @@ object CompletionsRequestBody {
         jsonValue =>
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
-              byCompletionModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
-            case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
+              byCompletionModelValue.getOrElse(value, throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value")))
+            case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
           }
       )
 

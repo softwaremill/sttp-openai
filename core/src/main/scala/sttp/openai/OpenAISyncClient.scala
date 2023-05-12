@@ -1,9 +1,11 @@
 package sttp.openai
 
-import sttp.client4._
-import sttp.model.Uri
+import sttp.client4.{DefaultSyncBackend, Request, SyncBackend}
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai.json.SttpUpickleApiExtension.{asJsonSnake, asStringEither, upickleBodySerializerSnake}
+import sttp.openai.requests.audio.AudioResponseData.AudioResponse
+import sttp.openai.requests.audio.RecognitionModel
+import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
+import sttp.openai.requests.audio.translations.TranslationConfig
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -12,7 +14,7 @@ import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
 import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
-import sttp.openai.requests.files.FilesResponseData._
+import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
 import sttp.openai.requests.finetunes.FineTunesRequestBody
 import sttp.openai.requests.finetunes.FineTunesResponseData.{
   DeleteFineTuneModelResponse,
@@ -27,24 +29,19 @@ import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
-import sttp.openai.requests.audio.AudioResponseData.AudioResponse
-import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
-import sttp.openai.requests.audio.translations.TranslationConfig
-import sttp.openai.requests.audio.RecognitionModel
 
 import java.io.File
-import java.nio.file.Paths
 
-class OpenAI(authToken: String) {
+class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeClient: Boolean) {
+
+  private val openAI = new OpenAI(authToken)
 
   /** Lists the currently available models, and provides basic information about each one such as the owner and availability.
     *
     * [[https://platform.openai.com/docs/api-reference/models]]
     */
-  def getModels: Request[Either[OpenAIException, ModelsResponse]] =
-    openAIAuthRequest
-      .get(OpenAIUris.Models)
-      .response(asJsonSnake[ModelsResponse])
+  def getModels: ModelsResponse =
+    sendOrThrow(openAI.getModels)
 
   /** Retrieves a model instance, providing basic information about the model such as the owner and permissions.
     *
@@ -53,10 +50,8 @@ class OpenAI(authToken: String) {
     * @param modelId
     *   The ID of the model to use for this request.
     */
-  def retrieveModel(modelId: String): Request[Either[OpenAIException, ModelData]] =
-    openAIAuthRequest
-      .get(OpenAIUris.model(modelId))
-      .response(asJsonSnake[ModelData])
+  def retrieveModel(modelId: String): ModelData =
+    sendOrThrow(openAI.retrieveModel(modelId))
 
   /** Creates a completion for the provided prompt and parameters given in request body.
     *
@@ -65,11 +60,8 @@ class OpenAI(authToken: String) {
     * @param completionBody
     *   Create completion request body.
     */
-  def createCompletion(completionBody: CompletionsBody): Request[Either[OpenAIException, CompletionsResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Completions)
-      .body(completionBody)
-      .response(asJsonSnake[CompletionsResponse])
+  def createCompletion(completionBody: CompletionsBody): CompletionsResponse =
+    sendOrThrow(openAI.createCompletion(completionBody))
 
   /** Creates an image given a prompt in request body.
     *
@@ -78,11 +70,8 @@ class OpenAI(authToken: String) {
     * @param imageCreationBody
     *   Create image request body.
     */
-  def createImage(imageCreationBody: ImageCreationBody): Request[Either[OpenAIException, ImageResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.CreateImage)
-      .body(imageCreationBody)
-      .response(asJsonSnake[ImageResponse])
+  def createImage(imageCreationBody: ImageCreationBody): ImageResponse =
+    sendOrThrow(openAI.createImage(imageCreationBody))
 
   /** Creates edited or extended images given an original image and a prompt.
     *
@@ -96,14 +85,8 @@ class OpenAI(authToken: String) {
     * @param prompt
     *   A text description of the desired image. The maximum length is 1000 characters.
     */
-  def imageEdits(image: File, prompt: String): Request[Either[OpenAIException, ImageResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.EditImage)
-      .multipartBody(
-        multipart("prompt", prompt),
-        multipartFile("image", image)
-      )
-      .response(asJsonSnake[ImageResponse])
+  def imageEdits(image: File, prompt: String): ImageResponse =
+    sendOrThrow(openAI.imageEdits(image, prompt))
 
   /** Creates edited or extended images given an original image and a prompt.
     *
@@ -117,14 +100,8 @@ class OpenAI(authToken: String) {
     * @param prompt
     *   A text description of the desired image. The maximum length is 1000 characters.
     */
-  def imageEdits(systemPath: String, prompt: String): Request[Either[OpenAIException, ImageResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.EditImage)
-      .multipartBody(
-        multipart("prompt", prompt),
-        multipartFile("image", Paths.get(systemPath).toFile)
-      )
-      .response(asJsonSnake[ImageResponse])
+  def imageEdits(systemPath: String, prompt: String): ImageResponse =
+    sendOrThrow(openAI.imageEdits(systemPath, prompt))
 
   /** Creates edited or extended images given an original image and a prompt.
     *
@@ -133,23 +110,8 @@ class OpenAI(authToken: String) {
     * @param imageEditsConfig
     *   An instance of the case class ImageEditConfig containing the necessary parameters for editing the image.
     */
-  def imageEdits(
-      imageEditsConfig: ImageEditsConfig
-  ): Request[Either[OpenAIException, ImageResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.EditImage)
-      .multipartBody {
-        import imageEditsConfig._
-        Seq(
-          Some(multipartFile("image", image)),
-          Some(multipart("prompt", prompt)),
-          mask.map(multipartFile("mask", _)),
-          n.map(multipart("n", _)),
-          size.map(s => multipart("size", s.value)),
-          responseFormat.map(format => multipart("response_format", format.value))
-        ).flatten
-      }
-      .response(asJsonSnake[ImageResponse])
+  def imageEdits(imageEditsConfig: ImageEditsConfig): ImageResponse =
+    sendOrThrow(openAI.imageEdits(imageEditsConfig))
 
   /** Creates a variation of a given image.
     *
@@ -160,15 +122,8 @@ class OpenAI(authToken: String) {
     *
     * Must be a valid PNG file, less than 4MB, and square.
     */
-  def imageVariations(
-      image: File
-  ): Request[Either[OpenAIException, ImageResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.VariationsImage)
-      .multipartBody(
-        multipartFile("image", image)
-      )
-      .response(asJsonSnake[ImageResponse])
+  def imageVariations(image: File): ImageResponse =
+    sendOrThrow(openAI.imageVariations(image))
 
   /** Creates a variation of a given image.
     *
@@ -179,15 +134,8 @@ class OpenAI(authToken: String) {
     *
     * Must be a valid PNG file, less than 4MB, and square.
     */
-  def imageVariations(
-      systemPath: String
-  ): Request[Either[OpenAIException, ImageResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.VariationsImage)
-      .multipartBody(
-        multipartFile("image", Paths.get(systemPath).toFile)
-      )
-      .response(asJsonSnake[ImageResponse])
+  def imageVariations(systemPath: String): ImageResponse =
+    sendOrThrow(openAI.imageVariations(systemPath))
 
   /** Creates a variation of a given image.
     *
@@ -196,22 +144,8 @@ class OpenAI(authToken: String) {
     * @param imageVariationsConfig
     *   An instance of the case class ImageVariationsConfig containing the necessary parameters for the image variation.
     */
-  def imageVariations(
-      imageVariationsConfig: ImageVariationsConfig
-  ): Request[Either[OpenAIException, ImageResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.VariationsImage)
-      .multipartBody {
-        import imageVariationsConfig._
-        Seq(
-          Some(multipartFile("image", image)),
-          n.map(multipart("n", _)),
-          size.map(s => multipart("size", s.value)),
-          responseFormat.map(format => multipart("response_format", format.value)),
-          user.map(multipart("user", _))
-        ).flatten
-      }
-      .response(asJsonSnake[ImageResponse])
+  def imageVariations(imageVariationsConfig: ImageVariationsConfig): ImageResponse =
+    sendOrThrow(openAI.imageVariations(imageVariationsConfig))
 
   /** Creates a new edit for provided request body.
     *
@@ -220,11 +154,8 @@ class OpenAI(authToken: String) {
     * @param editRequestBody
     *   Edit request body.
     */
-  def createEdit(editRequestBody: EditBody): Request[Either[OpenAIException, EditResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Edits)
-      .body(editRequestBody)
-      .response(asJsonSnake[EditResponse])
+  def createEdit(editRequestBody: EditBody): EditResponse =
+    sendOrThrow(openAI.createEdit(editRequestBody))
 
   /** Creates a model response for the given chat conversation defined in chatBody.
     *
@@ -233,20 +164,15 @@ class OpenAI(authToken: String) {
     * @param chatBody
     *   Chat request body.
     */
-  def createChatCompletion(chatBody: ChatBody): Request[Either[OpenAIException, ChatResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.ChatCompletions)
-      .body(chatBody)
-      .response(asJsonSnake[ChatResponse])
+  def createChatCompletion(chatBody: ChatBody): ChatResponse =
+    sendOrThrow(openAI.createChatCompletion(chatBody))
 
   /** Returns a list of files that belong to the user's organization.
     *
     * [[https://platform.openai.com/docs/api-reference/files]]
     */
-  def getFiles: Request[Either[OpenAIException, FilesResponse]] =
-    openAIAuthRequest
-      .get(OpenAIUris.Files)
-      .response(asJsonSnake[FilesResponse])
+  def getFiles: FilesResponse =
+    sendOrThrow(openAI.getFiles)
 
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
@@ -263,14 +189,8 @@ class OpenAI(authToken: String) {
     *
     * Use "fine-tune" for Fine-tuning. This allows OpenAI to validate the format of the uploaded file.
     */
-  def uploadFile(file: File, purpose: String): Request[Either[OpenAIException, FileData]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Files)
-      .multipartBody(
-        multipart("purpose", purpose),
-        multipartFile("file", file)
-      )
-      .response(asJsonSnake[FileData])
+  def uploadFile(file: File, purpose: String): FileData =
+    sendOrThrow(openAI.uploadFile(file, purpose))
 
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
@@ -281,14 +201,8 @@ class OpenAI(authToken: String) {
     *   JSON Lines file to be uploaded and the purpose is set to "fine-tune", each line is a JSON record with "prompt" and "completion"
     *   fields representing your [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
     */
-  def uploadFile(file: File): Request[Either[OpenAIException, FileData]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Files)
-      .multipartBody(
-        multipart("purpose", "fine-tune"),
-        multipartFile("file", file)
-      )
-      .response(asJsonSnake[FileData])
+  def uploadFile(file: File): FileData =
+    sendOrThrow(openAI.uploadFile(file))
 
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
@@ -305,14 +219,8 @@ class OpenAI(authToken: String) {
     *
     * Use "fine-tune" for Fine-tuning. This allows OpenAI to validate the format of the uploaded file.
     */
-  def uploadFile(systemPath: String, purpose: String): Request[Either[OpenAIException, FileData]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Files)
-      .multipartBody(
-        multipart("purpose", purpose),
-        multipartFile("file", Paths.get(systemPath).toFile)
-      )
-      .response(asJsonSnake[FileData])
+  def uploadFile(systemPath: String, purpose: String): FileData =
+    sendOrThrow(openAI.uploadFile(systemPath, purpose))
 
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
     * one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
@@ -324,14 +232,8 @@ class OpenAI(authToken: String) {
     *   "completion" fields representing your
     *   [[https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data training examples]].
     */
-  def uploadFile(systemPath: String): Request[Either[OpenAIException, FileData]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Files)
-      .multipartBody(
-        multipart("purpose", "fine-tune"),
-        multipartFile("file", Paths.get(systemPath).toFile)
-      )
-      .response(asJsonSnake[FileData])
+  def uploadFile(systemPath: String): FileData =
+    sendOrThrow(openAI.uploadFile(systemPath))
 
   /** Delete a file.
     *
@@ -340,10 +242,8 @@ class OpenAI(authToken: String) {
     * @param fileId
     *   The ID of the file to use for this request.
     */
-  def deleteFile(fileId: String): Request[Either[OpenAIException, DeletedFileData]] =
-    openAIAuthRequest
-      .delete(OpenAIUris.file(fileId))
-      .response(asJsonSnake[DeletedFileData])
+  def deleteFile(fileId: String): DeletedFileData =
+    sendOrThrow(openAI.deleteFile(fileId))
 
   /** Returns information about a specific file.
     *
@@ -352,10 +252,8 @@ class OpenAI(authToken: String) {
     * @param fileId
     *   The ID of the file to use for this request.
     */
-  def retrieveFile(fileId: String): Request[Either[OpenAIException, FileData]] =
-    openAIAuthRequest
-      .get(OpenAIUris.file(fileId))
-      .response(asJsonSnake[FileData])
+  def retrieveFile(fileId: String): FileData =
+    sendOrThrow(openAI.retrieveFile(fileId))
 
   /** Returns the contents of the specified file.
     *
@@ -364,10 +262,8 @@ class OpenAI(authToken: String) {
     * @param fileId
     *   The ID of the file.
     */
-  def retrieveFileContent(fileId: String): Request[Either[OpenAIException, String]] =
-    openAIAuthRequest
-      .get(OpenAIUris.fileContent(fileId))
-      .response(asStringEither)
+  def retrieveFileContent(fileId: String): String =
+    sendOrThrow(openAI.retrieveFileContent(fileId))
 
   /** Translates audio into English text.
     *
@@ -378,14 +274,8 @@ class OpenAI(authToken: String) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(file: File, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Translations)
-      .multipartBody(
-        multipartFile("file", file),
-        multipart("model", model.value)
-      )
-      .response(asJsonSnake[AudioResponse])
+  def createTranslation(file: File, model: RecognitionModel): AudioResponse =
+    sendOrThrow(openAI.createTranslation(file, model))
 
   /** Translates audio into English text.
     *
@@ -396,14 +286,8 @@ class OpenAI(authToken: String) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(systemPath: String, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Translations)
-      .multipartBody(
-        multipartFile("file", Paths.get(systemPath).toFile),
-        multipart("model", model)
-      )
-      .response(asJsonSnake[AudioResponse])
+  def createTranslation(systemPath: String, model: RecognitionModel): AudioResponse =
+    sendOrThrow(openAI.createTranslation(systemPath, model))
 
   /** Translates audio into English text.
     *
@@ -412,20 +296,8 @@ class OpenAI(authToken: String) {
     * @param translationConfig
     *   An instance of the case class TranslationConfig containing the necessary parameters for the audio translation.
     */
-  def createTranslation(translationConfig: TranslationConfig): Request[Either[OpenAIException, AudioResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Translations)
-      .multipartBody {
-        import translationConfig._
-        Seq(
-          Some(multipartFile("file", file)),
-          Some(multipart("model", model.value)),
-          prompt.map(multipart("prompt", _)),
-          responseFormat.map(format => multipart("response_format", format)),
-          temperature.map(multipart("temperature", _))
-        ).flatten
-      }
-      .response(asJsonSnake[AudioResponse])
+  def createTranslation(translationConfig: TranslationConfig): AudioResponse =
+    sendOrThrow(openAI.createTranslation(translationConfig))
 
   /** Classifies if text violates OpenAI's Content Policy.
     *
@@ -434,11 +306,8 @@ class OpenAI(authToken: String) {
     * @param moderationsBody
     *   Moderation request body.
     */
-  def createModeration(moderationsBody: ModerationsBody): Request[Either[OpenAIException, ModerationData]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Moderations)
-      .body(moderationsBody)
-      .response(asJsonSnake[ModerationData])
+  def createModeration(moderationsBody: ModerationsBody): ModerationData =
+    sendOrThrow(openAI.createModeration(moderationsBody))
 
   /** Transcribes audio into the input language.
     *
@@ -449,14 +318,8 @@ class OpenAI(authToken: String) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranscription(file: File, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Transcriptions)
-      .multipartBody(
-        multipartFile("file", file),
-        multipart("model", model.value)
-      )
-      .response(asJsonSnake[AudioResponse])
+  def createTranscription(file: File, model: RecognitionModel): AudioResponse =
+    sendOrThrow(openAI.createTranscription(file, model))
 
   /** Transcribes audio into the input language.
     *
@@ -467,17 +330,8 @@ class OpenAI(authToken: String) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranscription(
-      systemPath: String,
-      model: RecognitionModel
-  ): Request[Either[OpenAIException, AudioResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Transcriptions)
-      .multipartBody(
-        multipartFile("file", Paths.get(systemPath).toFile),
-        multipart("model", model.value)
-      )
-      .response(asJsonSnake[AudioResponse])
+  def createTranscription(systemPath: String, model: RecognitionModel): AudioResponse =
+    sendOrThrow(openAI.createTranscription(systemPath, model))
 
   /** Transcribes audio into the input language.
     *
@@ -486,21 +340,8 @@ class OpenAI(authToken: String) {
     * @return
     *   An url to edited image.
     */
-  def createTranscription(transcriptionConfig: TranscriptionConfig): Request[Either[OpenAIException, AudioResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Transcriptions)
-      .multipartBody {
-        import transcriptionConfig._
-        Seq(
-          Some(multipartFile("file", file)),
-          Some(multipart("model", model.value)),
-          prompt.map(multipart("prompt", _)),
-          responseFormat.map(format => multipart("response_format", format.value)),
-          temperature.map(multipart("temperature", _)),
-          language.map(lang => multipart("language", lang.value))
-        ).flatten
-      }
-      .response(asJsonSnake[AudioResponse])
+  def createTranscription(transcriptionConfig: TranscriptionConfig): AudioResponse =
+    sendOrThrow(openAI.createTranscription(transcriptionConfig))
 
   /** Creates a job that fine-tunes a specified model from a given dataset.
     *
@@ -509,22 +350,15 @@ class OpenAI(authToken: String) {
     * @param fineTunesRequestBody
     *   Request body that will be used to create a fine-tune.
     */
-  def createFineTune(
-      fineTunesRequestBody: FineTunesRequestBody
-  ): Request[Either[OpenAIException, FineTuneResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.FineTunes)
-      .body(fineTunesRequestBody)
-      .response(asJsonSnake[FineTuneResponse])
+  def createFineTune(fineTunesRequestBody: FineTunesRequestBody): FineTuneResponse =
+    sendOrThrow(openAI.createFineTune(fineTunesRequestBody))
 
   /** List of your organization's fine-tuning jobs.
     *
     * [[https://platform.openai.com/docs/api-reference/fine-tunes/list]]
     */
-  def getFineTunes: Request[Either[OpenAIException, GetFineTunesResponse]] =
-    openAIAuthRequest
-      .get(OpenAIUris.FineTunes)
-      .response(asJsonSnake[GetFineTunesResponse])
+  def getFineTunes: GetFineTunesResponse =
+    sendOrThrow(openAI.getFineTunes)
 
   /** Immediately cancel a fine-tune job.
     *
@@ -533,10 +367,8 @@ class OpenAI(authToken: String) {
     * @param fineTuneId
     *   The ID of the fine-tune job to cancel.
     */
-  def cancelFineTune(fineTuneId: String): Request[Either[OpenAIException, FineTuneResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.cancelFineTune(fineTuneId))
-      .response(asJsonSnake[FineTuneResponse])
+  def cancelFineTune(fineTuneId: String): FineTuneResponse =
+    sendOrThrow(openAI.cancelFineTune(fineTuneId))
 
   /** Gets info about the fine-tune job.
     *
@@ -545,11 +377,8 @@ class OpenAI(authToken: String) {
     * @param embeddingsBody
     *   Embeddings request body.
     */
-  def createEmbeddings(embeddingsBody: EmbeddingsBody): Request[Either[OpenAIException, EmbeddingResponse]] =
-    openAIAuthRequest
-      .post(OpenAIUris.Embeddings)
-      .body(embeddingsBody)
-      .response(asJsonSnake[EmbeddingResponse])
+  def createEmbeddings(embeddingsBody: EmbeddingsBody): EmbeddingResponse =
+    sendOrThrow(openAI.createEmbeddings(embeddingsBody))
 
   /** Gets info about the fine-tune job.
     *
@@ -558,10 +387,8 @@ class OpenAI(authToken: String) {
     * @param fineTuneId
     *   The ID of the fine-tune job.
     */
-  def retrieveFineTune(fineTuneId: String): Request[Either[OpenAIException, FineTuneResponse]] =
-    openAIAuthRequest
-      .get(OpenAIUris.fineTune(fineTuneId))
-      .response(asJsonSnake[FineTuneResponse])
+  def retrieveFineTune(fineTuneId: String): FineTuneResponse =
+    sendOrThrow(openAI.retrieveFineTune(fineTuneId))
 
   /** Delete a fine-tuned model. You must have the Owner role in your organization.
     *
@@ -570,10 +397,8 @@ class OpenAI(authToken: String) {
     * @param model
     *   The model to delete.
     */
-  def deleteFineTuneModel(model: String): Request[Either[OpenAIException, DeleteFineTuneModelResponse]] =
-    openAIAuthRequest
-      .delete(OpenAIUris.fineTuneModel(model))
-      .response(asJsonSnake[DeleteFineTuneModelResponse])
+  def deleteFineTuneModel(model: String): DeleteFineTuneModelResponse =
+    sendOrThrow(openAI.deleteFineTuneModel(model))
 
   /** Get fine-grained status updates for a fine-tune job.
     *
@@ -582,38 +407,21 @@ class OpenAI(authToken: String) {
     * @param fineTuneId
     *   The ID of the fine-tune job to get events for.
     */
-  def getFineTuneEvents(fineTuneId: String): Request[Either[OpenAIException, FineTuneEventsResponse]] =
-    openAIAuthRequest
-      .get(OpenAIUris.fineTuneEvents(fineTuneId))
-      .response(asJsonSnake[FineTuneEventsResponse])
+  def getFineTuneEvents(fineTuneId: String): FineTuneEventsResponse =
+    sendOrThrow(openAI.getFineTuneEvents(fineTuneId))
 
-  private val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
-    .bearer(authToken)
+  /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op.
+    */
+  def close(): Unit = if (closeClient) backend.close() else ()
+
+  private def sendOrThrow[A](request: Request[Either[OpenAIException, A]]): A =
+    request.send(backend).body match {
+      case Right(value)    => value
+      case Left(exception) => throw exception
+    }
 }
 
-private object OpenAIUris {
-  private val ImageBase: Uri = uri"https://api.openai.com/v1/images"
-  private val AudioBase: Uri = uri"https://api.openai.com/v1/audio/"
-
-  val ChatCompletions: Uri = uri"https://api.openai.com/v1/chat/completions"
-  val Completions: Uri = uri"https://api.openai.com/v1/completions"
-  val CreateImage: Uri = ImageBase.addPath("generations")
-  val Edits: Uri = uri"https://api.openai.com/v1/edits"
-  val Embeddings: Uri = uri"https://api.openai.com/v1/embeddings"
-  val EditImage: Uri = ImageBase.addPath("edits")
-  val Files: Uri = uri"https://api.openai.com/v1/files"
-  val FineTunes: Uri = uri"https://api.openai.com/v1/fine-tunes"
-  val Models: Uri = uri"https://api.openai.com/v1/models"
-  val Moderations: Uri = uri"https://api.openai.com/v1/moderations"
-  val Transcriptions: Uri = AudioBase.addPath("transcriptions")
-  val Translations: Uri = AudioBase.addPath("translations")
-  val VariationsImage: Uri = ImageBase.addPath("variations")
-
-  def cancelFineTune(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId, "cancel")
-  def file(fileId: String): Uri = Files.addPath(fileId)
-  def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")
-  def fineTuneModel(model: String): Uri = Models.addPath(model)
-  def fineTuneEvents(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId, "events")
-  def fineTune(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId)
-  def model(modelId: String): Uri = Models.addPath(modelId)
+object OpenAISyncClient {
+  def apply(authToken: String) = new OpenAISyncClient(authToken, DefaultSyncBackend(), true)
+  def apply(authToken: String, backend: SyncBackend) = new OpenAISyncClient(authToken, backend, false)
 }

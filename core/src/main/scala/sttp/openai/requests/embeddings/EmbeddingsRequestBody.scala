@@ -1,6 +1,7 @@
 package sttp.openai.requests.embeddings
 
-import sttp.openai.json.{DeserializationException, SnakePickle}
+import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
+import sttp.openai.json.SnakePickle
 import ujson.Str
 
 object EmbeddingsRequestBody {
@@ -29,8 +30,8 @@ object EmbeddingsRequestBody {
         jsonValue =>
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
-              byEmbeddingsModelValue.getOrElse(value, throw new DeserializationException(new Exception(s"Could not deserialize: $value")))
-            case e => throw new DeserializationException(new Exception(s"Could not deserialize: $e"))
+              byEmbeddingsModelValue.getOrElse(value, throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value")))
+            case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
           }
       )
     case object TextEmbeddingAda002 extends EmbeddingsModel("text-embedding-ada-002")
