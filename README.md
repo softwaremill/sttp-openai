@@ -66,19 +66,19 @@ object Main extends App {
   val chatResponse: ChatResponse = openAI.createChatCompletion(chatRequestBody)
 
   println(chatResponse)
-}
-/*
-  ChatResponse(
-   chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
-   1682589572,
-   gpt-3.5-turbo-0301,
-   Usage(10,10,20),
-   List(
-     Choices(
-       Message(assistant, Hello there! How can I assist you today?), stop, 0)
-     )
-   )
+  /*
+      ChatResponse(
+       chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
+       1682589572,
+       gpt-3.5-turbo-0301,
+       Usage(10,10,20),
+       List(
+         Choices(
+           Message(assistant, Hello there! How can I assist you today?), stop, 0)
+         )
+       )
   */
+}
 ```
 #### Currently only two backend implementations are available:
 * `OpenAISyncBackend` which uses identity monad `Id[A]` as an effect `F[A]` and throws `OpenAIException`
@@ -127,21 +127,21 @@ object Main extends IOApp {
       redeemedResponse.flatMap(IO.println)
         .as(ExitCode.Success)
     }
-  }
-}
-/*
-ChatResponse(
-  chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
-  1682589572,
-  gpt-3.5-turbo-0301,
-  Usage(10,10,20),
-  List(
-    Choices(
-      Message(assistant, Hello there! How can I assist you today?), stop, 0)
+  } 
+  /*
+    ChatResponse(
+      chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
+      1682589572,
+      gpt-3.5-turbo-0301,
+      Usage(10,10,20),
+      List(
+        Choices(
+          Message(assistant, Hello there! How can I assist you today?), stop, 0)
+        )
+      )
     )
-  )
-)
-*/
+  */
+}
 ```
 ## Contributing
 

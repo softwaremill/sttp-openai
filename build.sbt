@@ -38,13 +38,13 @@ lazy val docs = (projectMatrix in file("generated-docs")) // important: it must 
   .settings(
     mdocIn := file("README.md"),
     moduleName := "sttp-openai-docs",
-    mdocOut := file("generated-docs/out"),
+    mdocOut := file("generated-docs/README.md"),
     mdocExtraArguments := Seq("--clean-target"),
     publishArtifact := false,
     name := "docs",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client4" %% "cats" % "4.0.0-M1",
-      "org.typelevel" %% "cats-effect" % "3.6-1f95fd7"
+      "org.typelevel" %% "cats-effect" % "3.5.0"
     ),
     evictionErrorLevel := Level.Info
   )
