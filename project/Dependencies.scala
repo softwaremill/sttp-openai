@@ -3,7 +3,7 @@ import sbt.*
 object Dependencies {
 
   object V {
-    val scalaTest = "3.2.15"
+    val scalaTest = "3.2.16"
     val sttpClient = "4.0.0-M1"
     val uPickle = "3.1.2"
   }
