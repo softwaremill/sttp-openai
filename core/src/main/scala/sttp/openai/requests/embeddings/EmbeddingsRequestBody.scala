@@ -30,7 +30,7 @@ object EmbeddingsRequestBody {
         jsonValue =>
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
-              byEmbeddingsModelValue.getOrElse(value, throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value")))
+              byEmbeddingsModelValue.getOrElse(value, CustomEmbeddingsModel(value))
             case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
           }
       )
