@@ -5,7 +5,7 @@ object Dependencies {
   object V {
     val scalaTest = "3.2.16"
     val sttpClient = "4.0.0-M4"
-    val uPickle = "3.1.2"
+    val uPickle = "3.1.3"
   }
 
   object Libraries {
