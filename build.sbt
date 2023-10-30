@@ -26,7 +26,6 @@ lazy val core = (projectMatrix in file("core"))
   )
   .settings(commonSettings: _*)
 
-//TODO this should be invoked by compilation process, see #https://github.com/scalameta/mdoc/issues/355
 val compileDocs: TaskKey[Unit] = taskKey[Unit]("Compiles docs module throwing away its output")
 compileDocs := {
   (docs.jvm(scala2.head) / mdoc).toTask(" --out target/sttp-openai-docs").value
