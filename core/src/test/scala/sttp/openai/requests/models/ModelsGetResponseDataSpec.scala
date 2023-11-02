@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import ModelsResponseData.{ModelData, ModelPermission, ModelsResponse}
 import ModelsResponseData.ModelsResponse._
 import sttp.openai.fixtures
-import sttp.openai.json.SttpUpickleApiExtension
+import sttp.openai.json.SttpOpenAIApi
 
 class ModelsGetResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -74,7 +74,7 @@ class ModelsGetResponseDataSpec extends AnyFlatSpec with Matchers with EitherVal
     val expectedResponse: ModelsResponse = ModelsResponse(`object` = "list", data = serializedData)
     // when
 
-    val givenResponse: Either[Exception, ModelsResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(response)
+    val givenResponse: Either[Exception, ModelsResponse] = SttpOpenAIApi.deserializeJsonSnake.apply(response)
 
     // then
     givenResponse.value shouldBe expectedResponse
