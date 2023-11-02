@@ -27,6 +27,8 @@ jobs:
         key: sbt-cache-${{ runner.os }}-${{ hashFiles('project/build.properties') }}
     - name: Compile
       run: sbt -v compile
+    - name: Compile documentation
+      run: sbt -v compileDocs
     - name: Test
       run: sbt -v test
     - name: Cleanup

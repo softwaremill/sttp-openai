@@ -25,3 +25,27 @@ lazy val core = (projectMatrix in file("core"))
     libraryDependencies ++= Seq(Libraries.uPickle) ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
   )
   .settings(commonSettings: _*)
+
+val compileDocs: TaskKey[Unit] = taskKey[Unit]("Compiles docs module throwing away its output")
+compileDocs := {
+  (docs.jvm(scala2.head) / mdoc).toTask(" --out target/sttp-openai-docs").value
+}
+
+lazy val docs = (projectMatrix in file("generated-docs")) // important: it must not be docs/
+  .enablePlugins(MdocPlugin)
+  .settings(commonSettings)
+  .settings(
+    mdocIn := file("README.md"),
+    moduleName := "sttp-openai-docs",
+    mdocOut := file("generated-docs/README.md"),
+    mdocExtraArguments := Seq("--clean-target"),
+    publishArtifact := false,
+    name := "docs",
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.client4" %% "cats" % "4.0.0-M1",
+      "org.typelevel" %% "cats-effect" % "3.5.0"
+    ),
+    evictionErrorLevel := Level.Info
+  )
+  .dependsOn(core)
+  .jvmPlatform(scalaVersions = scala2)

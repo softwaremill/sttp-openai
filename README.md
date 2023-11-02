@@ -38,7 +38,6 @@ OpenAI API Official Documentation https://platform.openai.com/docs/api-reference
 ### To use ChatGPT
 
 ```scala mdoc:compile-only 
-import sttp.client4._
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
@@ -67,19 +66,19 @@ object Main extends App {
   val chatResponse: ChatResponse = openAI.createChatCompletion(chatRequestBody)
 
   println(chatResponse)
-}
-/*
-  ChatResponse(
-   chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
-   1682589572,
-   gpt-3.5-turbo-0301,
-   Usage(10,10,20),
-   List(
-     Choices(
-       Message(assistant, Hello there! How can I assist you today?), stop, 0)
-     )
-   )
+  /*
+      ChatResponse(
+       chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
+       1682589572,
+       gpt-3.5-turbo-0301,
+       Usage(10,10,20),
+       List(
+         Choices(
+           Message(assistant, Hello there! How can I assist you today?), stop, 0)
+         )
+       )
   */
+}
 ```
 #### Currently only two backend implementations are available:
 * `OpenAISyncBackend` which uses identity monad `Id[A]` as an effect `F[A]` and throws `OpenAIException`
@@ -92,7 +91,6 @@ or use backend of your choice.
 
 ```scala mdoc:compile-only 
 import cats.effect.{ExitCode, IO, IOApp}
-import sttp.client4._
 import sttp.client4.httpclient.cats.HttpClientCatsBackend
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai._
@@ -129,21 +127,21 @@ object Main extends IOApp {
       redeemedResponse.flatMap(IO.println)
         .as(ExitCode.Success)
     }
-  }
-}
-/*
-ChatResponse(
-  chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
-  1682589572,
-  gpt-3.5-turbo-0301,
-  Usage(10,10,20),
-  List(
-    Choices(
-      Message(assistant, Hello there! How can I assist you today?), stop, 0)
+  } 
+  /*
+    ChatResponse(
+      chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
+      1682589572,
+      gpt-3.5-turbo-0301,
+      Usage(10,10,20),
+      List(
+        Choices(
+          Message(assistant, Hello there! How can I assist you today?), stop, 0)
+        )
+      )
     )
-  )
-)
-*/
+  */
+}
 ```
 ## Contributing
 
