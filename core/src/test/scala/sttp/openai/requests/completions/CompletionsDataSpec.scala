@@ -4,7 +4,7 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.{SnakePickle, SttpOpenAIApi}
+import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.completions.Stop.SingleStop
 
 class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
@@ -36,7 +36,7 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, CompletionsResponse] = SttpOpenAIApi.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, CompletionsResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -102,7 +102,7 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, CompletionsResponse] = SttpOpenAIApi.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, CompletionsResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

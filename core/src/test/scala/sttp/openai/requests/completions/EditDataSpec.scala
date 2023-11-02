@@ -4,7 +4,7 @@ import sttp.openai.fixtures
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import sttp.openai.json.{SnakePickle, SttpOpenAIApi}
+import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.completions.edit.EditRequestBody._
 import sttp.openai.requests.completions.edit.EditRequestBody.EditModel.TextDavinciEdit001
 
@@ -36,7 +36,7 @@ class EditDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, EditResponse] = SttpOpenAIApi.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, EditResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

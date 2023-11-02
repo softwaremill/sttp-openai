@@ -3,7 +3,7 @@ package sttp.openai.requests.finetunes
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import sttp.openai.json.{SnakePickle, SttpOpenAIApi}
+import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.fixtures
 import sttp.openai.requests.files.FilesResponseData.FileData
 import sttp.openai.requests.finetunes.FineTunesResponseData._
@@ -56,7 +56,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // when
     val deserializedJsonResponse: Either[Exception, FineTuneResponse] =
-      SttpOpenAIApi.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
+      SttpUpickleApiExtension.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
@@ -140,7 +140,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // when
     val deserializedJsonResponse: Either[Exception, GetFineTunesResponse] =
-      SttpOpenAIApi.deserializeJsonSnake[GetFineTunesResponse].apply(jsonResponse)
+      SttpUpickleApiExtension.deserializeJsonSnake[GetFineTunesResponse].apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
@@ -264,7 +264,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // when
     val deserializedJsonResponse: Either[Exception, FineTuneResponse] =
-      SttpOpenAIApi.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
+      SttpUpickleApiExtension.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
@@ -281,7 +281,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val deserializedJsonResponse: Either[Exception, DeleteFineTuneModelResponse] =
-      SttpOpenAIApi.deserializeJsonSnake[DeleteFineTuneModelResponse].apply(jsonResponse)
+      SttpUpickleApiExtension.deserializeJsonSnake[DeleteFineTuneModelResponse].apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
@@ -365,7 +365,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // when
     val deserializedJsonResponse: Either[Exception, FineTuneEventsResponse] =
-      SttpOpenAIApi.deserializeJsonSnake[FineTuneEventsResponse].apply(jsonResponse)
+      SttpUpickleApiExtension.deserializeJsonSnake[FineTuneEventsResponse].apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
@@ -411,7 +411,7 @@ class FineTunesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // when
     val deserializedJsonResponse: Either[Exception, FineTuneResponse] =
-      SttpOpenAIApi.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
+      SttpUpickleApiExtension.deserializeJsonSnake[FineTuneResponse].apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse

@@ -4,7 +4,7 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.{SnakePickle, SttpOpenAIApi}
+import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.images.{ResponseFormat, Size}
 class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -24,7 +24,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
       data = generatedImageData
     )
     // when
-    val givenResponse = SttpOpenAIApi.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

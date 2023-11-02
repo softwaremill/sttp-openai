@@ -4,7 +4,7 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.SttpOpenAIApi
+import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationModel
 import sttp.openai.requests.moderations.ModerationsResponseData._
 
@@ -41,7 +41,7 @@ class ModerationsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val givenResponse: Either[Exception, ModerationData] =
-      SttpOpenAIApi.deserializeJsonSnake[ModerationData].apply(listFilesResponse)
+      SttpUpickleApiExtension.deserializeJsonSnake[ModerationData].apply(listFilesResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

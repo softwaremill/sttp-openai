@@ -4,7 +4,7 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.SttpOpenAIApi
+import sttp.openai.json.SttpUpickleApiExtension
 import EmbeddingsResponseBody._
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsModel
 
@@ -31,7 +31,7 @@ class EmbeddingsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val givenResponse: Either[Exception, EmbeddingResponse] =
-      SttpOpenAIApi.deserializeJsonSnake[EmbeddingResponse].apply(listFilesResponse)
+      SttpUpickleApiExtension.deserializeJsonSnake[EmbeddingResponse].apply(listFilesResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

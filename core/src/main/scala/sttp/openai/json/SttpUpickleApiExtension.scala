@@ -11,7 +11,7 @@ import sttp.openai.OpenAIExceptions.OpenAIException._
 /** An sttp upickle api extension that deserializes JSON with snake_case keys into case classes with fields corresponding to keys in
   * camelCase and maps errors to OpenAIException subclasses.
   */
-object SttpOpenAIApi extends SttpUpickleApi {
+object SttpUpickleApiExtension extends SttpUpickleApi {
   override val upickleApi: SnakePickle.type = SnakePickle
 
   def asJsonSnake[B: upickleApi.Reader: IsOption]: ResponseAs[Either[OpenAIException, B]] =
