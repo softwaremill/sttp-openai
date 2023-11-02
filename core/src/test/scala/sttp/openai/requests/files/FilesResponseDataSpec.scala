@@ -4,7 +4,7 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.SttpUpickleApiExtension
+import sttp.openai.json.SttpOpenAIApi
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
 import sttp.openai.requests.files.FilesResponseData.FilesResponse._
 
@@ -29,7 +29,7 @@ class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     )
 
     // when
-    val givenResponse: Either[Exception, FilesResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(listFilesResponse)
+    val givenResponse: Either[Exception, FilesResponse] = SttpOpenAIApi.deserializeJsonSnake.apply(listFilesResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -51,7 +51,7 @@ class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues 
       )
 
     // when
-    val givenResponse: Either[Exception, FileData] = SttpUpickleApiExtension.deserializeJsonSnake[FileData].apply(singleFileJsonResponse)
+    val givenResponse: Either[Exception, FileData] = SttpOpenAIApi.deserializeJsonSnake[FileData].apply(singleFileJsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -68,7 +68,7 @@ class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
     // when
     val givenResponse: Either[Exception, DeletedFileData] =
-      SttpUpickleApiExtension.deserializeJsonSnake[DeletedFileData].apply(listFilesResponse)
+      SttpOpenAIApi.deserializeJsonSnake[DeletedFileData].apply(listFilesResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -89,7 +89,7 @@ class FilesResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     )
 
     // when
-    val givenResponse: Either[Exception, FileData] = SttpUpickleApiExtension.deserializeJsonSnake[FileData].apply(retrieveFileJsonResponse)
+    val givenResponse: Either[Exception, FileData] = SttpOpenAIApi.deserializeJsonSnake[FileData].apply(retrieveFileJsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

@@ -3,7 +3,7 @@ package sttp.openai
 import sttp.client4._
 import sttp.model.Uri
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai.json.SttpUpickleApiExtension.{asJsonSnake, asStringEither, upickleBodySerializer}
+import sttp.openai.json.SttpOpenAIApi.{asJsonSnake, asStringEither, upickleBodySerializer}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
