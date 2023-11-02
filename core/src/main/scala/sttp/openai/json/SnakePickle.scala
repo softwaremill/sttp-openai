@@ -3,7 +3,7 @@ package sttp.openai.json
 import sttp.client4.json._
 import sttp.client4.upicklejson.SttpUpickleApi
 import sttp.client4._
-import sttp.model.{MediaType, ResponseMetadata}
+import sttp.model.ResponseMetadata
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.OpenAIExceptions.OpenAIException._
 
@@ -42,12 +42,13 @@ object SnakePickle extends upickle.AttributeTagged {
     }
 }
 
-/** This is required in order to deserialize JSON with snake_case keys into case classes with fields corresponding to keys in camelCase */
+/** An sttp upickle api extension that deserializes JSON with snake_case keys into case classes with fields corresponding to keys in
+  * camelCase and maps errors to OpenAIException subclasses.
+  */
 object SttpUpickleApiExtension extends SttpUpickleApi {
-  implicit def upickleBodySerializerSnake[B](implicit encoder: SnakePickle.Writer[B]): BodySerializer[B] =
-    b => StringBody(SnakePickle.write(b), "utf-8", MediaType.ApplicationJson)
+  override val upickleApi: SnakePickle.type = SnakePickle
 
-  def asJsonSnake[B: SnakePickle.Reader: IsOption]: ResponseAs[Either[OpenAIException, B]] =
+  def asJsonSnake[B: upickleApi.Reader: IsOption]: ResponseAs[Either[OpenAIException, B]] =
     asString.mapWithMetadata(deserializeRightWithMappedExceptions(deserializeJsonSnake)).showAsJson
 
   private def deserializeRightWithMappedExceptions[T](
@@ -58,9 +59,9 @@ object SttpUpickleApiExtension extends SttpUpickleApi {
     case (Right(body), _) => doDeserialize.apply(body)
   }
 
-  def deserializeJsonSnake[B: SnakePickle.Reader: IsOption]: String => Either[DeserializationOpenAIException, B] = { (s: String) =>
+  def deserializeJsonSnake[B: upickleApi.Reader: IsOption]: String => Either[DeserializationOpenAIException, B] = { (s: String) =>
     try
-      Right(SnakePickle.read[B](JsonInput.sanitize[B].apply(s)))
+      Right(upickleApi.read[B](JsonInput.sanitize[B].apply(s)))
     catch {
       case e: Exception => Left(DeserializationOpenAIException(e))
       case t: Throwable =>
@@ -81,8 +82,8 @@ object SttpUpickleApiExtension extends SttpUpickleApi {
 
   private def httpToOpenAIError(he: HttpError[String]): OpenAIException = {
     import sttp.model.StatusCode._
-    val errorMessageBody = SnakePickle.read[ujson.Value](he.body).apply("error")
-    val error = SnakePickle.read[Error](errorMessageBody)
+    val errorMessageBody = upickleApi.read[ujson.Value](he.body).apply("error")
+    val error = upickleApi.read[Error](errorMessageBody)
     import error._
     he.statusCode match {
       case TooManyRequests                              => new RateLimitException(message, `type`, param, code, he)
@@ -96,6 +97,6 @@ object SttpUpickleApiExtension extends SttpUpickleApi {
   }
   private case class Error(message: Option[String], `type`: Option[String], param: Option[String], code: Option[String])
   private object Error {
-    implicit val errorR: SnakePickle.Reader[Error] = SnakePickle.macroR
+    implicit val errorR: upickleApi.Reader[Error] = upickleApi.macroR
   }
 }
