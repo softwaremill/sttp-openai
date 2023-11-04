@@ -4,16 +4,16 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
-import sttp.openai.requests.completions.Usage
+import sttp.openai.json.SnakePickle
+import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.completions.Stop.SingleStop
-import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel
+import sttp.openai.requests.completions.Usage
 
 class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given chat completions response as Json" should "be properly deserialized to case class" in {
-    import sttp.openai.requests.completions.chat.ChatRequestResponseData._
-    import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse._
+    import ChatRequestResponseData._
+    import ChatRequestResponseData.ChatResponse._
 
     // given
     val jsonResponse = fixtures.ChatFixture.jsonResponse
@@ -24,10 +24,15 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       totalTokens = 20
     )
 
+    val functionCall: FunctionCall = FunctionCall(
+      arguments = "args",
+      name = "Fish"
+    )
+
     val message: Message = Message(
       role = Role.Assistant,
       content = "Hi there! How can I assist you today?",
-      name = Some("Fish")
+      functionCall = Some(functionCall)
     )
 
     val choices: Choices = Choices(
@@ -53,12 +58,20 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   }
 
   "Given completions request as case class" should "be properly serialized to Json" in {
+    import ChatRequestBody._
+
     // given
+    val functionCall: FunctionCall = FunctionCall(
+      arguments = "args",
+      name = "Fish"
+    )
+
     val messages: Seq[Message] = Seq(
       Message(
         role = Role.User,
         content = "Hello!",
-        name = Some("Andrzej")
+        name = Some("Andrzej"),
+        functionCall = Some(functionCall)
       )
     )
 
@@ -72,7 +85,8 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       maxTokens = Some(7),
       presencePenalty = Some(0),
       frequencyPenalty = Some(0),
-      user = Some("testUser")
+      user = Some("testUser"),
+      stream = Some(true)
     )
 
     val jsonRequest: ujson.Value = ujson.read(fixtures.ChatFixture.jsonRequest)

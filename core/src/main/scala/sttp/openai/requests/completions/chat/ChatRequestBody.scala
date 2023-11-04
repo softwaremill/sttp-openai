@@ -7,6 +7,21 @@ import ujson.Str
 
 object ChatRequestBody {
 
+  /** @param role
+    *   The role of the author of this message.
+    * @param content
+    *   The contents of the message.
+    * @param name
+    *   The name of the author of this message. May contain a-z, A-Z, 0-9, and underscores, with a maximum length of 64 characters.
+    * @param functionCall
+    *   The name of the author of this message. May contain a-z, A-Z, 0-9, and underscores, with a maximum length of 64 characters.
+    */
+  case class Message(role: Role, content: String, name: Option[String] = None, functionCall: Option[FunctionCall] = None)
+
+  object Message {
+    implicit val messageRW: SnakePickle.ReadWriter[Message] = SnakePickle.macroRW[Message]
+  }
+
   /** @param model
     *   ID of the model to use.
     * @param messages
@@ -33,6 +48,9 @@ object ChatRequestBody {
     *   Modify the likelihood of specified tokens appearing in the completion.
     * @param user
     *   A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
+    * @param stream
+    *   If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become
+    *   available, with the stream terminated by a data: [DONE] message.
     */
   case class ChatBody(
       model: ChatCompletionModel,
@@ -45,7 +63,8 @@ object ChatRequestBody {
       presencePenalty: Option[Double] = None,
       frequencyPenalty: Option[Double] = None,
       logitBias: Option[Map[String, Float]] = None,
-      user: Option[String] = None
+      user: Option[String] = None,
+      stream: Option[Boolean] = None
   )
 
   object ChatBody {

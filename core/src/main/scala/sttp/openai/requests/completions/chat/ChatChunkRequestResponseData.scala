@@ -1,9 +1,8 @@
 package sttp.openai.requests.completions.chat
 
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.completions.Usage
 
-object ChatRequestResponseData {
+object ChatChunkRequestResponseData {
 
   /** @param role
     *   The role of the author of this message.
@@ -12,14 +11,14 @@ object ChatRequestResponseData {
     * @param functionCall
     *   The name of the author of this message. May contain a-z, A-Z, 0-9, and underscores, with a maximum length of 64 characters.
     */
-  case class Message(role: Role, content: String, functionCall: Option[FunctionCall] = None)
+  case class Delta(role: Option[Role] = None, content: Option[String] = None, functionCall: Option[FunctionCall] = None)
 
-  object Message {
-    implicit val messageRW: SnakePickle.Reader[Message] = SnakePickle.macroR[Message]
+  object Delta {
+    implicit val deltaRW: SnakePickle.Reader[Delta] = SnakePickle.macroR[Delta]
   }
 
   case class Choices(
-      message: Message,
+      delta: Delta,
       finishReason: String,
       index: Int
   )
@@ -28,17 +27,18 @@ object ChatRequestResponseData {
     implicit val choicesR: SnakePickle.Reader[Choices] = SnakePickle.macroR[Choices]
   }
 
-  case class ChatResponse(
+  case class ChatChunkResponse(
       id: String,
       `object`: String,
       created: Int,
       model: String,
-      usage: Usage,
       choices: Seq[Choices]
   )
 
-  object ChatResponse {
-    implicit val chatResponseR: SnakePickle.Reader[ChatResponse] = SnakePickle.macroR[ChatResponse]
+  object ChatChunkResponse {
+    val DoneEventMessage = "[DONE]"
+
+    implicit val chunkChatR: SnakePickle.Reader[ChatChunkResponse] = SnakePickle.macroR[ChatChunkResponse]
   }
 
 }
