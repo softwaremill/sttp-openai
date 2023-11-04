@@ -3,7 +3,7 @@ package sttp.openai
 import sttp.client4._
 import sttp.model.Uri
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai.json.SttpUpickleApiExtension.{asJsonSnake, asStringEither, upickleBodySerializer}
+import sttp.openai.json.SttpUpickleApiExtension.{asJsonSnake, asStreamSnake, asStringEither, upickleBodySerializer}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -31,6 +31,7 @@ import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
 import sttp.openai.requests.audio.RecognitionModel
+import sttp.capabilities.Streams
 
 import java.io.File
 import java.nio.file.Paths
@@ -238,6 +239,21 @@ class OpenAI(authToken: String) {
       .post(OpenAIUris.ChatCompletions)
       .body(chatBody)
       .response(asJsonSnake[ChatResponse])
+
+    /** Creates and streams a model response for the given chat conversation defined in chatBody.
+      *
+      * [[https://platform.openai.com/docs/api-reference/chat/create]]
+      *
+      * @param s
+      *   The streams implementation to use.
+      * @param chatBody
+      *   Chat request body.
+      */
+    def createChatCompletion[S](s: Streams[S], chatBody: ChatBody): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
+      openAIAuthRequest
+        .post(OpenAIUris.ChatCompletions)
+        .body(chatBody)
+        .response(asStreamSnake(s))
 
   /** Returns a list of files that belong to the user's organization.
     *

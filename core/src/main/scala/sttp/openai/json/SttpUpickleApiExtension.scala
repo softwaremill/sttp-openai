@@ -7,12 +7,18 @@ import sttp.model.StatusCode._
 import sttp.model.ResponseMetadata
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.OpenAIExceptions.OpenAIException._
+import sttp.capabilities.Streams
 
 /** An sttp upickle api extension that deserializes JSON with snake_case keys into case classes with fields corresponding to keys in
   * camelCase and maps errors to OpenAIException subclasses.
   */
 object SttpUpickleApiExtension extends SttpUpickleApi {
   override val upickleApi: SnakePickle.type = SnakePickle
+
+  def asStreamSnake[S](s: Streams[S]): StreamResponseAs[Either[OpenAIException, s.BinaryStream], S] =
+    asStreamUnsafe(s).mapWithMetadata { (body, meta) =>
+      body.left.map(errorBody => httpToOpenAIError(HttpError(errorBody, meta.code)))
+    }
 
   def asJsonSnake[B: upickleApi.Reader: IsOption]: ResponseAs[Either[OpenAIException, B]] =
     asString.mapWithMetadata(deserializeRightWithMappedExceptions(deserializeJsonSnake)).showAsJson
