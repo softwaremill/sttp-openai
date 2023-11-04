@@ -240,20 +240,20 @@ class OpenAI(authToken: String) {
       .body(chatBody)
       .response(asJsonSnake[ChatResponse])
 
-    /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
-      *
-      * [[https://platform.openai.com/docs/api-reference/chat/create]]
-      *
-      * @param s
-      *   The streams implementation to use.
-      * @param chatBody
-      *   Chat request body.
-      */
-    def createChatCompletion[S](s: Streams[S], chatBody: ChatBody): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
-      openAIAuthRequest
-        .post(OpenAIUris.ChatCompletions)
-        .body(chatBody)
-        .response(asStreamSnake(s))
+  /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/create]]
+    *
+    * @param s
+    *   The streams implementation to use.
+    * @param chatBody
+    *   Chat request body.
+    */
+  def createChatCompletion[S](s: Streams[S], chatBody: ChatBody): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
+    openAIAuthRequest
+      .post(OpenAIUris.ChatCompletions)
+      .body(chatBody)
+      .response(asStreamSnake(s))
 
   /** Returns a list of files that belong to the user's organization.
     *
