@@ -28,11 +28,6 @@ sttp openai is available for Scala 2.13 and Scala 3
 
 OpenAI API Official Documentation https://platform.openai.com/docs/api-reference/completions
 
-### Not yet implemented:
-    * Create chat completions SSE
-    * Create completions SSE
-    * List fine-tune events SSE
-
 ## Example
 
 ### To use ChatGPT
@@ -40,9 +35,8 @@ OpenAI API Official Documentation https://platform.openai.com/docs/api-reference
 ```scala mdoc:compile-only 
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
-import sttp.openai.requests.completions.chat.{Message, Role}
-
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, Message}
+import sttp.openai.requests.completions.chat.Role
 
 object Main extends App {
   // Create an instance of OpenAISyncClient providing your API secret-key
@@ -92,11 +86,12 @@ or use backend of your choice.
 ```scala mdoc:compile-only 
 import cats.effect.{ExitCode, IO, IOApp}
 import sttp.client4.httpclient.cats.HttpClientCatsBackend
+
+import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai._
-import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
-import sttp.openai.requests.completions.chat.{Message, Role}
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, Message}
+import sttp.openai.requests.completions.chat.Role
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
@@ -143,6 +138,96 @@ object Main extends IOApp {
   */
 }
 ```
+
+#### Create completion with streaming:
+The Chat Completion API features streaming support via server-sent events. Currently, we only support streaming using `Fs2`. 
+
+Add the following import:
+
+```scala
+import sttp.openai.streaming.fs2.Fs2OpenAI._
+```
+
+Example below uses `HttpClientFs2Backend` as a backend.
+
+```scala mdoc:compile-only
+import cats.effect.{ExitCode, IO, IOApp}
+import fs2.Stream
+import sttp.client4.httpclient.fs2.HttpClientFs2Backend
+
+import sttp.openai.OpenAI
+import sttp.openai.streaming.fs2.Fs2OpenAI._
+import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, Message}
+import sttp.openai.requests.completions.chat.Role
+
+object Main extends IOApp {
+  override def run(args: List[String]): IO[ExitCode] = {
+    val openAI: OpenAI = new OpenAI("your-secret-key")
+
+    val bodyMessages: Seq[Message] = Seq(
+      Message(
+        role = Role.User,
+        content = "Hello!"
+      )
+    )
+
+    val chatRequestBody: ChatBody = ChatBody(
+      model = ChatCompletionModel.GPT35Turbo,
+      messages = bodyMessages,
+      stream = Some(true) // Set stream to true
+    )
+
+    HttpClientFs2Backend.resource[IO]().use { backend =>
+      val response: IO[Either[OpenAIException, Stream[IO, ChatChunkResponse]]] =
+        openAI
+          .createStreamedChatCompletion[IO](chatRequestBody)
+          .send(backend)
+          .map(_.body)
+
+      response
+        .flatMap {
+          case Left(exception) => IO.println(exception.getMessage)
+          case Right(stream)   => stream.evalTap(IO.println).compile.drain
+        }
+        .as(ExitCode.Success)
+    }
+  }
+  /*
+    ...
+    ChatChunkResponse(
+      "chatcmpl-8HEZFNDmu2AYW8jVvNKyRO4W4KcO8",
+      "chat.completion.chunk",
+      1699118265,
+      "gpt-3.5-turbo-0613",
+      List(
+        Choices(
+          Delta(None, Some("Hi"), None),
+          null,
+          0
+        )
+      )
+    )
+    ...
+    ChatChunkResponse(
+      "chatcmpl-8HEZFNDmu2AYW8jVvNKyRO4W4KcO8",
+      "chat.completion.chunk",
+      1699118265,
+      "gpt-3.5-turbo-0613",
+      List(
+        Choices(
+          Delta(None, Some(" there"), None),
+          null,
+          0
+        )
+      )
+    )
+    ...
+   */
+}
+```
+
 ## Contributing
 
 If you have a question, or hit a problem, feel free to post on our community https://softwaremill.community/c/open-source/

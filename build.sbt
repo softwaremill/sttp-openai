@@ -26,6 +26,16 @@ lazy val core = (projectMatrix in file("core"))
   )
   .settings(commonSettings: _*)
 
+lazy val fs2 = (projectMatrix in file("streaming/fs2"))
+  .jvmPlatform(
+    scalaVersions = scala2 ++ scala3
+  )
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies += Libraries.sttpClientFs2
+  )
+  .dependsOn(core)
+
 val compileDocs: TaskKey[Unit] = taskKey[Unit]("Compiles docs module throwing away its output")
 compileDocs := {
   (docs.jvm(scala2.head) / mdoc).toTask(" --out target/sttp-openai-docs").value
@@ -48,4 +58,5 @@ lazy val docs = (projectMatrix in file("generated-docs")) // important: it must 
     evictionErrorLevel := Level.Info
   )
   .dependsOn(core)
+  .dependsOn(fs2)
   .jvmPlatform(scalaVersions = scala2)
