@@ -17,6 +17,8 @@ object Dependencies {
       "com.softwaremill.sttp.client4" %% "upickle" % V.sttpClient
     )
 
+    val sttpClientFs2 = "com.softwaremill.sttp.client4" %% "fs2" % V.sttpClient
+
     val uPickle = "com.lihaoyi" %% "upickle" % V.uPickle
 
   }

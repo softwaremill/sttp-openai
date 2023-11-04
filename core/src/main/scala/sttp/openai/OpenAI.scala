@@ -240,7 +240,7 @@ class OpenAI(authToken: String) {
       .body(chatBody)
       .response(asJsonSnake[ChatResponse])
 
-    /** Creates and streams a model response for the given chat conversation defined in chatBody.
+    /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
       *
       * [[https://platform.openai.com/docs/api-reference/chat/create]]
       *
