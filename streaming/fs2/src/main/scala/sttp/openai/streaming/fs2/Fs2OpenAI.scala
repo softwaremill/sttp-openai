@@ -1,15 +1,15 @@
 package sttp.openai.streaming.fs2
 
 import fs2.{Pipe, RaiseThrowable, Stream}
-import sttp.openai.OpenAI
 import sttp.capabilities.fs2.Fs2Streams
-import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.client4.StreamRequest
-import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.client4.impl.fs2.Fs2ServerSentEvents
 import sttp.model.sse.ServerSentEvent
+import sttp.openai.OpenAI
+import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.json.SttpUpickleApiExtension.deserializeJsonSnake
+import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
+import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 
 object Fs2OpenAI {
   import ChatChunkResponse.DoneEventMessage
@@ -24,10 +24,10 @@ object Fs2OpenAI {
       *   Chat request body.
       */
     def createStreamedChatCompletion[F[_]: RaiseThrowable](
-        body: ChatBody
+        chatBody: ChatBody
     ): StreamRequest[Either[OpenAIException, Stream[F, ChatChunkResponse]], Fs2Streams[F]] =
       client
-        .createChatCompletion(Fs2Streams[F], body)
+        .createChatCompletion(Fs2Streams[F], chatBody)
         .mapResponse(mapEventToResponse[F])
   }
 
