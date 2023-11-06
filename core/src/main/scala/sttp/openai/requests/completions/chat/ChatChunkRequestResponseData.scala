@@ -14,7 +14,7 @@ object ChatChunkRequestResponseData {
   case class Delta(role: Option[Role] = None, content: Option[String] = None, functionCall: Option[FunctionCall] = None)
 
   object Delta {
-    implicit val deltaRW: SnakePickle.Reader[Delta] = SnakePickle.macroR[Delta]
+    implicit val deltaR: SnakePickle.Reader[Delta] = SnakePickle.macroR[Delta]
   }
 
   case class Choices(
