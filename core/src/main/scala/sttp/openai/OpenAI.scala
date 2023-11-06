@@ -252,7 +252,7 @@ class OpenAI(authToken: String) {
   def createChatCompletion[S](s: Streams[S], chatBody: ChatBody): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
     openAIAuthRequest
       .post(OpenAIUris.ChatCompletions)
-      .body(chatBody)
+      .body(ChatBody.withStreaming(chatBody))
       .response(asStreamSnake(s))
 
   /** Returns a list of files that belong to the user's organization.

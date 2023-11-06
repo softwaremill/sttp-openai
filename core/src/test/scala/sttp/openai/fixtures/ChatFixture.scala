@@ -22,8 +22,7 @@ object ChatFixture {
      |  "max_tokens": 7,
      |  "presence_penalty": 0,
      |  "frequency_penalty": 0,
-     |  "user": "testUser",
-     |  "stream": true
+     |  "user": "testUser"
      |}""".stripMargin
 
   val jsonResponse: String = """{

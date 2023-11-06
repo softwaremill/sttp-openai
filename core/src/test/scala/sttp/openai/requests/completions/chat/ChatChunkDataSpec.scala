@@ -5,6 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
+import sttp.openai.requests.completions.Stop.SingleStop
 
 class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -45,6 +46,47 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // then
     givenResponse.value shouldBe expectedResponse
+  }
+
+  "Given completions request with streaming enabled as case class" should "be properly serialized to Json" in {
+    import ChatRequestBody._
+
+    // given
+    val functionCall: FunctionCall = FunctionCall(
+      arguments = "args",
+      name = "Fish"
+    )
+
+    val messages: Seq[Message] = Seq(
+      Message(
+        role = Role.User,
+        content = "Hello!",
+        name = Some("Andrzej"),
+        functionCall = Some(functionCall)
+      )
+    )
+
+    val givenRequest = ChatRequestBody.ChatBody(
+      model = ChatCompletionModel.GPT35Turbo,
+      messages = messages,
+      temperature = Some(1),
+      topP = Some(1),
+      n = Some(1),
+      stop = Some(SingleStop("\n")),
+      maxTokens = Some(7),
+      presencePenalty = Some(0),
+      frequencyPenalty = Some(0),
+      user = Some("testUser")
+    )
+
+    val jsonRequest: ujson.Value = ujson.read(fixtures.ChatChunkFixture.jsonRequest)
+
+    // when
+    val serializedJson: ujson.Value = ChatBody.withStreaming(givenRequest)
+
+    // then
+    serializedJson shouldBe jsonRequest
+
   }
 
 }

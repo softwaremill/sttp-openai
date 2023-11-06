@@ -175,8 +175,7 @@ object Main extends IOApp {
 
     val chatRequestBody: ChatBody = ChatBody(
       model = ChatCompletionModel.GPT35Turbo,
-      messages = bodyMessages,
-      stream = Some(true) // Set stream to true
+      messages = bodyMessages
     )
 
     HttpClientFs2Backend.resource[IO]().use { backend =>

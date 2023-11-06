@@ -28,8 +28,7 @@ class Fs2ClientSpec extends AnyFlatSpec with Matchers with EitherValues {
 
       val givenRequest = ChatBody(
         model = ChatCompletionModel.GPT35Turbo,
-        messages = Seq.empty,
-        stream = Some(true)
+        messages = Seq.empty
       )
 
       // when
@@ -63,8 +62,7 @@ class Fs2ClientSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val givenRequest = ChatBody(
       model = ChatCompletionModel.GPT35Turbo,
-      messages = Seq.empty,
-      stream = Some(true)
+      messages = Seq.empty
     )
 
     // when
@@ -94,8 +92,7 @@ class Fs2ClientSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val givenRequest = ChatBody(
       model = ChatCompletionModel.GPT35Turbo,
-      messages = Seq.empty,
-      stream = Some(true)
+      messages = Seq.empty
     )
 
     // when

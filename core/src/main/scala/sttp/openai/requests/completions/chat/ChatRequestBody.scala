@@ -48,9 +48,6 @@ object ChatRequestBody {
     *   Modify the likelihood of specified tokens appearing in the completion.
     * @param user
     *   A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
-    * @param stream
-    *   If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become
-    *   available, with the stream terminated by a data: [DONE] message.
     */
   case class ChatBody(
       model: ChatCompletionModel,
@@ -63,11 +60,16 @@ object ChatRequestBody {
       presencePenalty: Option[Double] = None,
       frequencyPenalty: Option[Double] = None,
       logitBias: Option[Map[String, Float]] = None,
-      user: Option[String] = None,
-      stream: Option[Boolean] = None
+      user: Option[String] = None
   )
 
   object ChatBody {
+    def withStreaming(chatBody: ChatBody): ujson.Value = {
+      val json = SnakePickle.writeJs(chatBody)
+      json.obj("stream") = true
+      json
+    }
+
     implicit val chatRequestW: SnakePickle.Writer[ChatBody] = SnakePickle.macroW[ChatBody]
   }
 

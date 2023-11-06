@@ -85,8 +85,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       maxTokens = Some(7),
       presencePenalty = Some(0),
       frequencyPenalty = Some(0),
-      user = Some("testUser"),
-      stream = Some(true)
+      user = Some("testUser")
     )
 
     val jsonRequest: ujson.Value = ujson.read(fixtures.ChatFixture.jsonRequest)
