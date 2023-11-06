@@ -1,7 +1,8 @@
 package sttp.openai.streaming.fs2
 
 import org.scalatest.EitherValues
-import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.flatspec.AsyncFlatSpec
+import cats.effect.testing.scalatest.AsyncIOSpec
 import org.scalatest.matchers.should.Matchers
 import cats.effect.IO
 import fs2.{text, Stream}
@@ -17,9 +18,7 @@ import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatCh
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
 import sttp.openai.streaming.fs2.Fs2OpenAI._
 
-class Fs2ClientSpec extends AnyFlatSpec with Matchers with EitherValues {
-  import cats.effect.unsafe.implicits.global
-
+class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with EitherValues {
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
@@ -36,15 +35,16 @@ class Fs2ClientSpec extends AnyFlatSpec with Matchers with EitherValues {
         .createStreamedChatCompletion[IO](givenRequest)
         .send(fs2BackendStub)
         .map(_.body.left.value)
-        .unsafeRunSync()
 
       // then
-      caught.getClass shouldBe expectedError.getClass
-      caught.message shouldBe expectedError.message
-      caught.cause shouldBe expectedError.cause
-      caught.code shouldBe expectedError.code
-      caught.param shouldBe expectedError.param
-      caught.`type` shouldBe expectedError.`type`
+      caught.asserting { c =>
+        c.getClass shouldBe expectedError.getClass
+        c.message shouldBe expectedError.message
+        c.cause shouldBe expectedError.cause
+        c.code shouldBe expectedError.code
+        c.param shouldBe expectedError.param
+        c.`type` shouldBe expectedError.`type`
+      }
     }
 
   "Creating chat completions with failed stream due to invalid deserialization" should "return properly deserialized error" in {
@@ -73,7 +73,7 @@ class Fs2ClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       .flatMap(_.compile.drain)
 
     // then
-    response.attempt.unsafeRunSync() shouldBe a[Left[DeserializationException[_], _]]
+    response.attempt.asserting(_ shouldBe a[Left[DeserializationException[_], _]])
   }
 
   "Creating chat completions with successful response" should "return properly deserialized list of chunks" in {
@@ -104,7 +104,7 @@ class Fs2ClientSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // then
     val expectedResponse = chatChunks.map(read[ChatChunkResponse](_))
-    response.unsafeRunSync() shouldBe expectedResponse
+    response.asserting(_ shouldBe expectedResponse)
   }
 
   private def compactJson(json: String): String = write(read[ujson.Value](json))

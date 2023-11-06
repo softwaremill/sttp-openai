@@ -36,7 +36,7 @@ lazy val fs2 = (projectMatrix in file("streaming/fs2"))
   )
   .settings(commonSettings)
   .settings(
-    libraryDependencies += Libraries.sttpClientFs2
+    libraryDependencies ++= Libraries.sttpClientFs2
   )
   .dependsOn(core % "compile->compile;test->test")
 
