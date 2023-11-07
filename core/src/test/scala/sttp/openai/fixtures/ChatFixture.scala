@@ -3,17 +3,27 @@ package sttp.openai.fixtures
 object ChatFixture {
 
   val jsonRequest: String = """{
-      |  "model": "gpt-3.5-turbo",
-      |  "messages": [{"role": "user", "content": "Hello!", "name": "Andrzej"}],
-      |  "temperature": 1,
-      |  "top_p": 1,
-      |  "n": 1,
-      |  "stop": "\n",
-      |  "max_tokens": 7,
-      |  "presence_penalty": 0,
-      |  "frequency_penalty": 0,
-      |  "user": "testUser"
-      |}""".stripMargin
+     |  "model": "gpt-3.5-turbo",
+     |  "messages": [
+     |    {
+     |      "role": "user",
+     |      "content": "Hello!",
+     |      "name": "Andrzej",
+     |      "function_call": {
+     |        "arguments": "args",
+     |        "name": "Fish"
+     |      }
+     |    }
+     |  ],
+     |  "temperature": 1,
+     |  "top_p": 1,
+     |  "n": 1,
+     |  "stop": "\n",
+     |  "max_tokens": 7,
+     |  "presence_penalty": 0,
+     |  "frequency_penalty": 0,
+     |  "user": "testUser"
+     |}""".stripMargin
 
   val jsonResponse: String = """{
       |   "id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR",
@@ -30,7 +40,10 @@ object ChatFixture {
       |       "message": {
       |         "role": "assistant",
       |         "content": "Hi there! How can I assist you today?",
-      |         "name": "Fish"
+      |         "function_call": {
+      |           "arguments": "args",
+      |           "name": "Fish"
+      |         }
       |       },
       |       "finish_reason": "stop",
       |       "index": 0
