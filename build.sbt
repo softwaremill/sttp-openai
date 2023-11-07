@@ -20,6 +20,7 @@ lazy val root = (project in file("."))
 lazy val allAgregates = core.projectRefs ++
   fs2.projectRefs ++
   zio.projectRefs ++
+  pekko.projectRefs ++
   docs.projectRefs
 
 lazy val core = (projectMatrix in file("core"))
