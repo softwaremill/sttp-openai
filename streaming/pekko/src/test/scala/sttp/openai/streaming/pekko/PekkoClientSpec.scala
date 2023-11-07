@@ -14,9 +14,10 @@ import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIExcepti
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
-import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEventMessage
+import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
 import sttp.openai.utils.JsonUtils.compactJson
+import org.apache.pekko.NotUsed
 
 class PekkoClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
   implicit val system: ActorSystem = ActorSystem()
@@ -77,16 +78,41 @@ class PekkoClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
     response.failed.map(_ shouldBe a[DeserializationOpenAIException])
   }
 
-  "Creating chat completions with successful response" should "return properly deserialized list of chunks" in {
+  "Creating chat completions with successful response" should "ignore empty events and return properly deserialized list of chunks" in {
     // given
     val chatChunks = Seq.fill(3)(sttp.openai.fixtures.ChatChunkFixture.jsonResponse).map(compactJson)
-    val events = chatChunks.map(data => ServerSentEvent(Some(data))) :+ ServerSentEvent(Some(DoneEventMessage))
+
+    val eventsToProcess = chatChunks.map(data => ServerSentEvent(Some(data)))
+    val emptyEvent = ServerSentEvent()
+    val events = (eventsToProcess :+ emptyEvent) :+ DoneEvent
+
     val delimiter = "\n\n"
     val streamedResponse = Source(events)
       .map(_.toString + delimiter)
       .map(ByteString(_))
 
-    val pekkoBackendStub = PekkoHttpBackend.stub.whenAnyRequest.thenRespond(RawStream(streamedResponse))
+    // when & then
+    assertStreamedCompletion(streamedResponse, chatChunks.map(read[ChatChunkResponse](_)))
+  }
+
+  "Creating chat completions with successful response" should "stop listening after [DONE] event and return properly deserialized list of chunks" in {
+    // given
+    val chatChunks = Seq.fill(3)(sttp.openai.fixtures.ChatChunkFixture.jsonResponse).map(compactJson)
+
+    val eventsToProcess = chatChunks.map(data => ServerSentEvent(Some(data)))
+    val events = (eventsToProcess :+ DoneEvent) ++ eventsToProcess
+
+    val delimiter = "\n\n"
+    val streamedResponse = Source(events)
+      .map(_.toString + delimiter)
+      .map(ByteString(_))
+
+    // when & then
+    assertStreamedCompletion(streamedResponse, chatChunks.map(read[ChatChunkResponse](_)))
+  }
+
+  private def assertStreamedCompletion(givenResponse: Source[ByteString, NotUsed], expectedResponse: Seq[ChatChunkResponse]) = {
+    val pekkoBackendStub = PekkoHttpBackend.stub.whenAnyRequest.thenRespond(RawStream(givenResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
@@ -102,7 +128,6 @@ class PekkoClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
       .flatMap(_.runWith(Sink.seq))
 
     // then
-    val expectedResponse = chatChunks.map(read[ChatChunkResponse](_))
     response.map(_ shouldBe expectedResponse)
   }
 }

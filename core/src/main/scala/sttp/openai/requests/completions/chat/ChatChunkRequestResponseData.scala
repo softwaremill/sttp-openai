@@ -1,6 +1,7 @@
 package sttp.openai.requests.completions.chat
 
 import sttp.openai.json.SnakePickle
+import sttp.model.sse.ServerSentEvent
 
 object ChatChunkRequestResponseData {
 
@@ -37,6 +38,7 @@ object ChatChunkRequestResponseData {
 
   object ChatChunkResponse {
     val DoneEventMessage = "[DONE]"
+    val DoneEvent = ServerSentEvent(Some(DoneEventMessage))
 
     implicit val chunkChatR: SnakePickle.Reader[ChatChunkResponse] = SnakePickle.macroR[ChatChunkResponse]
   }

@@ -13,7 +13,7 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.client4.pekkohttp.PekkoHttpServerSentEvents
 
 package object pekko {
-  import ChatChunkResponse.DoneEventMessage
+  import ChatChunkResponse.DoneEvent
 
   implicit class extension(val client: OpenAI) {
 
@@ -41,11 +41,12 @@ package object pekko {
     )
 
   private def deserializeEvent: Flow[ServerSentEvent, ChatChunkResponse, Any] =
-    Flow[ServerSentEvent].collect {
-      case ServerSentEvent(Some(data), _, _, _) if data != DoneEventMessage =>
+    Flow[ServerSentEvent]
+      .takeWhile(_ != DoneEvent)
+      .collect { case ServerSentEvent(Some(data), _, _, _) =>
         deserializeJsonSnake[ChatChunkResponse].apply(data) match {
           case Left(exception) => throw exception
           case Right(value)    => value
         }
-    }
+      }
 }
