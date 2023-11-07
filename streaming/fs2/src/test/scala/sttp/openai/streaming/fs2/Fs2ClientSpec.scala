@@ -5,7 +5,7 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import cats.effect.testing.scalatest.AsyncIOSpec
 import org.scalatest.matchers.should.Matchers
 import cats.effect.IO
-import fs2.{text, Stream}
+import _root_.fs2.{text, Stream}
 import sttp.client4.DeserializationException
 import sttp.client4.httpclient.fs2.HttpClientFs2Backend
 import sttp.client4.testing.RawStream
@@ -16,7 +16,7 @@ import sttp.openai.json.SnakePickle._
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEventMessage
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
-import sttp.openai.streaming.fs2.Fs2OpenAI._
+import sttp.openai.streaming.fs2._
 
 class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with EitherValues {
   for ((statusCode, expectedError) <- ErrorFixture.testData)

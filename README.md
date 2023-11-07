@@ -145,7 +145,7 @@ The Chat Completion API features streaming support via server-sent events. Curre
 Add the following import:
 
 ```scala
-import sttp.openai.streaming.fs2.Fs2OpenAI._
+import sttp.openai.streaming.fs2._
 ```
 
 Example below uses `HttpClientFs2Backend` as a backend.
@@ -156,7 +156,7 @@ import fs2.Stream
 import sttp.client4.httpclient.fs2.HttpClientFs2Backend
 
 import sttp.openai.OpenAI
-import sttp.openai.streaming.fs2.Fs2OpenAI._
+import sttp.openai.streaming.fs2._
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, Message}

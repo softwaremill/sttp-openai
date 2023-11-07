@@ -1,6 +1,6 @@
-package sttp.openai.streaming.fs2
+package sttp.openai.streaming
 
-import fs2.{Pipe, RaiseThrowable, Stream}
+import _root_.fs2.{Pipe, RaiseThrowable, Stream}
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.client4.StreamRequest
 import sttp.client4.impl.fs2.Fs2ServerSentEvents
@@ -11,10 +11,10 @@ import sttp.openai.json.SttpUpickleApiExtension.deserializeJsonSnake
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 
-object Fs2OpenAI {
+package object fs2 {
   import ChatChunkResponse.DoneEventMessage
 
-  implicit class streaming(val client: OpenAI) {
+  implicit class extension(val client: OpenAI) {
 
     /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
       *
