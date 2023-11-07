@@ -102,7 +102,7 @@ object ChatRequestBody {
 
     case object GPT4Turbo extends ChatCompletionModel("gpt-4-1106-preview")
 
-    case object GPT4TurboVision ChatCompletionModel("gpt-4-vision-preview")
+    case object GPT4TurboVision extends ChatCompletionModel("gpt-4-vision-preview")
 
     case class CustomChatCompletionModel(customChatCompletionModel: String) extends ChatCompletionModel(customChatCompletionModel)
 
