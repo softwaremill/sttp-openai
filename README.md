@@ -140,7 +140,7 @@ object Main extends IOApp {
 ```
 
 #### Create completion with streaming:
-The Chat Completion API features streaming support via server-sent events. Currently, we only support streaming using `Fs2` and `Zio` 
+The Chat Completion API features streaming support via server-sent events. Currently, we only support streaming using `Fs2` and `ZIO` 
 
 To use `Fs2` add the following import:
 
