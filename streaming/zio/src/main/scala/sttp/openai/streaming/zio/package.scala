@@ -13,7 +13,7 @@ import sttp.capabilities.zio.ZioStreams
 import sttp.client4.impl.zio.ZioServerSentEvents
 
 package object zio {
-  import ChatChunkResponse.DoneEventMessage
+  import ChatChunkResponse.DoneEvent
 
   implicit class extension(val client: OpenAI) {
 
@@ -41,8 +41,8 @@ package object zio {
     )
 
   private def deserializeEvent: ZioStreams.Pipe[ServerSentEvent, ChatChunkResponse] =
-    _.collectZIO {
-      case ServerSentEvent(Some(data), _, _, _) if data != DoneEventMessage =>
+    _.takeWhile(_ != DoneEvent)
+      .collectZIO { case ServerSentEvent(Some(data), _, _, _) =>
         ZIO.fromEither(deserializeJsonSnake[ChatChunkResponse].apply(data))
-    }
+      }
 }

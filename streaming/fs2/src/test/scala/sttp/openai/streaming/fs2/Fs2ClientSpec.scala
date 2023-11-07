@@ -14,7 +14,7 @@ import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIExcepti
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
-import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEventMessage
+import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
 import sttp.openai.utils.JsonUtils.compactJson
 
@@ -76,10 +76,14 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
     response.attempt.asserting(_ shouldBe a[Left[DeserializationOpenAIException, _]])
   }
 
-  "Creating chat completions with successful response" should "return properly deserialized list of chunks" in {
+  "Creating chat completions with successful response" should "ignore empty events and return properly deserialized list of chunks" in {
     // given
     val chatChunks = Seq.fill(3)(sttp.openai.fixtures.ChatChunkFixture.jsonResponse).map(compactJson)
-    val events = chatChunks.map(data => ServerSentEvent(Some(data))) :+ ServerSentEvent(Some(DoneEventMessage))
+
+    val eventsToProcess = chatChunks.map(data => ServerSentEvent(Some(data)))
+    val emptyEvent = ServerSentEvent()
+    val events = (eventsToProcess :+ emptyEvent) :+ DoneEvent
+
     val delimiter = "\n\n"
     val streamedResponse = Stream
       .emits(events)
@@ -87,7 +91,30 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
       .through(text.utf8.encode)
       .covary[IO]
 
-    val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(RawStream(streamedResponse))
+    // when & then
+    assertStreamedCompletion(streamedResponse, chatChunks.map(read[ChatChunkResponse](_)))
+  }
+
+  "Creating chat completions with successful response" should "stop listening after [DONE] event and return properly deserialized list of chunks" in {
+    // given
+    val chatChunks = Seq.fill(3)(sttp.openai.fixtures.ChatChunkFixture.jsonResponse).map(compactJson)
+
+    val eventsToProcess = chatChunks.map(data => ServerSentEvent(Some(data)))
+    val events = (eventsToProcess :+ DoneEvent) ++ eventsToProcess
+
+    val delimiter = "\n\n"
+    val streamedResponse = Stream
+      .emits(events)
+      .map(_.toString + delimiter)
+      .through(text.utf8.encode)
+      .covary[IO]
+
+    // when & then
+    assertStreamedCompletion(streamedResponse, chatChunks.map(read[ChatChunkResponse](_)))
+  }
+
+  private def assertStreamedCompletion(givenResponse: Stream[IO, Byte], expectedResponse: Seq[ChatChunkResponse]) = {
+    val pekkoBackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(RawStream(givenResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
@@ -98,12 +125,11 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
     // when
     val response = client
       .createStreamedChatCompletion[IO](givenRequest)
-      .send(fs2BackendStub)
+      .send(pekkoBackendStub)
       .map(_.body.value)
       .flatMap(_.compile.toList)
 
     // then
-    val expectedResponse = chatChunks.map(read[ChatChunkResponse](_))
     response.asserting(_ shouldBe expectedResponse)
   }
 }
