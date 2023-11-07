@@ -51,6 +51,16 @@ lazy val zio = (projectMatrix in file("streaming/zio"))
   )
   .dependsOn(core % "compile->compile;test->test")
 
+lazy val pekko = (projectMatrix in file("streaming/pekko"))
+  .jvmPlatform(
+    scalaVersions = scala2 ++ scala3
+  )
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Libraries.sttpClientPekko
+  )
+  .dependsOn(core % "compile->compile;test->test")
+
 val compileDocs: TaskKey[Unit] = taskKey[Unit]("Compiles docs module throwing away its output")
 compileDocs := {
   (docs.jvm(scala2.head) / mdoc).toTask(" --out target/sttp-openai-docs").value
