@@ -19,6 +19,7 @@ lazy val root = (project in file("."))
 
 lazy val allAgregates = core.projectRefs ++
   fs2.projectRefs ++
+  zio.projectRefs ++
   docs.projectRefs
 
 lazy val core = (projectMatrix in file("core"))
@@ -37,6 +38,16 @@ lazy val fs2 = (projectMatrix in file("streaming/fs2"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Libraries.sttpClientFs2
+  )
+  .dependsOn(core % "compile->compile;test->test")
+
+lazy val zio = (projectMatrix in file("streaming/zio"))
+  .jvmPlatform(
+    scalaVersions = scala2 ++ scala3
+  )
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies += Libraries.sttpClientZio
   )
   .dependsOn(core % "compile->compile;test->test")
 

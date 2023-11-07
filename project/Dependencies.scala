@@ -24,6 +24,8 @@ object Dependencies {
       "org.typelevel" %% "cats-effect-testing-scalatest" % V.scalaTestCats % Test
     )
 
+    val sttpClientZio = "com.softwaremill.sttp.client4" %% "zio" % V.sttpClient
+
     val uPickle = "com.lihaoyi" %% "upickle" % V.uPickle
 
   }
