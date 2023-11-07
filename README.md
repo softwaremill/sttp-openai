@@ -74,7 +74,7 @@ object Main extends App {
   */
 }
 ```
-#### Currently only two backend implementations are available:
+#### Available backend implementations:
 * `OpenAISyncBackend` which uses identity monad `Id[A]` as an effect `F[A]` and throws `OpenAIException`
 * `OpenAI` which provides raw sttp `Request`s and wraps `Response`s into `Either[OpenAIException, A]`
 
@@ -140,12 +140,18 @@ object Main extends IOApp {
 ```
 
 #### Create completion with streaming:
-The Chat Completion API features streaming support via server-sent events. Currently, we only support streaming using `Fs2`. 
+The Chat Completion API features streaming support via server-sent events. Currently, we only support streaming using `Fs2` and `ZIO` 
 
-Add the following import:
+To use `Fs2` add the following import:
 
 ```scala
 import sttp.openai.streaming.fs2._
+```
+
+To use `ZIO` add the following import:
+
+```scala
+import sttp.openai.streaming.zio._
 ```
 
 Example below uses `HttpClientFs2Backend` as a backend.
