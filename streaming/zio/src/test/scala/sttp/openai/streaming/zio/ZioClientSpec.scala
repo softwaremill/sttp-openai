@@ -3,10 +3,10 @@ package sttp.openai.streaming.zio
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import sttp.client4.DeserializationException
 import sttp.client4.httpclient.zio.HttpClientZioBackend
 import sttp.client4.testing.RawStream
 import sttp.model.sse.ServerSentEvent
+import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
@@ -74,7 +74,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     val response = unsafeRun(responseEffect.either)
 
     // then
-    response shouldBe a[Left[DeserializationException[_], _]]
+    response shouldBe a[Left[DeserializationOpenAIException, _]]
   }
 
   "Creating chat completions with successful response" should "return properly deserialized list of chunks" in {

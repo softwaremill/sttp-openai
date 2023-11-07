@@ -5,12 +5,12 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import cats.effect.testing.scalatest.AsyncIOSpec
 import org.scalatest.matchers.should.Matchers
 import cats.effect.IO
-import fs2.{Stream, text}
-import sttp.client4.DeserializationException
+import fs2.{text, Stream}
 import sttp.client4.httpclient.fs2.HttpClientFs2Backend
 import sttp.client4.testing.RawStream
 import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAI
+import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
@@ -73,7 +73,7 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
       .flatMap(_.compile.drain)
 
     // then
-    response.attempt.asserting(_ shouldBe a[Left[DeserializationException[_], _]])
+    response.attempt.asserting(_ shouldBe a[Left[DeserializationOpenAIException, _]])
   }
 
   "Creating chat completions with successful response" should "return properly deserialized list of chunks" in {
