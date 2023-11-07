@@ -148,7 +148,7 @@ To use `Fs2` add the following import:
 import sttp.openai.streaming.fs2._
 ```
 
-To use `Zio` add the following import:
+To use `ZIO` add the following import:
 
 ```scala
 import sttp.openai.streaming.zio._
