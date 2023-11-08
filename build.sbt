@@ -20,6 +20,7 @@ lazy val root = (project in file("."))
 lazy val allAgregates = core.projectRefs ++
   fs2.projectRefs ++
   zio.projectRefs ++
+  pekko.projectRefs ++
   docs.projectRefs
 
 lazy val core = (projectMatrix in file("core"))
@@ -48,6 +49,16 @@ lazy val zio = (projectMatrix in file("streaming/zio"))
   .settings(commonSettings)
   .settings(
     libraryDependencies += Libraries.sttpClientZio
+  )
+  .dependsOn(core % "compile->compile;test->test")
+
+lazy val pekko = (projectMatrix in file("streaming/pekko"))
+  .jvmPlatform(
+    scalaVersions = scala2 ++ scala3
+  )
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Libraries.sttpClientPekko
   )
   .dependsOn(core % "compile->compile;test->test")
 
