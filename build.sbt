@@ -21,6 +21,7 @@ lazy val allAgregates = core.projectRefs ++
   fs2.projectRefs ++
   zio.projectRefs ++
   pekko.projectRefs ++
+  akka.projectRefs ++
   docs.projectRefs
 
 lazy val core = (projectMatrix in file("core"))
@@ -62,6 +63,16 @@ lazy val pekko = (projectMatrix in file("streaming/pekko"))
   )
   .dependsOn(core % "compile->compile;test->test")
 
+lazy val akka = (projectMatrix in file("streaming/akka"))
+  .jvmPlatform(
+    scalaVersions = scala2
+  )
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Libraries.sttpClientAkka
+  )
+  .dependsOn(core % "compile->compile;test->test")
+
 val compileDocs: TaskKey[Unit] = taskKey[Unit]("Compiles docs module throwing away its output")
 compileDocs := {
   (docs.jvm(scala2.head) / mdoc).toTask(" --out target/sttp-openai-docs").value
@@ -83,6 +94,5 @@ lazy val docs = (projectMatrix in file("generated-docs")) // important: it must 
     ),
     evictionErrorLevel := Level.Info
   )
-  .dependsOn(core)
-  .dependsOn(fs2)
+  .dependsOn(core, fs2, zio, akka, pekko)
   .jvmPlatform(scalaVersions = scala2)

@@ -7,7 +7,8 @@ object Dependencies {
     val scalaTestCats = "1.5.0"
 
     val sttpClient = "4.0.0-M6"
-    val pekko = "1.0.1"
+    val pekkoStreams = "1.0.1"
+    val akkaStreams = "2.6.20"
     val uPickle = "3.1.3"
   }
 
@@ -29,7 +30,12 @@ object Dependencies {
 
     val sttpClientPekko = Seq(
       "com.softwaremill.sttp.client4" %% "pekko-http-backend" % V.sttpClient,
-      "org.apache.pekko" %% "pekko-stream" % V.pekko
+      "org.apache.pekko" %% "pekko-stream" % V.pekkoStreams
+    )
+
+    val sttpClientAkka = Seq(
+      "com.softwaremill.sttp.client4" %% "akka-http-backend" % V.sttpClient,
+      "com.typesafe.akka" %% "akka-stream" % V.akkaStreams
     )
 
     val uPickle = "com.lihaoyi" %% "upickle" % V.uPickle
