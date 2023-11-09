@@ -67,7 +67,7 @@ lazy val docs = (projectMatrix in file("generated-docs")) // important: it must 
     publishArtifact := false,
     name := "docs",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client4" %% "cats" % "4.0.0-M6",
+      "com.softwaremill.sttp.client4" %% "cats" % "4.0.0-M1",
       "org.typelevel" %% "cats-effect" % "3.5.0"
     ),
     evictionErrorLevel := Level.Info
