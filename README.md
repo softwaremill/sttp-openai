@@ -140,18 +140,14 @@ object Main extends IOApp {
 ```
 
 #### Create completion with streaming:
-The Chat Completion API features streaming support via server-sent events. Currently, we only support streaming using `Fs2` and `ZIO` 
 
-To use `Fs2` add the following import:
+To enable streaming support for the Chat Completion API using server-sent events, you must include the appropriate
+dependency for your chosen streaming library. We provide support for the following libraries: _Fs2_, _ZIO_, _Pekko Streams_
+
+For example, to use `Fs2` add the following import:
 
 ```scala
 import sttp.openai.streaming.fs2._
-```
-
-To use `ZIO` add the following import:
-
-```scala
-import sttp.openai.streaming.zio._
 ```
 
 Example below uses `HttpClientFs2Backend` as a backend.

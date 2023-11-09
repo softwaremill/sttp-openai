@@ -12,7 +12,7 @@ import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatCh
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 
 package object fs2 {
-  import ChatChunkResponse.DoneEventMessage
+  import ChatChunkResponse.DoneEvent
 
   implicit class extension(val client: OpenAI) {
 
@@ -41,8 +41,8 @@ package object fs2 {
     )
 
   private def deserializeEvent[F[_]]: Pipe[F, ServerSentEvent, Either[OpenAIException, ChatChunkResponse]] =
-    _.collect {
-      case ServerSentEvent(Some(data), _, _, _) if data != DoneEventMessage =>
+    _.takeWhile(_ != DoneEvent)
+      .collect { case ServerSentEvent(Some(data), _, _, _) =>
         deserializeJsonSnake[ChatChunkResponse].apply(data)
-    }
+      }
 }

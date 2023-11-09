@@ -1,11 +1,16 @@
-package sttp.openai.streaming.zio
+package sttp.openai.streaming.akka
 
+import akka.actor.ActorSystem
+import akka.stream.scaladsl._
+import akka.util.ByteString
+import akka.NotUsed
 import org.scalatest.EitherValues
-import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
-import sttp.client4.httpclient.zio.HttpClientZioBackend
+import sttp.client4.akkahttp.AkkaHttpBackend
 import sttp.client4.testing.RawStream
 import sttp.model.sse.ServerSentEvent
+import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
@@ -13,17 +18,14 @@ import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatCh
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
 import sttp.openai.utils.JsonUtils.compactJson
-import sttp.openai.{OpenAI, OpenAIExceptions}
-import zio._
-import zio.stream._
 
-class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
-  private val runtime: Runtime[Any] = Runtime.default
+class AkkaClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
+  implicit val system: ActorSystem = ActorSystem()
 
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
-      val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespondWithCode(statusCode, ErrorFixture.errorResponse)
+      val akkaBackendStub = AkkaHttpBackend.stub.whenAnyRequest.thenRespondWithCode(statusCode, ErrorFixture.errorResponse)
       val client = new OpenAI("test-token")
 
       val givenRequest = ChatBody(
@@ -32,20 +34,20 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       )
 
       // when
-      val caughtEffect: ZIO[Any, Throwable, OpenAIExceptions.OpenAIException] = client
+      val caught = client
         .createStreamedChatCompletion(givenRequest)
-        .send(zioBackendStub)
+        .send(akkaBackendStub)
         .map(_.body.left.value)
 
-      val caught = unsafeRun(caughtEffect)
-
       // then
-      caught.getClass shouldBe expectedError.getClass
-      caught.message shouldBe expectedError.message
-      caught.cause shouldBe expectedError.cause
-      caught.code shouldBe expectedError.code
-      caught.param shouldBe expectedError.param
-      caught.`type` shouldBe expectedError.`type`
+      caught.map { c =>
+        c.getClass shouldBe expectedError.getClass
+        c.message shouldBe expectedError.message
+        c.cause shouldBe expectedError.cause
+        c.code shouldBe expectedError.code
+        c.param shouldBe expectedError.param
+        c.`type` shouldBe expectedError.`type`
+      }
     }
 
   "Creating chat completions with failed stream due to invalid deserialization" should "return properly deserialized error" in {
@@ -53,11 +55,11 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     val invalidJson = Some("invalid json")
     val invalidEvent = ServerSentEvent(invalidJson)
 
-    val streamedResponse = ZStream
-      .succeed(invalidEvent.toString)
-      .via(ZPipeline.utf8Encode)
+    val streamedResponse = Source
+      .single(invalidEvent.toString)
+      .map(ByteString(_))
 
-    val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(RawStream(streamedResponse))
+    val akkaBackendStub = AkkaHttpBackend.stub.whenAnyRequest.thenRespond(RawStream(streamedResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
@@ -66,15 +68,14 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val responseEffect = client
+    val response = client
       .createStreamedChatCompletion(givenRequest)
-      .send(zioBackendStub)
-      .flatMap(_.body.value.runDrain)
-
-    val response = unsafeRun(responseEffect.either)
+      .send(akkaBackendStub)
+      .map(_.body.value)
+      .flatMap(_.run())
 
     // then
-    response shouldBe a[Left[DeserializationOpenAIException, _]]
+    response.failed.map(_ shouldBe a[DeserializationOpenAIException])
   }
 
   "Creating chat completions with successful response" should "ignore empty events and return properly deserialized list of chunks" in {
@@ -86,10 +87,9 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     val events = (eventsToProcess :+ emptyEvent) :+ DoneEvent
 
     val delimiter = "\n\n"
-    val streamedResponse = ZStream
-      .from(events)
+    val streamedResponse = Source(events)
       .map(_.toString + delimiter)
-      .via(ZPipeline.utf8Encode)
+      .map(ByteString(_))
 
     // when & then
     assertStreamedCompletion(streamedResponse, chatChunks.map(read[ChatChunkResponse](_)))
@@ -103,17 +103,16 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     val events = (eventsToProcess :+ DoneEvent) ++ eventsToProcess
 
     val delimiter = "\n\n"
-    val streamedResponse = ZStream
-      .from(events)
+    val streamedResponse = Source(events)
       .map(_.toString + delimiter)
-      .via(ZPipeline.utf8Encode)
+      .map(ByteString(_))
 
     // when & then
     assertStreamedCompletion(streamedResponse, chatChunks.map(read[ChatChunkResponse](_)))
   }
 
-  private def assertStreamedCompletion(givenResponse: Stream[Throwable, Byte], expectedResponse: Seq[ChatChunkResponse]) = {
-    val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(RawStream(givenResponse))
+  private def assertStreamedCompletion(givenResponse: Source[ByteString, NotUsed], expectedResponse: Seq[ChatChunkResponse]) = {
+    val akkaBackendStub = AkkaHttpBackend.stub.whenAnyRequest.thenRespond(RawStream(givenResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
@@ -122,17 +121,13 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val responseEffect = client
+    val response = client
       .createStreamedChatCompletion(givenRequest)
-      .send(zioBackendStub)
+      .send(akkaBackendStub)
       .map(_.body.value)
-      .flatMap(_.runCollect)
-    val response = unsafeRun(responseEffect)
+      .flatMap(_.runWith(Sink.seq))
 
     // then
-    response.toList shouldBe expectedResponse
+    response.map(_ shouldBe expectedResponse)
   }
-
-  private def unsafeRun[E, A](zio: ZIO[Any, E, A]): A =
-    Unsafe.unsafe(implicit unsafe => runtime.unsafe.run(zio).getOrThrowFiberFailure())
 }
