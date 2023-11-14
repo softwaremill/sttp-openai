@@ -88,10 +88,6 @@ lazy val docs = (projectMatrix in file("generated-docs")) // important: it must 
     mdocExtraArguments := Seq("--clean-target"),
     publishArtifact := false,
     name := "docs",
-    libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client4" %% "cats" % "4.0.0-M1",
-      "org.typelevel" %% "cats-effect" % "3.5.2"
-    ),
     evictionErrorLevel := Level.Info
   )
   .dependsOn(core, fs2, zio, akka, pekko)
