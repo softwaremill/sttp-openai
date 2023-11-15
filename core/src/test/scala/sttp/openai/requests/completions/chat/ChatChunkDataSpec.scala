@@ -6,25 +6,21 @@ import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.completions.Stop.SingleStop
+import sttp.openai.utils.ChatCompletionUtils.{toolCalls, tools, userMessages}
 
 class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given chat chunk completions response as Json" should "be properly deserialized to case class" in {
-    import ChatChunkRequestResponseData._
     import ChatChunkRequestResponseData.ChatChunkResponse._
+    import ChatChunkRequestResponseData._
 
     // given
     val jsonResponse = fixtures.ChatChunkFixture.jsonResponse
 
-    val functionCall: FunctionCall = FunctionCall(
-      arguments = "args",
-      name = "Fish"
-    )
-
     val delta: Delta = Delta(
       role = Some(Role.Assistant),
       content = Some("  Hi"),
-      functionCall = Some(functionCall)
+      toolCalls = Some(toolCalls)
     )
 
     val choices: Choices = Choices(
@@ -38,7 +34,8 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       `object` = "chat.completion",
       created = 1681725687,
       model = "gpt-3.5-turbo-0301",
-      choices = Seq(choices)
+      choices = Seq(choices),
+      systemFingerprint = "systemFingerprint"
     )
 
     // when
@@ -52,41 +49,27 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     import ChatRequestBody._
 
     // given
-    val functionCall: FunctionCall = FunctionCall(
-      arguments = "args",
-      name = "Fish"
-    )
-
-    val messages: Seq[Message] = Seq(
-      Message(
-        role = Role.User,
-        content = "Hello!",
-        name = Some("Andrzej"),
-        functionCall = Some(functionCall)
-      )
-    )
-
     val givenRequest = ChatRequestBody.ChatBody(
+      messages = userMessages,
       model = ChatCompletionModel.GPT35Turbo,
-      messages = messages,
+      frequencyPenalty = Some(0),
+      maxTokens = Some(7),
+      n = Some(1),
+      presencePenalty = Some(0),
       temperature = Some(1),
       topP = Some(1),
-      n = Some(1),
+      tools = Some(tools),
+      toolChoice = Some(ToolChoice.AsObject(Some("object"), Some(ToolChoice.FunctionSpec("function")))),
       stop = Some(SingleStop("\n")),
-      maxTokens = Some(7),
-      presencePenalty = Some(0),
-      frequencyPenalty = Some(0),
       user = Some("testUser")
     )
 
-    val jsonRequest: ujson.Value = ujson.read(fixtures.ChatChunkFixture.jsonRequest)
+    val jsonRequest = ujson.read(fixtures.ChatChunkFixture.jsonRequest)
 
     // when
-    val serializedJson: ujson.Value = ChatBody.withStreaming(givenRequest)
+    val serializedJson = ChatBody.withStreaming(givenRequest)
 
     // then
     serializedJson shouldBe jsonRequest
-
   }
-
 }
