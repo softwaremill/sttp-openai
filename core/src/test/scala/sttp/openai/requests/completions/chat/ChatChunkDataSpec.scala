@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.completions.Stop.SingleStop
-import sttp.openai.utils.ChatCompletionUtils.{toolCalls, tools, userMessages}
+import sttp.openai.utils.ChatCompletionUtils._
 
 class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -35,7 +35,7 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       created = 1681725687,
       model = "gpt-3.5-turbo-0301",
       choices = Seq(choices),
-      systemFingerprint = "systemFingerprint"
+      systemFingerprint = Some("systemFingerprint")
     )
 
     // when
@@ -47,10 +47,11 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given completions request with streaming enabled as case class" should "be properly serialized to Json" in {
     import ChatRequestBody._
+    import sttp.openai.requests.completions.chat.message._
 
     // given
     val givenRequest = ChatRequestBody.ChatBody(
-      messages = userMessages,
+      messages = messages,
       model = ChatCompletionModel.GPT35Turbo,
       frequencyPenalty = Some(0),
       maxTokens = Some(7),
@@ -59,7 +60,7 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       temperature = Some(1),
       topP = Some(1),
       tools = Some(tools),
-      toolChoice = Some(ToolChoice.AsObject(Some("object"), Some(ToolChoice.FunctionSpec("function")))),
+      toolChoice = Some(ToolChoice.AsObject(Some(ToolChoice.FunctionSpec("function")))),
       stop = Some(SingleStop("\n")),
       user = Some("testUser")
     )

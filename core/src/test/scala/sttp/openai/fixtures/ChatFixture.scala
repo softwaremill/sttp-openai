@@ -6,25 +6,75 @@ object ChatFixture {
     """{
       |  "messages": [
       |    {
-      |      "$type": "sttp.openai.requests.completions.chat._chat_request_body._message._user_message",
-      |      "content": "Hello!",
-      |      "role": "user"
+      |      "role": "system",
+      |      "content": "Hello!"
       |    },
       |    {
-      |      "$type": "sttp.openai.requests.completions.chat._chat_request_body._message._user_message",
+      |      "role": "system",
+      |      "content": "Hello!",
+      |      "name": "User"
+      |    },
+      |    {
+      |      "role": "user",
+      |      "content": "Hello!",
+      |      "name": "User"
+      |    },
+      |    {
+      |      "role": "user",
       |      "content": [
       |        {
-      |          "$type": "sttp.openai.requests.completions.chat._chat_request_body._message._content._text_content_part",
-      |          "type": "object",
+      |          "type": "text",
       |          "text": "Hello!"
       |        },
       |        {
-      |          "$type": "sttp.openai.requests.completions.chat._chat_request_body._message._content._image_content_part",
-      |          "type": "object",
-      |          "image": "https://i.imgur.com/tj5G2rO.jpg"
+      |          "type": "image_url",
+      |          "image_url": {
+      |            "url": "https://i.imgur.com/2tj5rQE.jpg"
+      |          }
       |        }
-      |      ],
-      |      "role": "user"
+      |      ]
+      |    },
+      |    {
+      |      "role": "assistant",
+      |      "content": "Hello!",
+      |      "name": "User",
+      |      "tool_calls": [
+      |        {
+      |          "id": "tool_id_1",
+      |          "type": "function",
+      |          "function": {
+      |            "arguments": "args",
+      |            "name": "Fish"
+      |          }
+      |        },
+      |        {
+      |          "id": "tool_id_2",
+      |          "type": "function",
+      |          "function": {
+      |            "arguments": "args",
+      |            "name": "Fish"
+      |          }
+      |        }
+      |      ]
+      |    },
+      |    {
+      |      "role": "assistant",
+      |      "content": "Hello!",
+      |      "name": "User"
+      |    },
+      |    {
+      |      "role": "assistant",
+      |      "content": "Hello!"
+      |    },
+      |    {
+      |      "role": "tool",
+      |      "content": "Hello!",
+      |      "tool_call_id": "tool_call_id_1"
+      |    },
+      |    {
+      |      "role": "tool",
+      |      "content": "Hello!",
+      |      "tool_call_id": "tool_call_id_2"
       |    }
       |  ],
       |  "model": "gpt-3.5-turbo",
@@ -55,15 +105,13 @@ object ChatFixture {
       |    }
       |  ],
       |  "tool_choice": {
-      |    "$type": "sttp.openai.requests.completions.chat._chat_request_body._tool_choice._as_object",
-      |    "type": "object",
+      |    "type": "function",
       |    "function": {
       |      "name": "function"
       |    }
       |  },
       |  "user": "testUser"
-      |}
-      |""".stripMargin
+      |}""".stripMargin
 
   val jsonResponse: String =
     """{

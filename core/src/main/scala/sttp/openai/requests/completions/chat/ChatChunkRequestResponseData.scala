@@ -33,8 +33,8 @@ object ChatChunkRequestResponseData {
       choices: Seq[Choices],
       created: Int,
       model: String,
-      systemFingerprint: String,
-      `object`: String
+      `object`: String,
+      systemFingerprint: Option[String] = None,
   )
 
   object ChatChunkResponse {

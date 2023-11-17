@@ -33,9 +33,9 @@ object ChatRequestResponseData {
       choices: Seq[Choices],
       created: Int,
       model: String,
-      systemFingerprint: String,
       `object`: String,
-      usage: Usage
+      usage: Usage,
+      systemFingerprint: Option[String] = None,
   )
 
   object ChatResponse {

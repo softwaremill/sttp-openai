@@ -1,23 +1,40 @@
 package sttp.openai.utils
 
-import sttp.openai.requests.completions.chat.{ChatRequestBody, FunctionCall, Role, ToolCall}
+import sttp.openai.requests.completions.chat.{FunctionCall, ToolCall}
+import sttp.openai.requests.completions.chat.message._
 import ujson._
-import ChatRequestBody._
-import ChatRequestBody.Message._
 
 object ChatCompletionUtils {
-  def userMessages: Seq[ChatRequestBody.Message] = {
+  def messages: Seq[Message] = systemMessages ++ userMessages ++ assistantMessages ++ toolMessages
+
+  def systemMessages: Seq[Message.SystemMessage] =
+    Seq(Message.SystemMessage("Hello!"), Message.SystemMessage("Hello!", Some("User")))
+
+  def userMessages: Seq[Message.UserMessage] = {
     val parts = Seq(
-      Content.TextContentPart("object", "Hello!"),
-      Content.ImageContentPart("object", "https://i.imgur.com/tj5G2rO.jpg")
+      Content.TextContentPart("Hello!"),
+      Content.ImageContentPart(Content.ImageUrl("https://i.imgur.com/2tj5rQE.jpg"))
     )
-    val arrayMessage = UserMessage(Content.ArrayContent(parts), Role.User)
-    val stringMessage = UserMessage(Content.TextContent("Hello!"), Role.User)
+    val arrayMessage = Message.UserMessage(Content.ArrayContent(parts))
+    val stringMessage = Message.UserMessage(Content.TextContent("Hello!"), Some("User"))
 
     Seq(stringMessage, arrayMessage)
   }
 
-  def tools: Seq[ChatRequestBody.Tool] = {
+  def assistantMessages: Seq[Message.AssistantMessage] =
+    Seq(
+      Message.AssistantMessage("Hello!", Some("User"), Some(toolCalls)),
+      Message.AssistantMessage("Hello!", Some("User")),
+      Message.AssistantMessage("Hello!")
+    )
+
+  def toolMessages: Seq[Message.ToolMessage] =
+    Seq(
+      Message.ToolMessage("Hello!", "tool_call_id_1"),
+      Message.ToolMessage("Hello!", "tool_call_id_2")
+    )
+
+  def tools: Seq[Tool] = {
     val function = Tool.FunctionCall(
       description = "Random description",
       name = "Random name",
