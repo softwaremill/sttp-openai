@@ -1,10 +1,11 @@
 package sttp.openai.utils
 
+import sttp.openai.requests.completions.chat.message.Tool.FunctionTool
 import sttp.openai.requests.completions.chat.{FunctionCall, ToolCall}
 import sttp.openai.requests.completions.chat.message._
 import ujson._
 
-object ChatCompletionUtils {
+object ChatCompletionFixtures {
   def messages: Seq[Message] = systemMessages ++ userMessages ++ assistantMessages ++ toolMessages
 
   def systemMessages: Seq[Message.SystemMessage] =
@@ -23,7 +24,7 @@ object ChatCompletionUtils {
 
   def assistantMessages: Seq[Message.AssistantMessage] =
     Seq(
-      Message.AssistantMessage("Hello!", Some("User"), Some(toolCalls)),
+      Message.AssistantMessage("Hello!", Some("User"), toolCalls),
       Message.AssistantMessage("Hello!", Some("User")),
       Message.AssistantMessage("Hello!")
     )
@@ -35,11 +36,11 @@ object ChatCompletionUtils {
     )
 
   def tools: Seq[Tool] = {
-    val function = Tool.FunctionCall(
+    val function = FunctionTool(
       description = "Random description",
       name = "Random name",
       parameters = Map(
-        "type" -> Str("object"),
+        "type" -> Str("function"),
         "properties" -> Obj(
           "location" -> Obj(
             "type" -> "string",
@@ -50,12 +51,7 @@ object ChatCompletionUtils {
       )
     )
 
-    Seq(
-      Tool(
-        "object",
-        function = function
-      )
-    )
+    Seq(function)
   }
 
   def toolCalls: Seq[ToolCall] = {

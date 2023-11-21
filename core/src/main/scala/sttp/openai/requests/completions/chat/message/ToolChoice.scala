@@ -6,36 +6,44 @@ import ujson._
 sealed trait ToolChoice
 
 object ToolChoice {
-  case class AsString(value: String) extends ToolChoice
+  case class ToolNone() extends ToolChoice
+  case class ToolAuto() extends ToolChoice
+  case class ToolFunction(name: String) extends ToolChoice
 
-  case class AsObject(function: Option[FunctionSpec] = None) extends ToolChoice
-
-  implicit val asStringRW: SnakePickle.ReadWriter[AsString] = SnakePickle
+  implicit val toolNoneRW: SnakePickle.ReadWriter[ToolNone] = SnakePickle
     .readwriter[Value]
-    .bimap[AsString](
-      asString => Str(asString.value),
-      json => AsString(json.str)
+    .bimap[ToolNone](
+      _ => Str("none"),
+      _ => ToolNone()
     )
 
-  implicit val asObjectRW: SnakePickle.ReadWriter[AsObject] = SnakePickle
+  implicit val toolAutoRW: SnakePickle.ReadWriter[ToolAuto] = SnakePickle
     .readwriter[Value]
-    .bimap[AsObject](
-      asObject => Obj("type" -> "function", "function" -> asObject.function.map(SnakePickle.writeJs(_)).getOrElse(ujson.Null)),
-      json => AsObject(json.obj.get("function").map(SnakePickle.read[FunctionSpec](_)))
+    .bimap[ToolAuto](
+      _ => Str("auto"),
+      _ => ToolAuto()
+    )
+
+  implicit val toolFunctionRW: SnakePickle.ReadWriter[ToolFunction] = SnakePickle
+    .readwriter[Value]
+    .bimap[ToolFunction](
+      toolFunction => Obj("type" -> "function", "function" -> Obj("name" -> toolFunction.name)),
+      json => ToolFunction(json.obj("function")("name").str)
     )
 
   implicit val toolChoiceRW: SnakePickle.ReadWriter[ToolChoice] = SnakePickle
     .readwriter[Value]
     .bimap[ToolChoice](
       {
-        case asString: AsString => SnakePickle.writeJs(asString)
-        case asObject: AsObject => SnakePickle.writeJs(asObject)
+        case toolAuto: ToolAuto         => SnakePickle.writeJs(toolAuto)
+        case toolNone: ToolNone         => SnakePickle.writeJs(toolNone)
+        case toolFunction: ToolFunction => SnakePickle.writeJs(toolFunction)
       },
-      json =>
-        json.obj.get("type") match {
-          case Some(Str("function")) => SnakePickle.read[AsObject](json)
-          case _                     => SnakePickle.read[AsString](json)
-        }
+      {
+        case json @ Str("none") => SnakePickle.read[ToolNone](json)
+        case json @ Str("auto") => SnakePickle.read[ToolAuto](json)
+        case json               => SnakePickle.read[ToolFunction](json)
+      }
     )
 
   case class FunctionSpec(name: String)

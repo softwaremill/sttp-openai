@@ -9,7 +9,7 @@ sealed trait Message
 object Message {
   case class SystemMessage(content: String, name: Option[String] = None) extends Message
   case class UserMessage(content: Content, name: Option[String] = None) extends Message
-  case class AssistantMessage(content: String, name: Option[String] = None, toolCalls: Option[Seq[ToolCall]] = None) extends Message
+  case class AssistantMessage(content: String, name: Option[String] = None, toolCalls: Seq[ToolCall] = Nil) extends Message
   case class ToolMessage(content: String, toolCallId: String) extends Message
 
   implicit val systemMessageRW: SnakePickle.ReadWriter[SystemMessage] =
@@ -43,14 +43,16 @@ object Message {
         msg => {
           val baseObj = Obj("role" -> "assistant", "content" -> msg.content)
           msg.name.foreach(name => baseObj("name") = name)
-          msg.toolCalls.foreach(tc => baseObj("tool_calls") = SnakePickle.writeJs(tc))
+          if (msg.toolCalls.nonEmpty) {
+            baseObj("tool_calls") = SnakePickle.writeJs(msg.toolCalls)
+          }
           baseObj
         },
         json =>
           AssistantMessage(
             json("content").str,
             json.obj.get("name").map(_.str),
-            json.obj.get("tool_calls").map(SnakePickle.read[Seq[ToolCall]](_))
+            SnakePickle.read[Seq[ToolCall]](json.obj("tool_calls"))
           )
       )
 

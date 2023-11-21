@@ -87,12 +87,12 @@ object ChatFixture {
       |  "top_p": 1,
       |  "tools": [
       |    {
-      |      "type": "object",
+      |      "type": "function",
       |      "function": {
       |        "description": "Random description",
       |        "name": "Random name",
       |        "parameters": {
-      |          "type": "object",
+      |          "type": "function",
       |          "properties": {
       |            "location": {
       |              "type": "string",

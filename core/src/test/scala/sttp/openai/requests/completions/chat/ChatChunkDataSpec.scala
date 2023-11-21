@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.completions.Stop.SingleStop
-import sttp.openai.utils.ChatCompletionUtils._
+import sttp.openai.utils.ChatCompletionFixtures._
 
 class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -60,7 +60,7 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       temperature = Some(1),
       topP = Some(1),
       tools = Some(tools),
-      toolChoice = Some(ToolChoice.AsObject(Some(ToolChoice.FunctionSpec("function")))),
+      toolChoice = Some(ToolChoice.ToolAuto()),
       stop = Some(SingleStop("\n")),
       user = Some("testUser")
     )

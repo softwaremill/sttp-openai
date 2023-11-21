@@ -8,7 +8,7 @@ import sttp.openai.json.SnakePickle
 import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.completions.Stop.SingleStop
 import sttp.openai.requests.completions.Usage
-import sttp.openai.utils.ChatCompletionUtils._
+import sttp.openai.utils.ChatCompletionFixtures._
 
 class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -69,7 +69,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       temperature = Some(1),
       topP = Some(1),
       tools = Some(tools),
-      toolChoice = Some(ToolChoice.AsObject(Some(ToolChoice.FunctionSpec("function")))),
+      toolChoice = Some(ToolChoice.ToolFunction("function")),
       stop = Some(SingleStop("\n")),
       user = Some("testUser")
     )
