@@ -35,8 +35,8 @@ OpenAI API Official Documentation https://platform.openai.com/docs/api-reference
 ```scala mdoc:compile-only 
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, Message}
-import sttp.openai.requests.completions.chat.Role
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
+import sttp.openai.requests.completions.chat.message._
 
 object Main extends App {
   // Create an instance of OpenAISyncClient providing your API secret-key
@@ -44,9 +44,8 @@ object Main extends App {
 
   // Create body of Chat Completions Request
   val bodyMessages: Seq[Message] = Seq(
-    Message(
-      role = Role.User,
-      content = "Hello!"
+    Message.UserMessage(
+      content = Content.TextContent("Hello!"),
     )
   )
 
@@ -90,17 +89,16 @@ import sttp.client4.httpclient.cats.HttpClientCatsBackend
 import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, Message}
-import sttp.openai.requests.completions.chat.Role
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
+import sttp.openai.requests.completions.chat.message._
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
     val openAI: OpenAI = new OpenAI("your-secret-key")
 
     val bodyMessages: Seq[Message] = Seq(
-      Message(
-        role = Role.User,
-        content = "Hello!"
+      Message.UserMessage(
+        content = Content.TextContent("Hello!"),
       )
     )
 
@@ -142,7 +140,7 @@ object Main extends IOApp {
 #### Create completion with streaming:
 
 To enable streaming support for the Chat Completion API using server-sent events, you must include the appropriate
-dependency for your chosen streaming library. We provide support for the following libraries: _Fs2_, _ZIO_, _Pekko Streams_
+dependency for your chosen streaming library. We provide support for the following libraries: _Fs2_, _ZIO_, _Akka / Pekko Streams_
 
 For example, to use `Fs2` add the following import:
 
@@ -161,17 +159,16 @@ import sttp.openai.OpenAI
 import sttp.openai.streaming.fs2._
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, Message}
-import sttp.openai.requests.completions.chat.Role
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
+import sttp.openai.requests.completions.chat.message._
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
     val openAI: OpenAI = new OpenAI("your-secret-key")
 
     val bodyMessages: Seq[Message] = Seq(
-      Message(
-        role = Role.User,
-        content = "Hello!"
+      Message.UserMessage(
+        content = Content.TextContent("Hello!"),
       )
     )
 

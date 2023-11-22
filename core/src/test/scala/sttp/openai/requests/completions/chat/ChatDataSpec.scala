@@ -8,6 +8,7 @@ import sttp.openai.json.SnakePickle
 import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.completions.Stop.SingleStop
 import sttp.openai.requests.completions.Usage
+import sttp.openai.utils.ChatCompletionFixtures._
 
 class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -24,15 +25,10 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       totalTokens = 20
     )
 
-    val functionCall: FunctionCall = FunctionCall(
-      arguments = "args",
-      name = "Fish"
-    )
-
     val message: Message = Message(
       role = Role.Assistant,
       content = "Hi there! How can I assist you today?",
-      functionCall = Some(functionCall)
+      toolCalls = toolCalls
     )
 
     val choices: Choices = Choices(
@@ -47,7 +43,8 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       created = 1681725687,
       model = "gpt-3.5-turbo-0301",
       usage = usage,
-      choices = Seq(choices)
+      choices = Seq(choices),
+      systemFingerprint = Some("systemFingerprint")
     )
 
     // when
@@ -59,43 +56,31 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given completions request as case class" should "be properly serialized to Json" in {
     import ChatRequestBody._
+    import sttp.openai.requests.completions.chat.message._
 
     // given
-    val functionCall: FunctionCall = FunctionCall(
-      arguments = "args",
-      name = "Fish"
-    )
-
-    val messages: Seq[Message] = Seq(
-      Message(
-        role = Role.User,
-        content = "Hello!",
-        name = Some("Andrzej"),
-        functionCall = Some(functionCall)
-      )
-    )
-
     val givenRequest = ChatRequestBody.ChatBody(
-      model = ChatCompletionModel.GPT35Turbo,
       messages = messages,
+      model = ChatCompletionModel.GPT35Turbo,
+      frequencyPenalty = Some(0),
+      maxTokens = Some(7),
+      n = Some(1),
+      presencePenalty = Some(0),
       temperature = Some(1),
       topP = Some(1),
-      n = Some(1),
+      tools = Some(tools),
+      responseFormat = Some(ResponseFormat.JsonObject),
+      toolChoice = Some(ToolChoice.ToolFunction("function")),
       stop = Some(SingleStop("\n")),
-      maxTokens = Some(7),
-      presencePenalty = Some(0),
-      frequencyPenalty = Some(0),
       user = Some("testUser")
     )
 
     val jsonRequest: ujson.Value = ujson.read(fixtures.ChatFixture.jsonRequest)
 
     // when
-    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+    val serializedJson = SnakePickle.writeJs(givenRequest)
 
     // then
     serializedJson shouldBe jsonRequest
-
   }
-
 }

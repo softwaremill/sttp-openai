@@ -13,9 +13,11 @@ object Role {
 
   case object Assistant extends Role("assistant")
 
+  case object Tool extends Role("tool")
+
   case class Custom(customRole: String) extends Role(customRole)
 
-  val values: Set[Role] = Set(System, User, Assistant)
+  val values: Set[Role] = Set(System, User, Assistant, Tool)
 
   private val byRoleValue = values.map(role => role.value -> role).toMap
 
