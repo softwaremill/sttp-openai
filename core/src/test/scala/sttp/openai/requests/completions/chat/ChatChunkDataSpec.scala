@@ -60,7 +60,8 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       temperature = Some(1),
       topP = Some(1),
       tools = Some(tools),
-      toolChoice = Some(ToolChoice.ToolAuto()),
+      responseFormat = Some(ResponseFormat.Text),
+      toolChoice = Some(ToolChoice.ToolAuto),
       stop = Some(SingleStop("\n")),
       user = Some("testUser")
     )

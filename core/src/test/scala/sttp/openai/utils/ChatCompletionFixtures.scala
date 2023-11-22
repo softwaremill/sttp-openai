@@ -1,5 +1,6 @@
 package sttp.openai.utils
 
+import sttp.openai.requests.completions.chat.ToolCall.FunctionToolCall
 import sttp.openai.requests.completions.chat.message.Tool.FunctionTool
 import sttp.openai.requests.completions.chat.{FunctionCall, ToolCall}
 import sttp.openai.requests.completions.chat.message._
@@ -61,8 +62,8 @@ object ChatCompletionFixtures {
     )
 
     Seq(
-      ToolCall("tool_id_1", "function", functionCall),
-      ToolCall("tool_id_2", "function", functionCall)
+      FunctionToolCall("tool_id_1", functionCall),
+      FunctionToolCall("tool_id_2", functionCall)
     )
   }
 }

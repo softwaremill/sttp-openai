@@ -6,22 +6,28 @@ import ujson._
 sealed trait ToolChoice
 
 object ToolChoice {
-  case class ToolNone() extends ToolChoice
-  case class ToolAuto() extends ToolChoice
+
+  /** Means that the model will not call a function and instead generates a message. */
+  case object ToolNone extends ToolChoice
+
+  /** Means the model can pick between generating a message or calling a function. */
+  case object ToolAuto extends ToolChoice
+
+  /** Means the model will call a function. */
   case class ToolFunction(name: String) extends ToolChoice
 
-  implicit val toolNoneRW: SnakePickle.ReadWriter[ToolNone] = SnakePickle
+  implicit val toolNoneRW: SnakePickle.ReadWriter[ToolNone.type] = SnakePickle
     .readwriter[Value]
-    .bimap[ToolNone](
+    .bimap[ToolNone.type](
       _ => Str("none"),
-      _ => ToolNone()
+      _ => ToolNone
     )
 
-  implicit val toolAutoRW: SnakePickle.ReadWriter[ToolAuto] = SnakePickle
+  implicit val toolAutoRW: SnakePickle.ReadWriter[ToolAuto.type] = SnakePickle
     .readwriter[Value]
-    .bimap[ToolAuto](
+    .bimap[ToolAuto.type](
       _ => Str("auto"),
-      _ => ToolAuto()
+      _ => ToolAuto
     )
 
   implicit val toolFunctionRW: SnakePickle.ReadWriter[ToolFunction] = SnakePickle
@@ -35,13 +41,13 @@ object ToolChoice {
     .readwriter[Value]
     .bimap[ToolChoice](
       {
-        case toolAuto: ToolAuto         => SnakePickle.writeJs(toolAuto)
-        case toolNone: ToolNone         => SnakePickle.writeJs(toolNone)
+        case toolAuto: ToolAuto.type    => SnakePickle.writeJs(toolAuto)
+        case toolNone: ToolNone.type    => SnakePickle.writeJs(toolNone)
         case toolFunction: ToolFunction => SnakePickle.writeJs(toolFunction)
       },
       {
-        case json @ Str("none") => SnakePickle.read[ToolNone](json)
-        case json @ Str("auto") => SnakePickle.read[ToolAuto](json)
+        case json @ Str("none") => SnakePickle.read[ToolNone.type](json)
+        case json @ Str("auto") => SnakePickle.read[ToolAuto.type](json)
         case json               => SnakePickle.read[ToolFunction](json)
       }
     )

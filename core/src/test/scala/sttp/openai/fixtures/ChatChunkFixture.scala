@@ -85,6 +85,9 @@ object ChatChunkFixture {
       |  "stop": "\n",
       |  "temperature": 1,
       |  "top_p": 1,
+      |  "response_format": {
+      |   "type": "text"
+      |  },
       |  "tools": [
       |    {
       |      "type": "function",

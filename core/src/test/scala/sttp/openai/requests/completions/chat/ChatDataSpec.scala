@@ -69,6 +69,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       temperature = Some(1),
       topP = Some(1),
       tools = Some(tools),
+      responseFormat = Some(ResponseFormat.JsonObject),
       toolChoice = Some(ToolChoice.ToolFunction("function")),
       stop = Some(SingleStop("\n")),
       user = Some("testUser")

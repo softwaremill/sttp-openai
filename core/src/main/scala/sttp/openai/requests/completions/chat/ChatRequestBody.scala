@@ -4,14 +4,43 @@ import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIExcepti
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.Stop
 import sttp.openai.requests.completions.chat.message.{Message, Tool, ToolChoice}
-import ujson.Str
+import ujson._
 
 object ChatRequestBody {
 
-  case class ResponseFormat(`type`: String)
+  sealed trait ResponseFormat
 
   object ResponseFormat {
-    implicit val responseFormatRW: SnakePickle.ReadWriter[ResponseFormat] = SnakePickle.macroRW[ResponseFormat]
+    case object Text extends ResponseFormat
+    case object JsonObject extends ResponseFormat
+
+    implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
+      .readwriter[Value]
+      .bimap[Text.type](
+        _ => Obj("type" -> "text"),
+        _ => Text
+      )
+
+    implicit val jsonObjectRW: SnakePickle.ReadWriter[JsonObject.type] = SnakePickle
+      .readwriter[Value]
+      .bimap[JsonObject.type](
+        _ => Obj("type" -> "json_object"),
+        _ => JsonObject
+      )
+
+    implicit val responseFormatRW: SnakePickle.ReadWriter[ResponseFormat] = SnakePickle
+      .readwriter[Value]
+      .bimap[ResponseFormat](
+        {
+          case text: Text.type             => SnakePickle.writeJs(text)
+          case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
+        },
+        json =>
+          json("type").str match {
+            case "text"        => SnakePickle.read[Text.type](json)
+            case "json_object" => SnakePickle.read[JsonObject.type](json)
+          }
+      )
   }
 
   /** @param messages
@@ -49,10 +78,7 @@ object ChatRequestBody {
     *   A list of tools the model may call. Currently, only functions are supported as a tool. Use this to provide a list of functions the
     *   model may generate JSON inputs for.
     * @param toolChoice
-    *   Controls which (if any) function is called by the model. "none" means the model will not call a function and instead generates a
-    *   message. "auto" means the model can pick between generating a message or calling a function. Specifying a particular function via
-    *   `{"type": "function", "function": {"name": "my_function"}}` forces the model to call that function. "none" is the default when no
-    *   functions are present. "auto" is the default if functions are present.
+    *   Controls which (if any) function is called by the model.
     * @param user
     *   A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
     */

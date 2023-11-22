@@ -85,6 +85,9 @@ object ChatFixture {
       |  "stop": "\n",
       |  "temperature": 1,
       |  "top_p": 1,
+      |  "response_format": {
+      |   "type": "json_object"
+      |  },
       |  "tools": [
       |    {
       |      "type": "function",
