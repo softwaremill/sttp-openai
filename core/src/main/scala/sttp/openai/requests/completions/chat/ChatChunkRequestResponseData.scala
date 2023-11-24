@@ -20,7 +20,7 @@ object ChatChunkRequestResponseData {
 
   case class Choices(
       delta: Delta,
-      finishReason: String,
+      finishReason: Option[String],
       index: Int
   )
 
