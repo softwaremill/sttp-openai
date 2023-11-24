@@ -12,7 +12,7 @@ object ChatChunkRequestResponseData {
     * @param functionCall
     *   The name of the author of this message. May contain a-z, A-Z, 0-9, and underscores, with a maximum length of 64 characters.
     */
-  case class Delta(role: Option[Role] = None, content: Option[String] = None, toolCalls: Option[Seq[ToolCall]] = None, functionCall: Option[FunctionCall] = None)
+  case class Delta(role: Option[Role] = None, content: Option[String] = None, toolCalls: Seq[ToolCall] = Nil, functionCall: Option[FunctionCall] = None)
 
   object Delta {
     implicit val deltaR: SnakePickle.Reader[Delta] = SnakePickle.macroR[Delta]

@@ -12,14 +12,17 @@ object ToolCall {
     * @param function
     *   The function that the model called.
     */
-  case class FunctionToolCall(id: String, function: FunctionCall) extends ToolCall
+  case class FunctionToolCall(id: Option[String], function: FunctionCall) extends ToolCall
 
   implicit val functionToolCallRW: SnakePickle.ReadWriter[FunctionToolCall] = SnakePickle
     .readwriter[Value]
     .bimap[FunctionToolCall](
-      functionToolCall =>
-        Obj("type" -> "function", "id" -> functionToolCall.id, "function" -> SnakePickle.writeJs(functionToolCall.function)),
-      json => FunctionToolCall(json("id").str, SnakePickle.read[FunctionCall](json("function")))
+      functionToolCall => {
+        val baseObj = Obj("type" -> "function", "function" -> SnakePickle.writeJs(functionToolCall.function))
+        functionToolCall.id.foreach(baseObj("id") = _)
+        baseObj
+      },
+      json => FunctionToolCall(json.obj.get("id").map(_.str), SnakePickle.read[FunctionCall](json("function")))
     )
 
   implicit val toolCallRW: SnakePickle.ReadWriter[ToolCall] = SnakePickle
@@ -30,5 +33,4 @@ object ToolCall {
       },
       json => SnakePickle.read[FunctionToolCall](json)
     )
-
 }

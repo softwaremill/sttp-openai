@@ -40,11 +40,9 @@ object ChatChunkFixture {
       |      "name": "User",
       |      "tool_calls": [
       |        {
-      |          "id": "tool_id_1",
       |          "type": "function",
       |          "function": {
-      |            "arguments": "args",
-      |            "name": "Fish"
+      |            "arguments": "args"
       |          }
       |        },
       |        {
@@ -126,11 +124,9 @@ object ChatChunkFixture {
       |        "content": "  Hi",
       |        "tool_calls": [
       |         {
-      |           "id": "tool_id_1",
       |           "type": "function",
       |           "function": {
-      |             "arguments": "args",
-      |             "name": "Fish"
+      |             "arguments": "args"
       |           }
       |         },
       |         {

@@ -9,7 +9,7 @@ import sttp.openai.json.SnakePickle
   * @param name
   *   The name of the function to call.
   */
-case class FunctionCall(arguments: String, name: String)
+case class FunctionCall(arguments: String, name: Option[String] = None)
 
 object FunctionCall {
   implicit val functionCallRW: SnakePickle.ReadWriter[FunctionCall] = SnakePickle.macroRW[FunctionCall]
