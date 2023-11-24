@@ -55,15 +55,20 @@ object ChatCompletionFixtures {
     Seq(function)
   }
 
-  def toolCalls: Seq[ToolCall] = {
-    val functionCall: FunctionCall = FunctionCall(
-      arguments = "args",
-      name = "Fish"
-    )
-
+  def toolCalls: Seq[ToolCall] =
     Seq(
-      FunctionToolCall("tool_id_1", functionCall),
-      FunctionToolCall("tool_id_2", functionCall)
+      FunctionToolCall(
+        None,
+        FunctionCall(
+          arguments = "args"
+        )
+      ),
+      FunctionToolCall(
+        Some("tool_id_2"),
+        FunctionCall(
+          arguments = "args",
+          name = Some("Fish")
+        )
+      )
     )
-  }
 }

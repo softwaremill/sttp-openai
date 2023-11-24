@@ -20,12 +20,12 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val delta: Delta = Delta(
       role = Some(Role.Assistant),
       content = Some("  Hi"),
-      toolCalls = Some(toolCalls)
+      toolCalls = toolCalls
     )
 
     val choices: Choices = Choices(
       delta = delta,
-      finishReason = "stop",
+      finishReason = Some("stop"),
       index = 0
     )
 
