@@ -1,9 +1,18 @@
 package sttp.openai
 
 import sttp.client4._
-import sttp.model.Uri
+import sttp.model.{Header, Uri}
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.json.SttpUpickleApiExtension.{asJsonSnake, asStreamSnake, asStringEither, upickleBodySerializer}
+import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, CreateAssistantFileBody, ModifyAssistantBody}
+import sttp.openai.requests.assistants.AssistantsResponseData.{
+  AssistantData,
+  AssistantFileData,
+  DeleteAssistantFileResponse,
+  DeleteAssistantResponse,
+  ListAssistantFilesResponse,
+  ListAssistantsResponse
+}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -32,6 +41,24 @@ import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
 import sttp.openai.requests.audio.RecognitionModel
 import sttp.capabilities.Streams
+import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
+import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
+import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{
+  ListMessageFilesResponse,
+  ListMessagesResponse,
+  MessageData,
+  MessageFileData
+}
+import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{
+  CreateRun,
+  CreateThreadAndRun,
+  ModifyRun,
+  SubmitToolOutputsToRun,
+  ToolOutput
+}
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
+import sttp.openai.requests.threads.QueryParameters
 
 import java.io.File
 import java.nio.file.Paths
@@ -603,8 +630,456 @@ class OpenAI(authToken: String) {
       .get(OpenAIUris.fineTuneEvents(fineTuneId))
       .response(asJsonSnake[FineTuneEventsResponse])
 
-  private val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
+  /** Create a thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/threads/createThread]]
+    *
+    * @param createThreadBody
+    *   Create completion request body.
+    */
+  def createThread(createThreadBody: CreateThreadBody): Request[Either[OpenAIException, ThreadData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.Threads)
+      .body(createThreadBody)
+      .response(asJsonSnake[ThreadData])
+
+  /** Retrieves a thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/threads/getThread]]
+    *
+    * @param threadId
+    *   The ID of the thread to retrieve.
+    */
+  def retrieveThread(threadId: String): Request[Either[OpenAIException, ThreadData]] =
+    betaOpenAIAuthRequest
+      .get(OpenAIUris.thread(threadId))
+      .response(asJsonSnake[ThreadData])
+
+  /** Modifies a thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/threads/modifyThread]]
+    *
+    * @param threadId
+    *   The ID of the thread to modify. Only the metadata can be modified.
+    */
+  def modifyThread(threadId: String, metadata: Map[String, String]): Request[Either[OpenAIException, ThreadData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.thread(threadId))
+      .body(metadata)
+      .response(asJsonSnake[ThreadData])
+
+  /** Delete a thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/threads/deleteThread]]
+    *
+    * @param threadId
+    *   The ID of the thread to delete.
+    */
+  def deleteThread(threadId: String): Request[Either[OpenAIException, DeleteThreadResponse]] =
+    betaOpenAIAuthRequest
+      .delete(OpenAIUris.thread(threadId))
+      .response(asJsonSnake[DeleteThreadResponse])
+
+  /** Create a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/createMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to create a message for.
+    */
+  def createThreadMessage(threadId: String, message: CreateMessage): Request[Either[OpenAIException, MessageData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.threadMessages(threadId))
+      .body(message)
+      .response(asJsonSnake[MessageData])
+
+  /** Returns a list of messages for a given thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/listMessages]]
+    *
+    * @param threadId
+    *   The ID of the thread the messages belong to.
+    */
+  def listThreadMessages(
+      threadId: String,
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): Request[Either[OpenAIException, ListMessagesResponse]] = {
+    val uri = OpenAIUris
+      .threadMessages(threadId)
+      .withParams(queryParameters.toMap)
+
+    betaOpenAIAuthRequest
+      .get(uri)
+      .response(asJsonSnake[ListMessagesResponse])
+  }
+
+  /** Returns a list of message files.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/listMessageFiles]]
+    *
+    * @param threadId
+    *   The ID of the thread that the message and files belong to.
+    *
+    * @param messageId
+    *   The ID of the message that the files belongs to.
+    */
+  def listThreadMessageFiles(
+      threadId: String,
+      messageId: String,
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): Request[Either[OpenAIException, ListMessageFilesResponse]] = {
+    val uri = OpenAIUris
+      .threadMessageFiles(threadId, messageId)
+      .withParams(queryParameters.toMap)
+
+    betaOpenAIAuthRequest
+      .get(uri)
+      .response(asJsonSnake[ListMessageFilesResponse])
+  }
+
+  /** Retrieve a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/getMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this message belongs.
+    *
+    * @param messageId
+    *   The ID of the message to retrieve.
+    */
+  def retrieveThreadMessage(
+      threadId: String,
+      messageId: String
+  ): Request[Either[OpenAIException, MessageData]] =
+    betaOpenAIAuthRequest
+      .get(OpenAIUris.threadMessage(threadId, messageId))
+      .response(asJsonSnake[MessageData])
+
+  /** Retrieves a message file.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/getMessageFile]]
+    *
+    * @param threadId
+    *   The ID of the thread to which the message and File belong.
+    *
+    * @param messageId
+    *   The ID of the message the file belongs to.
+    *
+    * @param fileId
+    *   The ID of the file being retrieved.
+    */
+  def retrieveThreadMessageFile(
+      threadId: String,
+      messageId: String,
+      fileId: String
+  ): Request[Either[OpenAIException, MessageFileData]] =
+    betaOpenAIAuthRequest
+      .get(OpenAIUris.threadMessageFile(threadId, messageId, fileId))
+      .response(asJsonSnake[MessageFileData])
+
+  /** Modifies a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/modifyMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this message belongs.
+    *
+    * @param messageId
+    *   The ID of the message to modify.
+    */
+  def modifyMessage(threadId: String, messageId: String, metadata: Map[String, String]): Request[Either[OpenAIException, MessageData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.threadMessage(threadId, messageId))
+      .body(metadata)
+      .response(asJsonSnake[MessageData])
+
+  /** Create an assistant with a model and instructions.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/createAssistant]]
+    *
+    * @param createAssistantBody
+    *   Create completion request body.
+    */
+  def createAssistant(createAssistantBody: CreateAssistantBody): Request[Either[OpenAIException, AssistantData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.Assistants)
+      .body(createAssistantBody)
+      .response(asJsonSnake[AssistantData])
+
+  /** Create an assistant file by attaching a File to an assistant.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/createAssistantFile]]
+    *
+    * @param assistantId
+    *   The ID of the assistant for which to create a File.
+    *
+    * @param fileId
+    *   A File ID (with purpose="assistants") that the assistant should use. Useful for tools like retrieval and code_interpreter that can
+    *   access files..
+    */
+  def createAssistantFile(assistantId: String, fileId: String): Request[Either[OpenAIException, AssistantFileData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.assistantFiles(assistantId))
+      .body(CreateAssistantFileBody(fileId))
+      .response(asJsonSnake[AssistantFileData])
+
+  /** Returns a list of assistants.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/listAssistants]]
+    */
+  def listAssistants(
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): Request[Either[OpenAIException, ListAssistantsResponse]] = {
+    val uri = OpenAIUris.Assistants
+      .withParams(queryParameters.toMap)
+
+    betaOpenAIAuthRequest
+      .get(uri)
+      .response(asJsonSnake[ListAssistantsResponse])
+  }
+
+  /** Returns a list of assistant files.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/listAssistantFiles]]
+    *
+    * @param assistantId
+    *   The ID of the assistant the file belongs to.
+    */
+  def listAssistantFiles(
+      assistantId: String,
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): Request[Either[OpenAIException, ListAssistantFilesResponse]] = {
+    val uri = OpenAIUris
+      .assistantFiles(assistantId)
+      .withParams(queryParameters.toMap)
+
+    betaOpenAIAuthRequest
+      .get(uri)
+      .response(asJsonSnake[ListAssistantFilesResponse])
+  }
+
+  /** Retrieves an assistant.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/getAssistant]]
+    *
+    * @param assistantId
+    *   The ID of the assistant to retrieve.
+    */
+  def retrieveAssistant(assistantId: String): Request[Either[OpenAIException, AssistantData]] =
+    betaOpenAIAuthRequest
+      .get(OpenAIUris.assistant(assistantId))
+      .response(asJsonSnake[AssistantData])
+
+  /** Retrieves an AssistantFile.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/getAssistantFile]]
+    *
+    * @param assistantId
+    *   The ID of the assistant who the file belongs to.
+    *
+    * @param fileId
+    *   The ID of the file we're getting.
+    */
+  def retrieveAssistantFile(assistantId: String, fileId: String): Request[Either[OpenAIException, AssistantFileData]] =
+    betaOpenAIAuthRequest
+      .get(OpenAIUris.assistantFile(assistantId, fileId))
+      .response(asJsonSnake[AssistantFileData])
+
+  /** Modifies an assistant.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/modifyAssistant]]
+    *
+    * @param assistantId
+    *   The ID of the assistant to modify.
+    *
+    * @param modifyAssistantBody
+    *   Modify assistant request body.
+    */
+  def modifyAssistant(assistantId: String, modifyAssistantBody: ModifyAssistantBody): Request[Either[OpenAIException, AssistantData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.assistant(assistantId))
+      .body(modifyAssistantBody)
+      .response(asJsonSnake[AssistantData])
+
+  /** Delete an assistant.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistant]]
+    *
+    * @param assistantId
+    *   The ID of the assistant to delete.
+    */
+  def deleteAssistant(assistantId: String): Request[Either[OpenAIException, DeleteAssistantResponse]] =
+    betaOpenAIAuthRequest
+      .delete(OpenAIUris.assistant(assistantId))
+      .response(asJsonSnake[DeleteAssistantResponse])
+
+  /** Delete an assistant file.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistantFile]]
+    *
+    * @param assistantId
+    *   The ID of the assistant that the file belongs to.
+    *
+    * @param fileId
+    *   The ID of the file to delete.
+    */
+  def deleteAssistantFile(assistantId: String, fileId: String): Request[Either[OpenAIException, DeleteAssistantFileResponse]] =
+    betaOpenAIAuthRequest
+      .delete(OpenAIUris.assistantFile(assistantId, fileId))
+      .response(asJsonSnake[DeleteAssistantFileResponse])
+
+  /** Create a run.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/createRun]]
+    *
+    * @param threadId
+    *   The ID of the thread to run.
+    * @param createRun
+    *   Create run request body.
+    */
+  def createRun(threadId: String, createRun: CreateRun): Request[Either[OpenAIException, RunData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.threadRuns(threadId))
+      .body(createRun)
+      .response(asJsonSnake[RunData])
+
+  /** Create a thread and run it in one request.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/createThreadAndRun]]
+    *
+    * @param createThreadAndRun
+    *   Create thread and run request body.
+    */
+  def createThreadAndRun(createThreadAndRun: CreateThreadAndRun): Request[Either[OpenAIException, RunData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.ThreadsRuns)
+      .body(createThreadAndRun)
+      .response(asJsonSnake[RunData])
+
+  /** Returns a list of runs belonging to a thread..
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/listRuns]]
+    *
+    * @param threadId
+    *   The ID of the thread the run belongs to.
+    */
+  def listRuns(threadId: String): Request[Either[OpenAIException, ListRunsResponse]] =
+    betaOpenAIAuthRequest
+      .get(OpenAIUris.threadRuns(threadId))
+      .response(asJsonSnake[ListRunsResponse])
+
+  /** Returns a list of run steps belonging to a run.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/listRunSteps]]
+    *
+    * @param threadId
+    *   The ID of the thread the run and run steps belong to.
+    *
+    * @param runId
+    *   The ID of the run the run steps belong to.
+    */
+  def listRunSteps(
+      threadId: String,
+      runId: String,
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): Request[Either[OpenAIException, ListRunStepsResponse]] = {
+    val uri = OpenAIUris
+      .threadRunSteps(threadId, runId)
+      .withParams(queryParameters.toMap)
+
+    betaOpenAIAuthRequest
+      .get(uri)
+      .response(asJsonSnake[ListRunStepsResponse])
+  }
+
+  /** Retrieves a run.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/getRun]]
+    *
+    * @param threadId
+    *   The ID of the thread that was run.
+    *
+    * @param runId
+    *   The ID of the run to retrieve.
+    */
+  def retrieveRun(threadId: String, runId: String): Request[Either[OpenAIException, RunData]] =
+    betaOpenAIAuthRequest
+      .get(OpenAIUris.threadRun(threadId, runId))
+      .response(asJsonSnake[RunData])
+
+  /** Retrieves a run step.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/getRunStep]]
+    *
+    * @param threadId
+    *   The ID of the thread to which the run and run step belongs.
+    *
+    * @param runId
+    *   The ID of the run to which the run step belongs.
+    *
+    * @param stepId
+    *   The ID of the run step to retrieve.
+    */
+  def retrieveRunStep(threadId: String, runId: String, stepId: String): Request[Either[OpenAIException, RunStepData]] =
+    betaOpenAIAuthRequest
+      .get(OpenAIUris.threadRunStep(threadId, runId, stepId))
+      .response(asJsonSnake[RunStepData])
+
+  /** Modifies a run.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/modifyRun]]
+    *
+    * @param threadId
+    *   The ID of the thread that was run.
+    *
+    * @param runId
+    *   The ID of the run to modify.
+    */
+  def modifyRun(threadId: String, runId: String, metadata: Map[String, String]): Request[Either[OpenAIException, RunData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.threadRun(threadId, runId))
+      .body(ModifyRun(metadata))
+      .response(asJsonSnake[RunData])
+
+  /** When a run has the status: "requires_action" and required_action.type is submit_tool_outputs, this endpoint can be used to submit the
+    * outputs from the tool calls once they're all completed. All outputs must be submitted in a single request.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/submitToolOutputs]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this run belongs.
+    * @param runId
+    *   The ID of the run that requires the tool output submission.
+    * @param toolOutputs
+    *   A list of tools for which the outputs are being submitted.
+    */
+  def submitToolOutputs(threadId: String, runId: String, toolOutputs: Seq[ToolOutput]): Request[Either[OpenAIException, RunData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.threadRunSubmitToolOutputs(threadId, runId))
+      .body(SubmitToolOutputsToRun(toolOutputs))
+      .response(asJsonSnake[RunData])
+//
+  /** Cancels a run that is in_progress.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/cancelRun]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this run belongs.
+    *
+    * @param runId
+    *   The ID of the run to cancel.
+    */
+  def cancelRun(threadId: String, runId: String): Request[Either[OpenAIException, RunData]] =
+    betaOpenAIAuthRequest
+      .post(OpenAIUris.threadRunCancel(threadId, runId))
+      .response(asJsonSnake[RunData])
+
+  protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
+
+  protected val betaOpenAIAuthRequest: PartialRequest[Either[String, String]] =
+    openAIAuthRequest.withHeaders(openAIAuthRequest.headers :+ Header("OpenAI-Beta", "assistants=v1"))
+
 }
 
 private object OpenAIUris {
@@ -625,6 +1100,10 @@ private object OpenAIUris {
   val Translations: Uri = AudioBase.addPath("translations")
   val VariationsImage: Uri = ImageBase.addPath("variations")
 
+  val Assistants: Uri = uri"https://api.openai.com/v1/assistants"
+  val Threads: Uri = uri"https://api.openai.com/v1/threads"
+  val ThreadsRuns: Uri = uri"https://api.openai.com/v1/threads/runs"
+
   def cancelFineTune(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId, "cancel")
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")
@@ -632,4 +1111,32 @@ private object OpenAIUris {
   def fineTuneEvents(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId, "events")
   def fineTune(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId)
   def model(modelId: String): Uri = Models.addPath(modelId)
+
+  def assistant(assistantId: String): Uri = Assistants.addPath(assistantId)
+  def assistantFiles(assistantId: String): Uri = Assistants.addPath(assistantId).addPath("files")
+  def assistantFile(assistantId: String, fileId: String): Uri = Assistants.addPath(assistantId).addPath("files").addPath(fileId)
+
+  def thread(threadId: String): Uri = Threads.addPath(threadId)
+
+  def threadMessages(threadId: String): Uri = Threads.addPath(threadId).addPath("messages")
+  def threadMessage(threadId: String, messageId: String): Uri = Threads.addPath(threadId).addPath("messages").addPath(messageId)
+
+  def threadMessageFiles(threadId: String, messageId: String): Uri =
+    Threads.addPath(threadId).addPath("messages", messageId, "files")
+  def threadMessageFile(threadId: String, messageId: String, fileId: String): Uri =
+    Threads.addPath(threadId).addPath("messages", messageId, "files", fileId)
+
+  def threadRuns(threadId: String): Uri = Threads.addPath(threadId, "runs")
+  def threadRun(threadId: String, runId: String): Uri = Threads.addPath(threadId, "runs", runId)
+
+  def threadRunSteps(threadId: String, runId: String): Uri =
+    Threads.addPath(threadId, "runs", runId, "steps")
+  def threadRunStep(threadId: String, runId: String, stepId: String): Uri =
+    Threads.addPath(threadId, "runs", runId, "steps", stepId)
+  def threadRunCancel(threadId: String, runId: String): Uri =
+    Threads.addPath(threadId, "runs", runId, "cancel")
+
+  def threadRunSubmitToolOutputs(threadId: String, runId: String): Uri =
+    Threads.addPath(threadId, "runs", runId, "submit_tool_outputs")
+
 }

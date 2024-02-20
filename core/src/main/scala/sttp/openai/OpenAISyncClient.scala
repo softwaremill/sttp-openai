@@ -2,6 +2,15 @@ package sttp.openai
 
 import sttp.client4.{DefaultSyncBackend, Request, SyncBackend}
 import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
+import sttp.openai.requests.assistants.AssistantsResponseData.{
+  AssistantData,
+  AssistantFileData,
+  DeleteAssistantFileResponse,
+  DeleteAssistantResponse,
+  ListAssistantFilesResponse,
+  ListAssistantsResponse
+}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.RecognitionModel
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
@@ -29,6 +38,18 @@ import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
+import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
+import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
+import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{
+  ListMessageFilesResponse,
+  ListMessagesResponse,
+  MessageData,
+  MessageFileData
+}
+import sttp.openai.requests.threads.QueryParameters
+import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{CreateRun, CreateThreadAndRun, ToolOutput}
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
 
 import java.io.File
 
@@ -409,6 +430,358 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
     */
   def getFineTuneEvents(fineTuneId: String): FineTuneEventsResponse =
     sendOrThrow(openAI.getFineTuneEvents(fineTuneId))
+
+  /** Create a thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/threads/createThread]]
+    *
+    * @param createThreadBody
+    *   Create completion request body.
+    */
+  def createThread(createThreadBody: CreateThreadBody): ThreadData =
+    sendOrThrow(openAI.createThread(createThreadBody))
+
+  /** Retrieves a thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/threads/getThread]]
+    *
+    * @param threadId
+    *   The ID of the thread to retrieve.
+    */
+  def retrieveThread(threadId: String): ThreadData =
+    sendOrThrow(openAI.retrieveThread(threadId))
+
+  /** Modifies a thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/threads/modifyThread]]
+    *
+    * @param threadId
+    *   The ID of the thread to modify. Only the metadata can be modified.
+    */
+  def modifyThread(threadId: String, metadata: Map[String, String]): ThreadData =
+    sendOrThrow(openAI.modifyThread(threadId, metadata))
+
+  /** Delete a thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/threads/deleteThread]]
+    *
+    * @param threadId
+    *   The ID of the thread to delete.
+    */
+  def deleteThread(threadId: String): DeleteThreadResponse =
+    sendOrThrow(openAI.deleteThread(threadId))
+
+  /** Create a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/createMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to create a message for.
+    */
+  def createThreadMessage(threadId: String, message: CreateMessage): MessageData =
+    sendOrThrow(openAI.createThreadMessage(threadId, message))
+
+  /** Returns a list of messages for a given thread.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/listMessages]]
+    *
+    * @param threadId
+    *   The ID of the thread the messages belong to.
+    */
+  def listThreadMessages(
+      threadId: String,
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): ListMessagesResponse =
+    sendOrThrow(openAI.listThreadMessages(threadId, queryParameters))
+
+  /** Returns a list of message files.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/listMessageFiles]]
+    *
+    * @param threadId
+    *   The ID of the thread that the message and files belong to.
+    *
+    * @param messageId
+    *   The ID of the message that the files belongs to.
+    */
+  def listThreadMessageFiles(
+      threadId: String,
+      messageId: String,
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): ListMessageFilesResponse =
+    sendOrThrow(openAI.listThreadMessageFiles(threadId, messageId, queryParameters))
+
+  /** Retrieve a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/getMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this message belongs.
+    *
+    * @param messageId
+    *   The ID of the message to retrieve.
+    */
+  def retrieveThreadMessage(
+      threadId: String,
+      messageId: String
+  ): MessageData =
+    sendOrThrow(openAI.retrieveThreadMessage(threadId, messageId))
+
+  /** Retrieves a message file.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/getMessageFile]]
+    *
+    * @param threadId
+    *   The ID of the thread to which the message and File belong.
+    *
+    * @param messageId
+    *   The ID of the message the file belongs to.
+    *
+    * @param fileId
+    *   The ID of the file being retrieved.
+    */
+  def retrieveThreadMessageFile(
+      threadId: String,
+      messageId: String,
+      fileId: String
+  ): MessageFileData =
+    sendOrThrow(openAI.retrieveThreadMessageFile(threadId, messageId, fileId))
+
+  /** Modifies a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/modifyMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this message belongs.
+    *
+    * @param messageId
+    *   The ID of the message to modify.
+    */
+  def modifyMessage(threadId: String, messageId: String, metadata: Map[String, String]): MessageData =
+    sendOrThrow(openAI.modifyMessage(threadId, messageId, metadata))
+
+  /** Create an assistant with a model and instructions.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/createAssistant]]
+    *
+    * @param createAssistantBody
+    *   Create completion request body.
+    */
+  def createAssistant(createAssistantBody: CreateAssistantBody): AssistantData =
+    sendOrThrow(openAI.createAssistant(createAssistantBody))
+
+  /** Create an assistant file by attaching a File to an assistant.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/createAssistantFile]]
+    *
+    * @param assistantId
+    *   The ID of the assistant for which to create a File.
+    *
+    * @param fileId
+    *   A File ID (with purpose="assistants") that the assistant should use. Useful for tools like retrieval and code_interpreter that can
+    *   access files..
+    */
+  def createAssistantFile(assistantId: String, fileId: String): AssistantFileData =
+    sendOrThrow(openAI.createAssistantFile(assistantId, fileId))
+
+  /** Returns a list of assistants.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/listAssistants]]
+    */
+  def listAssistants(
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): ListAssistantsResponse =
+    sendOrThrow(openAI.listAssistants(queryParameters))
+
+  /** Returns a list of assistant files.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/listAssistantFiles]]
+    *
+    * @param assistantId
+    *   The ID of the assistant the file belongs to.
+    */
+  def listAssistantFiles(
+      assistantId: String,
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): ListAssistantFilesResponse =
+    sendOrThrow(openAI.listAssistantFiles(assistantId, queryParameters))
+
+  /** Retrieves an assistant.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/getAssistant]]
+    *
+    * @param assistantId
+    *   The ID of the assistant to retrieve.
+    */
+  def retrieveAssistant(assistantId: String): AssistantData =
+    sendOrThrow(openAI.retrieveAssistant(assistantId))
+
+  /** Retrieves an AssistantFile.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/getAssistantFile]]
+    *
+    * @param assistantId
+    *   The ID of the assistant who the file belongs to.
+    *
+    * @param fileId
+    *   The ID of the file we're getting.
+    */
+  def retrieveAssistantFile(assistantId: String, fileId: String): AssistantFileData =
+    sendOrThrow(openAI.retrieveAssistantFile(assistantId, fileId))
+
+  /** Modifies an assistant.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/modifyAssistant]]
+    *
+    * @param assistantId
+    *   The ID of the assistant to modify.
+    *
+    * @param modifyAssistantBody
+    */
+  def modifyAssistant(assistantId: String, modifyAssistantBody: ModifyAssistantBody): AssistantData =
+    sendOrThrow(openAI.modifyAssistant(assistantId, modifyAssistantBody))
+
+  /** Delete an assistant.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistant]]
+    *
+    * @param assistantId
+    *   The ID of the assistant to delete.
+    */
+  def deleteAssistant(assistantId: String): DeleteAssistantResponse =
+    sendOrThrow(openAI.deleteAssistant(assistantId))
+
+  /** Delete an assistant file.
+    *
+    * [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistantFile]]
+    *
+    * @param assistantId
+    *   The ID of the assistant that the file belongs to.
+    *
+    * @param fileId
+    *   The ID of the file to delete.
+    */
+  def deleteAssistantFile(assistantId: String, fileId: String): DeleteAssistantFileResponse =
+    sendOrThrow(openAI.deleteAssistantFile(assistantId, fileId))
+
+  /** Create a run.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/createRun]]
+    *
+    * @param threadId
+    *   The ID of the thread to run.
+    * @param createRun
+    *   Create run request body.
+    */
+  def createRun(threadId: String, createRun: CreateRun): RunData =
+    sendOrThrow(openAI.createRun(threadId, createRun))
+
+  /** Create a thread and run it in one request.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/createThreadAndRun]]
+    *
+    * @param createThreadAndRun
+    *   Create thread and run request body.
+    */
+  def createThreadAndRun(createThreadAndRun: CreateThreadAndRun): RunData =
+    sendOrThrow(openAI.createThreadAndRun(createThreadAndRun))
+
+  /** Returns a list of runs belonging to a thread..
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/listRuns]]
+    *
+    * @param threadId
+    *   The ID of the thread the run belongs to.
+    */
+  def listRuns(threadId: String): ListRunsResponse =
+    sendOrThrow(openAI.listRuns(threadId))
+
+  /** Returns a list of run steps belonging to a run.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/listRunSteps]]
+    *
+    * @param threadId
+    *   The ID of the thread the run and run steps belong to.
+    *
+    * @param runId
+    *   The ID of the run the run steps belong to.
+    */
+  def listRunSteps(
+      threadId: String,
+      runId: String,
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): ListRunStepsResponse =
+    sendOrThrow(openAI.listRunSteps(threadId, runId, queryParameters))
+
+  /** Retrieves a run.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/getRun]]
+    *
+    * @param threadId
+    *   The ID of the thread that was run.
+    *
+    * @param runId
+    *   The ID of the run to retrieve.
+    */
+  def retrieveRun(threadId: String, runId: String): RunData =
+    sendOrThrow(openAI.retrieveRun(threadId, runId))
+
+  /** Retrieves a run step.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/getRunStep]]
+    *
+    * @param threadId
+    *   The ID of the thread to which the run and run step belongs.
+    *
+    * @param runId
+    *   The ID of the run to which the run step belongs.
+    *
+    * @param stepId
+    *   The ID of the run step to retrieve.
+    */
+  def retrieveRunStep(threadId: String, runId: String, stepId: String): RunStepData =
+    sendOrThrow(openAI.retrieveRunStep(threadId, runId, stepId))
+
+  /** Modifies a run.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/modifyRun]]
+    *
+    * @param threadId
+    *   The ID of the thread that was run.
+    *
+    * @param runId
+    *   The ID of the run to modify.
+    */
+  def modifyRun(threadId: String, runId: String, metadata: Map[String, String]): RunData =
+    sendOrThrow(openAI.modifyRun(threadId, runId, metadata))
+
+  /** When a run has the status: "requires_action" and required_action.type is submit_tool_outputs, this endpoint can be used to submit the
+    * outputs from the tool calls once they're all completed. All outputs must be submitted in a single request.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/submitToolOutputs]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this run belongs.
+    * @param runId
+    *   The ID of the run that requires the tool output submission.
+    * @param toolOutputs
+    *   A list of tools for which the outputs are being submitted.
+    */
+  def submitToolOutputs(threadId: String, runId: String, toolOutputs: Seq[ToolOutput]): RunData =
+    sendOrThrow(openAI.submitToolOutputs(threadId, runId, toolOutputs))
+  //
+  /** Cancels a run that is in_progress.
+    *
+    * [[https://platform.openai.com/docs/api-reference/runs/cancelRun]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this run belongs.
+    *
+    * @param runId
+    *   The ID of the run to cancel.
+    */
+  def cancelRun(threadId: String, runId: String): RunData =
+    sendOrThrow(openAI.cancelRun(threadId, runId))
 
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op.
     */
