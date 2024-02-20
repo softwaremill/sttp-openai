@@ -35,7 +35,7 @@ object ChatRequestResponseData {
       model: String,
       `object`: String,
       usage: Usage,
-      systemFingerprint: Option[String] = None,
+      systemFingerprint: Option[String] = None
   )
 
   object ChatResponse {
