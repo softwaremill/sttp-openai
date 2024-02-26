@@ -23,12 +23,34 @@ object Tool {
       json => FunctionTool(json("description").str, json("name").str, json("parameters").obj.toMap)
     )
 
+  /** Code interpreter tool
+    *
+    *   The type of tool being defined: code_interpreter
+    */
+  case object CodeInterpreterTool extends Tool
+
+  /** Retrieval tool
+    *
+    *   The type of tool being defined: retrieval
+    */
+  case object RetrievalTool extends Tool
+
   implicit val toolRW: SnakePickle.ReadWriter[Tool] = SnakePickle
     .readwriter[Value]
     .bimap[Tool](
-      { case functionTool: FunctionTool =>
-        Obj("type" -> "function", "function" -> SnakePickle.writeJs(functionTool))
+      {
+        case functionTool: FunctionTool =>
+          Obj("type" -> "function", "function" -> SnakePickle.writeJs(functionTool))
+        case CodeInterpreterTool =>
+          Obj("type" -> "code_interpreter")
+        case RetrievalTool =>
+          Obj("type" -> "retrieval")
       },
-      json => SnakePickle.read[FunctionTool](json("function"))
+      json =>
+        json("type").str match {
+          case "function"         => SnakePickle.read[FunctionTool](json("function"))
+          case "code_interpreter" => CodeInterpreterTool
+          case "retrieval"        => RetrievalTool
+        }
     )
 }
