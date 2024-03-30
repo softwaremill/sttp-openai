@@ -6,7 +6,12 @@ import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.Content.{TextContent, TextContentValue}
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessageFilesResponse, ListMessagesResponse, MessageData, MessageFileData}
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{
+  ListMessageFilesResponse,
+  ListMessagesResponse,
+  MessageData,
+  MessageFileData
+}
 
 class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
