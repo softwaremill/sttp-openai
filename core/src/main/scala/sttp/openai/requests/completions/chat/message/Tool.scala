@@ -25,13 +25,13 @@ object Tool {
 
   /** Code interpreter tool
     *
-    *   The type of tool being defined: code_interpreter
+    * The type of tool being defined: code_interpreter
     */
   case object CodeInterpreterTool extends Tool
 
   /** Retrieval tool
     *
-    *   The type of tool being defined: retrieval
+    * The type of tool being defined: retrieval
     */
   case object RetrievalTool extends Tool
 

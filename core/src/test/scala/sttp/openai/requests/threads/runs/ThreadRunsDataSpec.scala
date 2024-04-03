@@ -10,7 +10,7 @@ import sttp.openai.requests.completions.Usage
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.ToolOutput
-import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunsResponse, ListRunStepsResponse, MessageCreation, RunStepData}
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, MessageCreation, RunStepData}
 import ujson.{Arr, Obj, Str}
 
 class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
@@ -459,4 +459,5 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // then
     givenResponse.value shouldBe expectedResponse
-  }}
+  }
+}
