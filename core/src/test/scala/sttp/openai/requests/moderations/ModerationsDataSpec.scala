@@ -11,7 +11,7 @@ import sttp.openai.requests.moderations.ModerationsResponseData._
 class ModerationsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given create moderation response as Json" should "be properly deserialized to case class" in {
     // given
-    val listFilesResponse = fixtures.ModerationsFixture.jsonCreateModerationResponse
+    val createModerationResponse = fixtures.ModerationsFixture.jsonCreateModerationResponse
     val expectedResponse = ModerationData(
       id = "modr-5MWoLO",
       model = ModerationModel.TextModerationStable,
@@ -41,10 +41,20 @@ class ModerationsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val givenResponse: Either[Exception, ModerationData] =
-      SttpUpickleApiExtension.deserializeJsonSnake[ModerationData].apply(listFilesResponse)
+      SttpUpickleApiExtension.deserializeJsonSnake[ModerationData].apply(createModerationResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
+  }
+  "Unknown moderation model in create response" should "be deserialized to case class" in {
+    // given
+    val createModerationResponse = fixtures.ModerationsFixture.jsonCreateModerationResponseUnknownModel
+    // when
+    val givenResponse: Either[Exception, ModerationData] =
+      SttpUpickleApiExtension.deserializeJsonSnake[ModerationData].apply(createModerationResponse)
+
+    // then
+    givenResponse.value.model shouldBe ModerationModel.CustomModerationModel("text-moderation-007")      
   }
 
 }

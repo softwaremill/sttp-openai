@@ -24,7 +24,7 @@ object ModerationsRequestBody {
         jsonValue =>
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
-              byModerationModelValue.getOrElse(value, throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value")))
+              byModerationModelValue.getOrElse(value, CustomModerationModel(value))
             case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
           }
       )
