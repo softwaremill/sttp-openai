@@ -79,7 +79,7 @@ object Main extends App {
 Ollama with sync backend:
 
 ```scala mdoc:compile-only 
-import sttp.model.Uri.*
+import sttp.model.Uri._
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
@@ -135,6 +135,7 @@ Grok with cats-effect based backend:
 import cats.effect.{ExitCode, IO, IOApp}
 import sttp.client4.httpclient.cats.HttpClientCatsBackend
 
+import sttp.model.Uri._
 import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
