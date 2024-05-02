@@ -52,10 +52,11 @@ import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{CreateRun, Creat
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
 
 import java.io.File
+import sttp.model.Uri
 
-class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeClient: Boolean) {
+class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeClient: Boolean, baseUri: Uri) {
 
-  private val openAI = new OpenAI(authToken)
+  private val openAI = new OpenAI(authToken, new OpenAIUris(baseUri))
 
   /** Lists the currently available models, and provides basic information about each one such as the owner and availability.
     *
@@ -795,6 +796,8 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
 }
 
 object OpenAISyncClient {
-  def apply(authToken: String) = new OpenAISyncClient(authToken, DefaultSyncBackend(), true)
-  def apply(authToken: String, backend: SyncBackend) = new OpenAISyncClient(authToken, backend, false)
+  def apply(authToken: String) = new OpenAISyncClient(authToken, DefaultSyncBackend(), true, OpenAIUris.BaseUri)
+  def apply(authToken: String, backend: SyncBackend) = new OpenAISyncClient(authToken, backend, false, OpenAIUris.BaseUri)
+  def apply(authToken: String, backend: SyncBackend, customBaseUri: Uri) = new OpenAISyncClient(authToken, backend, false, customBaseUri)
+  def apply(authToken: String, customBaseUri: Uri) = new OpenAISyncClient(authToken, DefaultSyncBackend(), true, customBaseUri)
 }

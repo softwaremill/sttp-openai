@@ -13,7 +13,7 @@ import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatCh
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
 import sttp.openai.utils.JsonUtils.compactJson
-import sttp.openai.{OpenAI, OpenAIExceptions}
+import sttp.openai.{OpenAI, OpenAIExceptions, OpenAIUris}
 import zio._
 import zio.stream._
 
@@ -24,7 +24,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
       val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespondWithCode(statusCode, ErrorFixture.errorResponse)
-      val client = new OpenAI("test-token")
+      val client = new OpenAI("test-token", OpenAIUris.default)
 
       val givenRequest = ChatBody(
         model = ChatCompletionModel.GPT35Turbo,
@@ -58,7 +58,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       .via(ZPipeline.utf8Encode)
 
     val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(RawStream(streamedResponse))
-    val client = new OpenAI(authToken = "test-token")
+    val client = new OpenAI(authToken = "test-token", OpenAIUris.default)
 
     val givenRequest = ChatBody(
       model = ChatCompletionModel.GPT35Turbo,
@@ -114,7 +114,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   private def assertStreamedCompletion(givenResponse: Stream[Throwable, Byte], expectedResponse: Seq[ChatChunkResponse]) = {
     val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(RawStream(givenResponse))
-    val client = new OpenAI(authToken = "test-token")
+    val client = new OpenAI(authToken = "test-token", OpenAIUris.default)
 
     val givenRequest = ChatBody(
       model = ChatCompletionModel.GPT35Turbo,

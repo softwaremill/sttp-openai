@@ -63,7 +63,7 @@ import sttp.openai.requests.threads.QueryParameters
 import java.io.File
 import java.nio.file.Paths
 
-class OpenAI(authToken: String) {
+class OpenAI(authToken: String, openAIUris: OpenAIUris) {
 
   /** Lists the currently available models, and provides basic information about each one such as the owner and availability.
     *
@@ -71,7 +71,7 @@ class OpenAI(authToken: String) {
     */
   def getModels: Request[Either[OpenAIException, ModelsResponse]] =
     openAIAuthRequest
-      .get(OpenAIUris.Models)
+      .get(openAIUris.Models)
       .response(asJsonSnake[ModelsResponse])
 
   /** Retrieves a model instance, providing basic information about the model such as the owner and permissions.
@@ -83,7 +83,7 @@ class OpenAI(authToken: String) {
     */
   def retrieveModel(modelId: String): Request[Either[OpenAIException, ModelData]] =
     openAIAuthRequest
-      .get(OpenAIUris.model(modelId))
+      .get(openAIUris.model(modelId))
       .response(asJsonSnake[ModelData])
 
   /** Creates a completion for the provided prompt and parameters given in request body.
@@ -95,7 +95,7 @@ class OpenAI(authToken: String) {
     */
   def createCompletion(completionBody: CompletionsBody): Request[Either[OpenAIException, CompletionsResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.Completions)
+      .post(openAIUris.Completions)
       .body(completionBody)
       .response(asJsonSnake[CompletionsResponse])
 
@@ -108,7 +108,7 @@ class OpenAI(authToken: String) {
     */
   def createImage(imageCreationBody: ImageCreationBody): Request[Either[OpenAIException, ImageResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.CreateImage)
+      .post(openAIUris.CreateImage)
       .body(imageCreationBody)
       .response(asJsonSnake[ImageResponse])
 
@@ -126,7 +126,7 @@ class OpenAI(authToken: String) {
     */
   def imageEdits(image: File, prompt: String): Request[Either[OpenAIException, ImageResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.EditImage)
+      .post(openAIUris.EditImage)
       .multipartBody(
         multipart("prompt", prompt),
         multipartFile("image", image)
@@ -147,7 +147,7 @@ class OpenAI(authToken: String) {
     */
   def imageEdits(systemPath: String, prompt: String): Request[Either[OpenAIException, ImageResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.EditImage)
+      .post(openAIUris.EditImage)
       .multipartBody(
         multipart("prompt", prompt),
         multipartFile("image", Paths.get(systemPath).toFile)
@@ -165,7 +165,7 @@ class OpenAI(authToken: String) {
       imageEditsConfig: ImageEditsConfig
   ): Request[Either[OpenAIException, ImageResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.EditImage)
+      .post(openAIUris.EditImage)
       .multipartBody {
         import imageEditsConfig._
         Seq(
@@ -192,7 +192,7 @@ class OpenAI(authToken: String) {
       image: File
   ): Request[Either[OpenAIException, ImageResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.VariationsImage)
+      .post(openAIUris.VariationsImage)
       .multipartBody(
         multipartFile("image", image)
       )
@@ -211,7 +211,7 @@ class OpenAI(authToken: String) {
       systemPath: String
   ): Request[Either[OpenAIException, ImageResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.VariationsImage)
+      .post(openAIUris.VariationsImage)
       .multipartBody(
         multipartFile("image", Paths.get(systemPath).toFile)
       )
@@ -228,7 +228,7 @@ class OpenAI(authToken: String) {
       imageVariationsConfig: ImageVariationsConfig
   ): Request[Either[OpenAIException, ImageResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.VariationsImage)
+      .post(openAIUris.VariationsImage)
       .multipartBody {
         import imageVariationsConfig._
         Seq(
@@ -250,7 +250,7 @@ class OpenAI(authToken: String) {
     */
   def createEdit(editRequestBody: EditBody): Request[Either[OpenAIException, EditResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.Edits)
+      .post(openAIUris.Edits)
       .body(editRequestBody)
       .response(asJsonSnake[EditResponse])
 
@@ -263,7 +263,7 @@ class OpenAI(authToken: String) {
     */
   def createChatCompletion(chatBody: ChatBody): Request[Either[OpenAIException, ChatResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.ChatCompletions)
+      .post(openAIUris.ChatCompletions)
       .body(chatBody)
       .response(asJsonSnake[ChatResponse])
 
@@ -278,7 +278,7 @@ class OpenAI(authToken: String) {
     */
   def createChatCompletion[S](s: Streams[S], chatBody: ChatBody): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
     openAIAuthRequest
-      .post(OpenAIUris.ChatCompletions)
+      .post(openAIUris.ChatCompletions)
       .body(ChatBody.withStreaming(chatBody))
       .response(asStreamSnake(s))
 
@@ -288,7 +288,7 @@ class OpenAI(authToken: String) {
     */
   def getFiles: Request[Either[OpenAIException, FilesResponse]] =
     openAIAuthRequest
-      .get(OpenAIUris.Files)
+      .get(openAIUris.Files)
       .response(asJsonSnake[FilesResponse])
 
   /** Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by
@@ -308,7 +308,7 @@ class OpenAI(authToken: String) {
     */
   def uploadFile(file: File, purpose: String): Request[Either[OpenAIException, FileData]] =
     openAIAuthRequest
-      .post(OpenAIUris.Files)
+      .post(openAIUris.Files)
       .multipartBody(
         multipart("purpose", purpose),
         multipartFile("file", file)
@@ -326,7 +326,7 @@ class OpenAI(authToken: String) {
     */
   def uploadFile(file: File): Request[Either[OpenAIException, FileData]] =
     openAIAuthRequest
-      .post(OpenAIUris.Files)
+      .post(openAIUris.Files)
       .multipartBody(
         multipart("purpose", "fine-tune"),
         multipartFile("file", file)
@@ -350,7 +350,7 @@ class OpenAI(authToken: String) {
     */
   def uploadFile(systemPath: String, purpose: String): Request[Either[OpenAIException, FileData]] =
     openAIAuthRequest
-      .post(OpenAIUris.Files)
+      .post(openAIUris.Files)
       .multipartBody(
         multipart("purpose", purpose),
         multipartFile("file", Paths.get(systemPath).toFile)
@@ -369,7 +369,7 @@ class OpenAI(authToken: String) {
     */
   def uploadFile(systemPath: String): Request[Either[OpenAIException, FileData]] =
     openAIAuthRequest
-      .post(OpenAIUris.Files)
+      .post(openAIUris.Files)
       .multipartBody(
         multipart("purpose", "fine-tune"),
         multipartFile("file", Paths.get(systemPath).toFile)
@@ -385,7 +385,7 @@ class OpenAI(authToken: String) {
     */
   def deleteFile(fileId: String): Request[Either[OpenAIException, DeletedFileData]] =
     openAIAuthRequest
-      .delete(OpenAIUris.file(fileId))
+      .delete(openAIUris.file(fileId))
       .response(asJsonSnake[DeletedFileData])
 
   /** Returns information about a specific file.
@@ -397,7 +397,7 @@ class OpenAI(authToken: String) {
     */
   def retrieveFile(fileId: String): Request[Either[OpenAIException, FileData]] =
     openAIAuthRequest
-      .get(OpenAIUris.file(fileId))
+      .get(openAIUris.file(fileId))
       .response(asJsonSnake[FileData])
 
   /** Returns the contents of the specified file.
@@ -409,7 +409,7 @@ class OpenAI(authToken: String) {
     */
   def retrieveFileContent(fileId: String): Request[Either[OpenAIException, String]] =
     openAIAuthRequest
-      .get(OpenAIUris.fileContent(fileId))
+      .get(openAIUris.fileContent(fileId))
       .response(asStringEither)
 
   /** Translates audio into English text.
@@ -423,7 +423,7 @@ class OpenAI(authToken: String) {
     */
   def createTranslation(file: File, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.Translations)
+      .post(openAIUris.Translations)
       .multipartBody(
         multipartFile("file", file),
         multipart("model", model.value)
@@ -441,7 +441,7 @@ class OpenAI(authToken: String) {
     */
   def createTranslation(systemPath: String, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.Translations)
+      .post(openAIUris.Translations)
       .multipartBody(
         multipartFile("file", Paths.get(systemPath).toFile),
         multipart("model", model)
@@ -457,7 +457,7 @@ class OpenAI(authToken: String) {
     */
   def createTranslation(translationConfig: TranslationConfig): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.Translations)
+      .post(openAIUris.Translations)
       .multipartBody {
         import translationConfig._
         Seq(
@@ -479,7 +479,7 @@ class OpenAI(authToken: String) {
     */
   def createModeration(moderationsBody: ModerationsBody): Request[Either[OpenAIException, ModerationData]] =
     openAIAuthRequest
-      .post(OpenAIUris.Moderations)
+      .post(openAIUris.Moderations)
       .body(moderationsBody)
       .response(asJsonSnake[ModerationData])
 
@@ -494,7 +494,7 @@ class OpenAI(authToken: String) {
     */
   def createTranscription(file: File, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.Transcriptions)
+      .post(openAIUris.Transcriptions)
       .multipartBody(
         multipartFile("file", file),
         multipart("model", model.value)
@@ -515,7 +515,7 @@ class OpenAI(authToken: String) {
       model: RecognitionModel
   ): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.Transcriptions)
+      .post(openAIUris.Transcriptions)
       .multipartBody(
         multipartFile("file", Paths.get(systemPath).toFile),
         multipart("model", model.value)
@@ -531,7 +531,7 @@ class OpenAI(authToken: String) {
     */
   def createTranscription(transcriptionConfig: TranscriptionConfig): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.Transcriptions)
+      .post(openAIUris.Transcriptions)
       .multipartBody {
         import transcriptionConfig._
         Seq(
@@ -556,7 +556,7 @@ class OpenAI(authToken: String) {
       fineTunesRequestBody: FineTunesRequestBody
   ): Request[Either[OpenAIException, FineTuneResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.FineTunes)
+      .post(openAIUris.FineTunes)
       .body(fineTunesRequestBody)
       .response(asJsonSnake[FineTuneResponse])
 
@@ -566,7 +566,7 @@ class OpenAI(authToken: String) {
     */
   def getFineTunes: Request[Either[OpenAIException, GetFineTunesResponse]] =
     openAIAuthRequest
-      .get(OpenAIUris.FineTunes)
+      .get(openAIUris.FineTunes)
       .response(asJsonSnake[GetFineTunesResponse])
 
   /** Immediately cancel a fine-tune job.
@@ -578,7 +578,7 @@ class OpenAI(authToken: String) {
     */
   def cancelFineTune(fineTuneId: String): Request[Either[OpenAIException, FineTuneResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.cancelFineTune(fineTuneId))
+      .post(openAIUris.cancelFineTune(fineTuneId))
       .response(asJsonSnake[FineTuneResponse])
 
   /** Gets info about the fine-tune job.
@@ -590,7 +590,7 @@ class OpenAI(authToken: String) {
     */
   def createEmbeddings(embeddingsBody: EmbeddingsBody): Request[Either[OpenAIException, EmbeddingResponse]] =
     openAIAuthRequest
-      .post(OpenAIUris.Embeddings)
+      .post(openAIUris.Embeddings)
       .body(embeddingsBody)
       .response(asJsonSnake[EmbeddingResponse])
 
@@ -603,7 +603,7 @@ class OpenAI(authToken: String) {
     */
   def retrieveFineTune(fineTuneId: String): Request[Either[OpenAIException, FineTuneResponse]] =
     openAIAuthRequest
-      .get(OpenAIUris.fineTune(fineTuneId))
+      .get(openAIUris.fineTune(fineTuneId))
       .response(asJsonSnake[FineTuneResponse])
 
   /** Delete a fine-tuned model. You must have the Owner role in your organization.
@@ -615,7 +615,7 @@ class OpenAI(authToken: String) {
     */
   def deleteFineTuneModel(model: String): Request[Either[OpenAIException, DeleteFineTuneModelResponse]] =
     openAIAuthRequest
-      .delete(OpenAIUris.fineTuneModel(model))
+      .delete(openAIUris.fineTuneModel(model))
       .response(asJsonSnake[DeleteFineTuneModelResponse])
 
   /** Get fine-grained status updates for a fine-tune job.
@@ -627,7 +627,7 @@ class OpenAI(authToken: String) {
     */
   def getFineTuneEvents(fineTuneId: String): Request[Either[OpenAIException, FineTuneEventsResponse]] =
     openAIAuthRequest
-      .get(OpenAIUris.fineTuneEvents(fineTuneId))
+      .get(openAIUris.fineTuneEvents(fineTuneId))
       .response(asJsonSnake[FineTuneEventsResponse])
 
   /** Create a thread.
@@ -639,7 +639,7 @@ class OpenAI(authToken: String) {
     */
   def createThread(createThreadBody: CreateThreadBody): Request[Either[OpenAIException, ThreadData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.Threads)
+      .post(openAIUris.Threads)
       .body(createThreadBody)
       .response(asJsonSnake[ThreadData])
 
@@ -652,7 +652,7 @@ class OpenAI(authToken: String) {
     */
   def retrieveThread(threadId: String): Request[Either[OpenAIException, ThreadData]] =
     betaOpenAIAuthRequest
-      .get(OpenAIUris.thread(threadId))
+      .get(openAIUris.thread(threadId))
       .response(asJsonSnake[ThreadData])
 
   /** Modifies a thread.
@@ -664,7 +664,7 @@ class OpenAI(authToken: String) {
     */
   def modifyThread(threadId: String, metadata: Map[String, String]): Request[Either[OpenAIException, ThreadData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.thread(threadId))
+      .post(openAIUris.thread(threadId))
       .body(metadata)
       .response(asJsonSnake[ThreadData])
 
@@ -677,7 +677,7 @@ class OpenAI(authToken: String) {
     */
   def deleteThread(threadId: String): Request[Either[OpenAIException, DeleteThreadResponse]] =
     betaOpenAIAuthRequest
-      .delete(OpenAIUris.thread(threadId))
+      .delete(openAIUris.thread(threadId))
       .response(asJsonSnake[DeleteThreadResponse])
 
   /** Create a message.
@@ -689,7 +689,7 @@ class OpenAI(authToken: String) {
     */
   def createThreadMessage(threadId: String, message: CreateMessage): Request[Either[OpenAIException, MessageData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.threadMessages(threadId))
+      .post(openAIUris.threadMessages(threadId))
       .body(message)
       .response(asJsonSnake[MessageData])
 
@@ -704,7 +704,7 @@ class OpenAI(authToken: String) {
       threadId: String,
       queryParameters: QueryParameters = QueryParameters.empty
   ): Request[Either[OpenAIException, ListMessagesResponse]] = {
-    val uri = OpenAIUris
+    val uri = openAIUris
       .threadMessages(threadId)
       .withParams(queryParameters.toMap)
 
@@ -728,7 +728,7 @@ class OpenAI(authToken: String) {
       messageId: String,
       queryParameters: QueryParameters = QueryParameters.empty
   ): Request[Either[OpenAIException, ListMessageFilesResponse]] = {
-    val uri = OpenAIUris
+    val uri = openAIUris
       .threadMessageFiles(threadId, messageId)
       .withParams(queryParameters.toMap)
 
@@ -752,7 +752,7 @@ class OpenAI(authToken: String) {
       messageId: String
   ): Request[Either[OpenAIException, MessageData]] =
     betaOpenAIAuthRequest
-      .get(OpenAIUris.threadMessage(threadId, messageId))
+      .get(openAIUris.threadMessage(threadId, messageId))
       .response(asJsonSnake[MessageData])
 
   /** Retrieves a message file.
@@ -774,7 +774,7 @@ class OpenAI(authToken: String) {
       fileId: String
   ): Request[Either[OpenAIException, MessageFileData]] =
     betaOpenAIAuthRequest
-      .get(OpenAIUris.threadMessageFile(threadId, messageId, fileId))
+      .get(openAIUris.threadMessageFile(threadId, messageId, fileId))
       .response(asJsonSnake[MessageFileData])
 
   /** Modifies a message.
@@ -789,7 +789,7 @@ class OpenAI(authToken: String) {
     */
   def modifyMessage(threadId: String, messageId: String, metadata: Map[String, String]): Request[Either[OpenAIException, MessageData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.threadMessage(threadId, messageId))
+      .post(openAIUris.threadMessage(threadId, messageId))
       .body(metadata)
       .response(asJsonSnake[MessageData])
 
@@ -802,7 +802,7 @@ class OpenAI(authToken: String) {
     */
   def createAssistant(createAssistantBody: CreateAssistantBody): Request[Either[OpenAIException, AssistantData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.Assistants)
+      .post(openAIUris.Assistants)
       .body(createAssistantBody)
       .response(asJsonSnake[AssistantData])
 
@@ -819,7 +819,7 @@ class OpenAI(authToken: String) {
     */
   def createAssistantFile(assistantId: String, fileId: String): Request[Either[OpenAIException, AssistantFileData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.assistantFiles(assistantId))
+      .post(openAIUris.assistantFiles(assistantId))
       .body(CreateAssistantFileBody(fileId))
       .response(asJsonSnake[AssistantFileData])
 
@@ -830,7 +830,7 @@ class OpenAI(authToken: String) {
   def listAssistants(
       queryParameters: QueryParameters = QueryParameters.empty
   ): Request[Either[OpenAIException, ListAssistantsResponse]] = {
-    val uri = OpenAIUris.Assistants
+    val uri = openAIUris.Assistants
       .withParams(queryParameters.toMap)
 
     betaOpenAIAuthRequest
@@ -849,7 +849,7 @@ class OpenAI(authToken: String) {
       assistantId: String,
       queryParameters: QueryParameters = QueryParameters.empty
   ): Request[Either[OpenAIException, ListAssistantFilesResponse]] = {
-    val uri = OpenAIUris
+    val uri = openAIUris
       .assistantFiles(assistantId)
       .withParams(queryParameters.toMap)
 
@@ -867,7 +867,7 @@ class OpenAI(authToken: String) {
     */
   def retrieveAssistant(assistantId: String): Request[Either[OpenAIException, AssistantData]] =
     betaOpenAIAuthRequest
-      .get(OpenAIUris.assistant(assistantId))
+      .get(openAIUris.assistant(assistantId))
       .response(asJsonSnake[AssistantData])
 
   /** Retrieves an AssistantFile.
@@ -882,7 +882,7 @@ class OpenAI(authToken: String) {
     */
   def retrieveAssistantFile(assistantId: String, fileId: String): Request[Either[OpenAIException, AssistantFileData]] =
     betaOpenAIAuthRequest
-      .get(OpenAIUris.assistantFile(assistantId, fileId))
+      .get(openAIUris.assistantFile(assistantId, fileId))
       .response(asJsonSnake[AssistantFileData])
 
   /** Modifies an assistant.
@@ -897,7 +897,7 @@ class OpenAI(authToken: String) {
     */
   def modifyAssistant(assistantId: String, modifyAssistantBody: ModifyAssistantBody): Request[Either[OpenAIException, AssistantData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.assistant(assistantId))
+      .post(openAIUris.assistant(assistantId))
       .body(modifyAssistantBody)
       .response(asJsonSnake[AssistantData])
 
@@ -910,7 +910,7 @@ class OpenAI(authToken: String) {
     */
   def deleteAssistant(assistantId: String): Request[Either[OpenAIException, DeleteAssistantResponse]] =
     betaOpenAIAuthRequest
-      .delete(OpenAIUris.assistant(assistantId))
+      .delete(openAIUris.assistant(assistantId))
       .response(asJsonSnake[DeleteAssistantResponse])
 
   /** Delete an assistant file.
@@ -925,7 +925,7 @@ class OpenAI(authToken: String) {
     */
   def deleteAssistantFile(assistantId: String, fileId: String): Request[Either[OpenAIException, DeleteAssistantFileResponse]] =
     betaOpenAIAuthRequest
-      .delete(OpenAIUris.assistantFile(assistantId, fileId))
+      .delete(openAIUris.assistantFile(assistantId, fileId))
       .response(asJsonSnake[DeleteAssistantFileResponse])
 
   /** Create a run.
@@ -939,7 +939,7 @@ class OpenAI(authToken: String) {
     */
   def createRun(threadId: String, createRun: CreateRun): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.threadRuns(threadId))
+      .post(openAIUris.threadRuns(threadId))
       .body(createRun)
       .response(asJsonSnake[RunData])
 
@@ -952,7 +952,7 @@ class OpenAI(authToken: String) {
     */
   def createThreadAndRun(createThreadAndRun: CreateThreadAndRun): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.ThreadsRuns)
+      .post(openAIUris.ThreadsRuns)
       .body(createThreadAndRun)
       .response(asJsonSnake[RunData])
 
@@ -965,7 +965,7 @@ class OpenAI(authToken: String) {
     */
   def listRuns(threadId: String): Request[Either[OpenAIException, ListRunsResponse]] =
     betaOpenAIAuthRequest
-      .get(OpenAIUris.threadRuns(threadId))
+      .get(openAIUris.threadRuns(threadId))
       .response(asJsonSnake[ListRunsResponse])
 
   /** Returns a list of run steps belonging to a run.
@@ -983,7 +983,7 @@ class OpenAI(authToken: String) {
       runId: String,
       queryParameters: QueryParameters = QueryParameters.empty
   ): Request[Either[OpenAIException, ListRunStepsResponse]] = {
-    val uri = OpenAIUris
+    val uri = openAIUris
       .threadRunSteps(threadId, runId)
       .withParams(queryParameters.toMap)
 
@@ -1004,7 +1004,7 @@ class OpenAI(authToken: String) {
     */
   def retrieveRun(threadId: String, runId: String): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
-      .get(OpenAIUris.threadRun(threadId, runId))
+      .get(openAIUris.threadRun(threadId, runId))
       .response(asJsonSnake[RunData])
 
   /** Retrieves a run step.
@@ -1022,7 +1022,7 @@ class OpenAI(authToken: String) {
     */
   def retrieveRunStep(threadId: String, runId: String, stepId: String): Request[Either[OpenAIException, RunStepData]] =
     betaOpenAIAuthRequest
-      .get(OpenAIUris.threadRunStep(threadId, runId, stepId))
+      .get(openAIUris.threadRunStep(threadId, runId, stepId))
       .response(asJsonSnake[RunStepData])
 
   /** Modifies a run.
@@ -1037,7 +1037,7 @@ class OpenAI(authToken: String) {
     */
   def modifyRun(threadId: String, runId: String, metadata: Map[String, String]): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.threadRun(threadId, runId))
+      .post(openAIUris.threadRun(threadId, runId))
       .body(ModifyRun(metadata))
       .response(asJsonSnake[RunData])
 
@@ -1055,7 +1055,7 @@ class OpenAI(authToken: String) {
     */
   def submitToolOutputs(threadId: String, runId: String, toolOutputs: Seq[ToolOutput]): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.threadRunSubmitToolOutputs(threadId, runId))
+      .post(openAIUris.threadRunSubmitToolOutputs(threadId, runId))
       .body(SubmitToolOutputsToRun(toolOutputs))
       .response(asJsonSnake[RunData])
 //
@@ -1071,7 +1071,7 @@ class OpenAI(authToken: String) {
     */
   def cancelRun(threadId: String, runId: String): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
-      .post(OpenAIUris.threadRunCancel(threadId, runId))
+      .post(openAIUris.threadRunCancel(threadId, runId))
       .response(asJsonSnake[RunData])
 
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
@@ -1082,27 +1082,27 @@ class OpenAI(authToken: String) {
 
 }
 
-private object OpenAIUris {
-  private val ImageBase: Uri = uri"https://api.openai.com/v1/images"
-  private val AudioBase: Uri = uri"https://api.openai.com/v1/audio/"
+private class OpenAIUris(val BaseUri: Uri) {
+  private val ImageBase: Uri = uri"$BaseUri/images"
+  private val AudioBase: Uri = uri"$BaseUri/audio/"
 
-  val ChatCompletions: Uri = uri"https://api.openai.com/v1/chat/completions"
-  val Completions: Uri = uri"https://api.openai.com/v1/completions"
+  val ChatCompletions: Uri = uri"$BaseUri/chat/completions"
+  val Completions: Uri = uri"$BaseUri/completions"
   val CreateImage: Uri = ImageBase.addPath("generations")
-  val Edits: Uri = uri"https://api.openai.com/v1/edits"
-  val Embeddings: Uri = uri"https://api.openai.com/v1/embeddings"
+  val Edits: Uri = uri"$BaseUri/edits"
+  val Embeddings: Uri = uri"$BaseUri/embeddings"
   val EditImage: Uri = ImageBase.addPath("edits")
-  val Files: Uri = uri"https://api.openai.com/v1/files"
-  val FineTunes: Uri = uri"https://api.openai.com/v1/fine-tunes"
-  val Models: Uri = uri"https://api.openai.com/v1/models"
-  val Moderations: Uri = uri"https://api.openai.com/v1/moderations"
+  val Files: Uri = uri"$BaseUri/files"
+  val FineTunes: Uri = uri"$BaseUri/fine-tunes"
+  val Models: Uri = uri"$BaseUri/models"
+  val Moderations: Uri = uri"$BaseUri/moderations"
   val Transcriptions: Uri = AudioBase.addPath("transcriptions")
   val Translations: Uri = AudioBase.addPath("translations")
   val VariationsImage: Uri = ImageBase.addPath("variations")
 
-  val Assistants: Uri = uri"https://api.openai.com/v1/assistants"
-  val Threads: Uri = uri"https://api.openai.com/v1/threads"
-  val ThreadsRuns: Uri = uri"https://api.openai.com/v1/threads/runs"
+  val Assistants: Uri = uri"$BaseUri/assistants"
+  val Threads: Uri = uri"$BaseUri/threads"
+  val ThreadsRuns: Uri = uri"$BaseUri/threads/runs"
 
   def cancelFineTune(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId, "cancel")
   def file(fileId: String): Uri = Files.addPath(fileId)
@@ -1139,4 +1139,10 @@ private object OpenAIUris {
   def threadRunSubmitToolOutputs(threadId: String, runId: String): Uri =
     Threads.addPath(threadId, "runs", runId, "submit_tool_outputs")
 
+}
+
+private object OpenAIUris {
+  val BaseUri: Uri = uri"https://api.openai.com/v1"
+
+  def default: OpenAIUris = new OpenAIUris(BaseUri)
 }
