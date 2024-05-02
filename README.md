@@ -9,10 +9,10 @@ sttp is a family of Scala HTTP-related projects, and currently includes:
 
 * [sttp client](https://github.com/softwaremill/sttp): The Scala HTTP client you always wanted!
 * [sttp tapir](https://github.com/softwaremill/tapir): Typed API descRiptions
-* sttp openai: this project. Scala client wrapper for OpenAI API. Use the power of ChatGPT inside your code!
+* sttp openai: this project. Scala client wrapper for OpenAI (and OpenAI-compatible) API. Use the power of ChatGPT inside your code!
 
 ## Intro
-Sttp-openai uses sttp client to describe requests and responses used in OpenAI endpoints.
+Sttp-openai uses sttp client to describe requests and responses used in OpenAI (and OpenAI-compatible) endpoints.
 
 ## Quickstart with sbt
 
@@ -73,6 +73,123 @@ object Main extends App {
   */
 }
 ```
+
+### To use Ollama or Grok (OpenAI-compatible APIs)
+
+Ollama with sync backend:
+
+```scala mdoc:compile-only 
+import sttp.model.Uri.*
+import sttp.openai.OpenAISyncClient
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
+import sttp.openai.requests.completions.chat.message._
+
+object Main extends App {
+  // Create an instance of OpenAISyncClient providing any api key 
+  // and a base url of locally running instance of ollama
+  val openAI: OpenAISyncClient = OpenAISyncClient("ollama", uri"http://localhost:11434/v1")
+
+  // Create body of Chat Completions Request
+  val bodyMessages: Seq[Message] = Seq(
+    Message.UserMessage(
+      content = Content.TextContent("Hello!"),
+    )
+  )
+
+  
+  val chatRequestBody: ChatBody = ChatBody(
+    // assuming one has already executed `ollama pull mistral` in console
+    model = ChatCompletionModel.CustomChatCompletionModel("mistral"),
+    messages = bodyMessages
+  )
+
+  // be aware that calling `createChatCompletion` may throw an OpenAIException
+  // e.g. AuthenticationException, RateLimitException and many more
+  val chatResponse: ChatResponse = openAI.createChatCompletion(chatRequestBody)
+
+  println(chatResponse)
+  /*
+    ChatResponse(
+      chatcmpl-650,
+      List(
+        Choices(
+          Message(Assistant, """Hello there! How can I help you today?""", List(), None),
+          "stop",
+          0
+        )
+      ),
+      1714663831,
+      "mistral",
+      "chat.completion",
+      Usage(0, 187, 187),
+      Some("fp_ollama")
+    )
+  */
+}
+```
+
+Grok with cats-effect based backend:
+
+```scala mdoc:compile-only 
+import cats.effect.{ExitCode, IO, IOApp}
+import sttp.client4.httpclient.cats.HttpClientCatsBackend
+
+import sttp.openai.OpenAI
+import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
+import sttp.openai.requests.completions.chat.message._
+
+object Main extends IOApp {
+  override def run(args: List[String]): IO[ExitCode] = {
+    val openAI: OpenAI = new OpenAI("your-secret-key", uri"https://api.groq.com/openai/v1")
+
+    val bodyMessages: Seq[Message] = Seq(
+      Message.UserMessage(
+        content = Content.TextContent("Hello!"),
+      )
+    )
+
+    val chatRequestBody: ChatBody = ChatBody(
+      model = ChatCompletionModel.CustomChatCompletionModel("gemma-7b-it"),
+      messages = bodyMessages
+    )
+    HttpClientCatsBackend.resource[IO]().use { backend =>
+      val response: IO[Either[OpenAIException, ChatResponse]] =
+        openAI
+          .createChatCompletion(chatRequestBody)
+          .send(backend)
+          .map(_.body)
+      val rethrownResponse: IO[ChatResponse] = response.rethrow
+      val redeemedResponse: IO[String] = rethrownResponse.redeem(
+        error => error.getMessage,
+        chatResponse => chatResponse.toString
+      )
+      redeemedResponse.flatMap(IO.println)
+        .as(ExitCode.Success)
+    }
+  } 
+  /*
+    ChatResponse(
+      "chatcmpl-e0f9f78c-5e74-494c-9599-da02fa495ff8",
+      List(
+        Choices(
+          Message(Assistant, "Hello! 👋 It's great to hear from you. What can I do for you today? 😊", List(), None),
+          "stop",
+          0
+        )
+      ),
+      1714667435,
+      "gemma-7b-it",
+      "chat.completion",
+      Usage(16, 21, 37),
+      Some("fp_f0c35fc854")
+    )
+  */
+}
+```
+
 #### Available backend implementations:
 * `OpenAISyncBackend` which uses identity monad `Id[A]` as an effect `F[A]` and throws `OpenAIException`
 * `OpenAI` which provides raw sttp `Request`s and wraps `Response`s into `Either[OpenAIException, A]`
