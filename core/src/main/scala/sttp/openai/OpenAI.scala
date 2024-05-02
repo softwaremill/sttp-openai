@@ -63,7 +63,9 @@ import sttp.openai.requests.threads.QueryParameters
 import java.io.File
 import java.nio.file.Paths
 
-class OpenAI(authToken: String, openAIUris: OpenAIUris) {
+class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
+
+  private val openAIUris = new OpenAIUris(baseUri)
 
   /** Lists the currently available models, and provides basic information about each one such as the owner and availability.
     *
@@ -1141,8 +1143,6 @@ private class OpenAIUris(val BaseUri: Uri) {
 
 }
 
-private object OpenAIUris {
-  val BaseUri: Uri = uri"https://api.openai.com/v1"
-
-  def default: OpenAIUris = new OpenAIUris(BaseUri)
+object OpenAIUris {
+  val OpenAIBaseUri: Uri = uri"https://api.openai.com/v1"
 }

@@ -10,7 +10,7 @@ import org.scalatest.matchers.should.Matchers
 import sttp.client4.akkahttp.AkkaHttpBackend
 import sttp.client4.testing.RawStream
 import sttp.model.sse.ServerSentEvent
-import sttp.openai.{OpenAI, OpenAIUris}
+import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
@@ -26,7 +26,7 @@ class AkkaClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
       val akkaBackendStub = AkkaHttpBackend.stub.whenAnyRequest.thenRespondWithCode(statusCode, ErrorFixture.errorResponse)
-      val client = new OpenAI("test-token", OpenAIUris.default)
+      val client = new OpenAI("test-token")
 
       val givenRequest = ChatBody(
         model = ChatCompletionModel.GPT35Turbo,
@@ -60,7 +60,7 @@ class AkkaClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
       .map(ByteString(_))
 
     val akkaBackendStub = AkkaHttpBackend.stub.whenAnyRequest.thenRespond(RawStream(streamedResponse))
-    val client = new OpenAI(authToken = "test-token", OpenAIUris.default)
+    val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
       model = ChatCompletionModel.GPT35Turbo,
@@ -113,7 +113,7 @@ class AkkaClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
 
   private def assertStreamedCompletion(givenResponse: Source[ByteString, NotUsed], expectedResponse: Seq[ChatChunkResponse]) = {
     val akkaBackendStub = AkkaHttpBackend.stub.whenAnyRequest.thenRespond(RawStream(givenResponse))
-    val client = new OpenAI(authToken = "test-token", OpenAIUris.default)
+    val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
       model = ChatCompletionModel.GPT35Turbo,

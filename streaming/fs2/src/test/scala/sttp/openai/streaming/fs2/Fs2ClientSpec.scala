@@ -9,7 +9,7 @@ import fs2.{text, Stream}
 import sttp.client4.httpclient.fs2.HttpClientFs2Backend
 import sttp.client4.testing.RawStream
 import sttp.model.sse.ServerSentEvent
-import sttp.openai.{OpenAI, OpenAIUris}
+import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
@@ -23,7 +23,7 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
       val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespondWithCode(statusCode, ErrorFixture.errorResponse)
-      val client = new OpenAI("test-token", OpenAIUris.default)
+      val client = new OpenAI("test-token")
 
       val givenRequest = ChatBody(
         model = ChatCompletionModel.GPT35Turbo,
@@ -58,7 +58,7 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
       .covary[IO]
 
     val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(RawStream(streamedResponse))
-    val client = new OpenAI(authToken = "test-token", OpenAIUris.default)
+    val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
       model = ChatCompletionModel.GPT35Turbo,
@@ -115,7 +115,7 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
 
   private def assertStreamedCompletion(givenResponse: Stream[IO, Byte], expectedResponse: Seq[ChatChunkResponse]) = {
     val pekkoBackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(RawStream(givenResponse))
-    val client = new OpenAI(authToken = "test-token", OpenAIUris.default)
+    val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
       model = ChatCompletionModel.GPT35Turbo,
