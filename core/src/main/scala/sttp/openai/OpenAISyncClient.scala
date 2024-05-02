@@ -798,6 +798,6 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
 object OpenAISyncClient {
   def apply(authToken: String) = new OpenAISyncClient(authToken, DefaultSyncBackend(), true, OpenAIUris.BaseUri)
   def apply(authToken: String, backend: SyncBackend) = new OpenAISyncClient(authToken, backend, false, OpenAIUris.BaseUri)
-  def apply(authToken: String, backend: SyncBackend, customBaseUri: Uri) = new OpenAISyncClient(authToken, backend, false, customBaseUri)
-  def apply(authToken: String, customBaseUri: Uri) = new OpenAISyncClient(authToken, DefaultSyncBackend(), true, customBaseUri)
+  def apply(authToken: String, backend: SyncBackend, baseUrl: Uri) = new OpenAISyncClient(authToken, backend, false, baseUrl)
+  def apply(authToken: String, baseUrl: Uri) = new OpenAISyncClient(authToken, DefaultSyncBackend(), true, baseUrl)
 }
