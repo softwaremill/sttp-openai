@@ -68,7 +68,12 @@ object SttpUpickleApiExtension extends SttpUpickleApi {
     }
   }
 
-  private case class Error(message: Option[String], `type`: Option[String], param: Option[String], code: Option[String])
+  private case class Error(
+      message: Option[String] = None,
+      `type`: Option[String] = None,
+      param: Option[String] = None,
+      code: Option[String] = None
+  )
   private object Error {
     implicit val errorR: upickleApi.Reader[Error] = upickleApi.macroR
   }
