@@ -1084,27 +1084,27 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
 
 }
 
-private class OpenAIUris(val BaseUri: Uri) {
-  private val ImageBase: Uri = uri"$BaseUri/images"
-  private val AudioBase: Uri = uri"$BaseUri/audio/"
+private class OpenAIUris(val baseUri: Uri) {
+  private val imageBase: Uri = uri"$baseUri/images"
+  private val audioBase: Uri = uri"$baseUri/audio/"
 
-  val ChatCompletions: Uri = uri"$BaseUri/chat/completions"
-  val Completions: Uri = uri"$BaseUri/completions"
-  val CreateImage: Uri = ImageBase.addPath("generations")
-  val Edits: Uri = uri"$BaseUri/edits"
-  val Embeddings: Uri = uri"$BaseUri/embeddings"
-  val EditImage: Uri = ImageBase.addPath("edits")
-  val Files: Uri = uri"$BaseUri/files"
-  val FineTunes: Uri = uri"$BaseUri/fine-tunes"
-  val Models: Uri = uri"$BaseUri/models"
-  val Moderations: Uri = uri"$BaseUri/moderations"
-  val Transcriptions: Uri = AudioBase.addPath("transcriptions")
-  val Translations: Uri = AudioBase.addPath("translations")
-  val VariationsImage: Uri = ImageBase.addPath("variations")
+  val ChatCompletions: Uri = uri"$baseUri/chat/completions"
+  val Completions: Uri = uri"$baseUri/completions"
+  val CreateImage: Uri = imageBase.addPath("generations")
+  val Edits: Uri = uri"$baseUri/edits"
+  val Embeddings: Uri = uri"$baseUri/embeddings"
+  val EditImage: Uri = imageBase.addPath("edits")
+  val Files: Uri = uri"$baseUri/files"
+  val FineTunes: Uri = uri"$baseUri/fine-tunes"
+  val Models: Uri = uri"$baseUri/models"
+  val Moderations: Uri = uri"$baseUri/moderations"
+  val Transcriptions: Uri = audioBase.addPath("transcriptions")
+  val Translations: Uri = audioBase.addPath("translations")
+  val VariationsImage: Uri = imageBase.addPath("variations")
 
-  val Assistants: Uri = uri"$BaseUri/assistants"
-  val Threads: Uri = uri"$BaseUri/threads"
-  val ThreadsRuns: Uri = uri"$BaseUri/threads/runs"
+  val Assistants: Uri = uri"$baseUri/assistants"
+  val Threads: Uri = uri"$baseUri/threads"
+  val ThreadsRuns: Uri = uri"$baseUri/threads/runs"
 
   def cancelFineTune(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId, "cancel")
   def file(fileId: String): Uri = Files.addPath(fileId)
