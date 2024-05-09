@@ -8,6 +8,8 @@ object ImageCreationRequestBody {
 
   /** @param prompt
     *   A text description of the desired image(s). The maximum length is 1000 characters.
+    * @param model
+    *   A name of the model to use for image generation
     * @param n
     *   The number of images to generate. Must be between 1 and 10.
     * @param size
@@ -19,6 +21,7 @@ object ImageCreationRequestBody {
     */
   case class ImageCreationBody(
       prompt: String,
+      model: String,
       n: Option[Int] = None,
       size: Option[Size] = None,
       responseFormat: Option[ResponseFormat] = None,
