@@ -385,7 +385,7 @@ object ThreadRunsResponseData {
   ) extends ToolCall
 
   object FileSearchToolCall {
-    implicit val file_searchToolCallR: SnakePickle.Reader[FileSearchToolCall] = SnakePickle.macroR[FileSearchToolCall]
+    implicit val fileSearchToolCallR: SnakePickle.Reader[FileSearchToolCall] = SnakePickle.macroR[FileSearchToolCall]
   }
 
   /** Function tool call
