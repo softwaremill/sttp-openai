@@ -1,16 +1,10 @@
 package sttp.openai
 
 import sttp.client4.{DefaultSyncBackend, Request, SyncBackend}
+import sttp.model.Uri
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
-import sttp.openai.requests.assistants.AssistantsResponseData.{
-  AssistantData,
-  AssistantFileData,
-  DeleteAssistantFileResponse,
-  DeleteAssistantResponse,
-  ListAssistantFilesResponse,
-  ListAssistantsResponse
-}
+import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.RecognitionModel
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
@@ -38,21 +32,23 @@ import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
+import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{
-  ListMessageFilesResponse,
-  ListMessagesResponse,
-  MessageData,
-  MessageFileData
-}
-import sttp.openai.requests.threads.QueryParameters
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{CreateRun, CreateThreadAndRun, ToolOutput}
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
+import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
+import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
+  DeleteVectorStoreFileResponse,
+  ListVectorStoreFilesResponse,
+  VectorStoreFile
+}
 
 import java.io.File
-import sttp.model.Uri
 
 class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeClient: Boolean, baseUri: Uri) {
 
@@ -495,23 +491,6 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
   ): ListMessagesResponse =
     sendOrThrow(openAI.listThreadMessages(threadId, queryParameters))
 
-  /** Returns a list of message files.
-    *
-    * [[https://platform.openai.com/docs/api-reference/messages/listMessageFiles]]
-    *
-    * @param threadId
-    *   The ID of the thread that the message and files belong to.
-    *
-    * @param messageId
-    *   The ID of the message that the files belongs to.
-    */
-  def listThreadMessageFiles(
-      threadId: String,
-      messageId: String,
-      queryParameters: QueryParameters = QueryParameters.empty
-  ): ListMessageFilesResponse =
-    sendOrThrow(openAI.listThreadMessageFiles(threadId, messageId, queryParameters))
-
   /** Retrieve a message.
     *
     * [[https://platform.openai.com/docs/api-reference/messages/getMessage]]
@@ -527,26 +506,6 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
       messageId: String
   ): MessageData =
     sendOrThrow(openAI.retrieveThreadMessage(threadId, messageId))
-
-  /** Retrieves a message file.
-    *
-    * [[https://platform.openai.com/docs/api-reference/messages/getMessageFile]]
-    *
-    * @param threadId
-    *   The ID of the thread to which the message and File belong.
-    *
-    * @param messageId
-    *   The ID of the message the file belongs to.
-    *
-    * @param fileId
-    *   The ID of the file being retrieved.
-    */
-  def retrieveThreadMessageFile(
-      threadId: String,
-      messageId: String,
-      fileId: String
-  ): MessageFileData =
-    sendOrThrow(openAI.retrieveThreadMessageFile(threadId, messageId, fileId))
 
   /** Modifies a message.
     *
@@ -571,20 +530,6 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
   def createAssistant(createAssistantBody: CreateAssistantBody): AssistantData =
     sendOrThrow(openAI.createAssistant(createAssistantBody))
 
-  /** Create an assistant file by attaching a File to an assistant.
-    *
-    * [[https://platform.openai.com/docs/api-reference/assistants/createAssistantFile]]
-    *
-    * @param assistantId
-    *   The ID of the assistant for which to create a File.
-    *
-    * @param fileId
-    *   A File ID (with purpose="assistants") that the assistant should use. Useful for tools like retrieval and code_interpreter that can
-    *   access files..
-    */
-  def createAssistantFile(assistantId: String, fileId: String): AssistantFileData =
-    sendOrThrow(openAI.createAssistantFile(assistantId, fileId))
-
   /** Returns a list of assistants.
     *
     * [[https://platform.openai.com/docs/api-reference/assistants/listAssistants]]
@@ -593,19 +538,6 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
       queryParameters: QueryParameters = QueryParameters.empty
   ): ListAssistantsResponse =
     sendOrThrow(openAI.listAssistants(queryParameters))
-
-  /** Returns a list of assistant files.
-    *
-    * [[https://platform.openai.com/docs/api-reference/assistants/listAssistantFiles]]
-    *
-    * @param assistantId
-    *   The ID of the assistant the file belongs to.
-    */
-  def listAssistantFiles(
-      assistantId: String,
-      queryParameters: QueryParameters = QueryParameters.empty
-  ): ListAssistantFilesResponse =
-    sendOrThrow(openAI.listAssistantFiles(assistantId, queryParameters))
 
   /** Retrieves an assistant.
     *
@@ -616,19 +548,6 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
     */
   def retrieveAssistant(assistantId: String): AssistantData =
     sendOrThrow(openAI.retrieveAssistant(assistantId))
-
-  /** Retrieves an AssistantFile.
-    *
-    * [[https://platform.openai.com/docs/api-reference/assistants/getAssistantFile]]
-    *
-    * @param assistantId
-    *   The ID of the assistant who the file belongs to.
-    *
-    * @param fileId
-    *   The ID of the file we're getting.
-    */
-  def retrieveAssistantFile(assistantId: String, fileId: String): AssistantFileData =
-    sendOrThrow(openAI.retrieveAssistantFile(assistantId, fileId))
 
   /** Modifies an assistant.
     *
@@ -651,19 +570,6 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
     */
   def deleteAssistant(assistantId: String): DeleteAssistantResponse =
     sendOrThrow(openAI.deleteAssistant(assistantId))
-
-  /** Delete an assistant file.
-    *
-    * [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistantFile]]
-    *
-    * @param assistantId
-    *   The ID of the assistant that the file belongs to.
-    *
-    * @param fileId
-    *   The ID of the file to delete.
-    */
-  def deleteAssistantFile(assistantId: String, fileId: String): DeleteAssistantFileResponse =
-    sendOrThrow(openAI.deleteAssistantFile(assistantId, fileId))
 
   /** Create a run.
     *
@@ -783,6 +689,44 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
     */
   def cancelRun(threadId: String, runId: String): RunData =
     sendOrThrow(openAI.cancelRun(threadId, runId))
+
+  def createVectorStore(createVectorStoreBody: CreateVectorStoreBody): VectorStore =
+    sendOrThrow(openAI.createVectorStore(createVectorStoreBody))
+
+  def listVectorStores(
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): ListVectorStoresResponse =
+    sendOrThrow(openAI.listVectorStores(queryParameters))
+
+  def retrieveVectorStore(vectorStoreId: String): VectorStore =
+    sendOrThrow(openAI.retrieveVectorStore(vectorStoreId))
+
+  def modifyVectorStore(
+      vectorStoreId: String,
+      modifyVectorStoreBody: ModifyVectorStoreBody
+  ): VectorStore =
+    sendOrThrow(openAI.modifyVectorStore(vectorStoreId, modifyVectorStoreBody))
+
+  def deleteVectorStore(vectorStoreId: String): DeleteVectorStoreResponse =
+    sendOrThrow(openAI.deleteVectorStore(vectorStoreId))
+
+  def createVectorStoreFile(
+      vectorStoreId: String,
+      createVectorStoreFileBody: CreateVectorStoreFileBody
+  ): VectorStoreFile =
+    sendOrThrow(openAI.createVectorStoreFile(vectorStoreId, createVectorStoreFileBody))
+
+  def listVectorStoreFiles(
+      vectorStoreId: String,
+      queryParameters: ListVectorStoreFilesBody = ListVectorStoreFilesBody()
+  ): ListVectorStoreFilesResponse =
+    sendOrThrow(openAI.listVectorStoreFiles(vectorStoreId, queryParameters))
+
+  def retrieveVectorStoreFile(vectorStoreId: String, fileId: String): VectorStoreFile =
+    sendOrThrow(openAI.retrieveVectorStoreFile(vectorStoreId, fileId))
+
+  def deleteVectorStoreFile(vectorStoreId: String, fileId: String): DeleteVectorStoreFileResponse =
+    sendOrThrow(openAI.deleteVectorStoreFile(vectorStoreId, fileId))
 
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op.
     */

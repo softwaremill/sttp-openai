@@ -9,7 +9,7 @@ sttp is a family of Scala HTTP-related projects, and currently includes:
 
 * [sttp client](https://github.com/softwaremill/sttp): The Scala HTTP client you always wanted!
 * [sttp tapir](https://github.com/softwaremill/tapir): Typed API descRiptions
-* sttp openai: this project. Scala client wrapper for OpenAI (and OpenAI-compatible) API. Use the power of ChatGPT inside your code!
+* sttp openai: this project. Non-official Scala client wrapper for OpenAI (and OpenAI-compatible) API. Use the power of ChatGPT inside your code!
 
 ## Intro
 Sttp-openai uses sttp client to describe requests and responses used in OpenAI (and OpenAI-compatible) endpoints.
@@ -40,7 +40,9 @@ import sttp.openai.requests.completions.chat.message._
 
 object Main extends App {
   // Create an instance of OpenAISyncClient providing your API secret-key
-  val openAI: OpenAISyncClient = OpenAISyncClient("your-secret-key")
+  private val apiKey = System.getProperty("openai-key")
+  
+  val openAI: OpenAISyncClient = OpenAISyncClient(apiKey)
 
   // Create body of Chat Completions Request
   val bodyMessages: Seq[Message] = Seq(

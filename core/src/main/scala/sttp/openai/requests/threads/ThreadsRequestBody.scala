@@ -1,6 +1,7 @@
 package sttp.openai.requests.threads
 
 import sttp.openai.json.SnakePickle
+import sttp.openai.requests.completions.chat.message.ToolResources
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 
 object ThreadsRequestBody {
@@ -15,6 +16,7 @@ object ThreadsRequestBody {
     */
   case class CreateThreadBody(
       messages: Option[Seq[CreateMessage]] = None,
+      toolResources: Option[ToolResources] = None,
       metadata: Option[Map[String, String]] = None
   )
 

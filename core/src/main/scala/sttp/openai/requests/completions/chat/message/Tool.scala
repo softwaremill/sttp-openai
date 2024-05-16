@@ -29,11 +29,11 @@ object Tool {
     */
   case object CodeInterpreterTool extends Tool
 
-  /** Retrieval tool
+  /** file_search tool
     *
-    * The type of tool being defined: retrieval
+    * The type of tool being defined: file_search
     */
-  case object RetrievalTool extends Tool
+  case object FileSearchTool extends Tool
 
   implicit val toolRW: SnakePickle.ReadWriter[Tool] = SnakePickle
     .readwriter[Value]
@@ -43,14 +43,14 @@ object Tool {
           Obj("type" -> "function", "function" -> SnakePickle.writeJs(functionTool))
         case CodeInterpreterTool =>
           Obj("type" -> "code_interpreter")
-        case RetrievalTool =>
-          Obj("type" -> "retrieval")
+        case FileSearchTool =>
+          Obj("type" -> "file_search")
       },
       json =>
         json("type").str match {
           case "function"         => SnakePickle.read[FunctionTool](json("function"))
           case "code_interpreter" => CodeInterpreterTool
-          case "retrieval"        => RetrievalTool
+          case "file_search"      => FileSearchTool
         }
     )
 }

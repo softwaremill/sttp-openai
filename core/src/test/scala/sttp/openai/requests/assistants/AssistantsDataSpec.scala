@@ -8,7 +8,9 @@ import sttp.openai.fixtures
 import sttp.openai.json.SnakePickle
 import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.completions.chat.message.Tool.CodeInterpreterTool
-import sttp.openai.requests.completions.chat.message.Tool.RetrievalTool
+import sttp.openai.requests.completions.chat.message.Tool.FileSearchTool
+import sttp.openai.requests.completions.chat.message.ToolResource.FileSearchToolResource
+import sttp.openai.requests.completions.chat.message.ToolResources
 
 class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -47,7 +49,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       tools = Seq(
         CodeInterpreterTool
       ),
-      fileIds = Seq(),
+      toolResources = None,
       metadata = Map.empty
     )
 
@@ -55,42 +57,8 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val givenResponse: Either[Exception, AssistantData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
-    givenResponse.value shouldBe expectedResponse
-  }
-
-  "Given create assistant file request" should "be properly serialized to Json" in {
-    // given
-    val givenRequest = AssistantsRequestBody.CreateAssistantFileBody(
-      fileId = "file-abc123"
-    )
-
-    val jsonRequest: ujson.Value = ujson.read(fixtures.AssistantsFixture.jsonCreateAssistantFileRequest)
-
-    // when
-    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
-
-    // then
-    serializedJson shouldBe jsonRequest
-  }
-
-  "Given create assistant file response as Json" should "be properly deserialized to case class" in {
-    import sttp.openai.requests.assistants.AssistantsResponseData.AssistantFileData._
-    import sttp.openai.requests.assistants.AssistantsResponseData._
-
-    // given
-    val jsonResponse = fixtures.AssistantsFixture.jsonCreateAssistantFileResponse
-    val expectedResponse: AssistantFileData = AssistantFileData(
-      id = "file-abc123",
-      `object` = "assistant.file",
-      createdAt = 1699055364,
-      assistantId = "asst_abc123"
-    )
-
-    // when
-    val givenResponse: Either[Exception, AssistantFileData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
-
-    // then
-    givenResponse.value shouldBe expectedResponse
+    val json = givenResponse.value
+    json shouldBe expectedResponse
   }
 
   "Given list assistants response as Json" should "be properly deserialized to case class" in {
@@ -111,7 +79,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           model = "gpt-4",
           instructions = Some("You are a helpful assistant designed to make me better at coding!"),
           tools = Seq(),
-          fileIds = Seq(),
+          toolResources = None,
           metadata = Map.empty
         ),
         AssistantData(
@@ -123,7 +91,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           model = "gpt-4",
           instructions = Some("You are a helpful assistant designed to make me better at coding!"),
           tools = Seq(),
-          fileIds = Seq(),
+          toolResources = None,
           metadata = Map.empty
         ),
         AssistantData(
@@ -135,7 +103,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           model = "gpt-4",
           instructions = None,
           tools = Seq(),
-          fileIds = Seq(),
+          toolResources = None,
           metadata = Map.empty
         )
       ),
@@ -169,7 +137,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           model = "gpt-4",
           instructions = Some("You are a helpful assistant designed to make me better at coding!"),
           tools = Seq(),
-          fileIds = Seq(),
+          toolResources = None,
           metadata = Map.empty
         ),
         AssistantData(
@@ -181,7 +149,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           model = "gpt-4",
           instructions = Some("You are a helpful assistant designed to make me better at coding!"),
           tools = Seq(),
-          fileIds = Seq(),
+          toolResources = None,
           metadata = Map.empty
         ),
         AssistantData(
@@ -193,7 +161,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           model = "gpt-4",
           instructions = None,
           tools = Seq(),
-          fileIds = Seq(),
+          toolResources = None,
           metadata = Map.empty
         )
       ),
@@ -224,34 +192,14 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       model = "gpt-4",
       instructions = Some("You are an HR bot, and you have access to files to answer employee questions about company policies."),
       tools = Seq(
-        RetrievalTool
+        FileSearchTool
       ),
-      fileIds = Seq("file-abc123"),
+      toolResources = Some(ToolResources(None, Some(FileSearchToolResource(Some(Seq("vs_1")))))),
       metadata = Map.empty
     )
 
     // when
     val givenResponse: Either[Exception, AssistantData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
-
-    // then
-    givenResponse.value shouldBe expectedResponse
-  }
-
-  "Given retrieve assistant file response as Json" should "be properly deserialized to case class" in {
-    import sttp.openai.requests.assistants.AssistantsResponseData.AssistantFileData._
-    import sttp.openai.requests.assistants.AssistantsResponseData._
-
-    // given
-    val jsonResponse = fixtures.AssistantsFixture.jsonRetrieveAssistantFileResponse
-    val expectedResponse: AssistantFileData = AssistantFileData(
-      id = "file-abc123",
-      `object` = "assistant.file",
-      createdAt = 1699055364,
-      assistantId = "asst_abc123"
-    )
-
-    // when
-    val givenResponse: Either[Exception, AssistantFileData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -263,9 +211,9 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       instructions = Some(
         "You are an HR bot, and you have access to files to answer employee questions about company policies. Always response with info from either of the files."
       ),
-      tools = Seq(RetrievalTool),
+      tools = Seq(FileSearchTool),
       model = Some("gpt-4"),
-      fileIds = Seq("file-abc123", "file-abc456")
+      toolResources = Some(ToolResources(None, Some(FileSearchToolResource(Some(Seq("vs_1", "vs_3"))))))
     )
 
     val jsonRequest: ujson.Value = ujson.read(fixtures.AssistantsFixture.jsonModifyAssistantRequest)
@@ -293,10 +241,8 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       instructions = Some(
         "You are an HR bot, and you have access to files to answer employee questions about company policies. Always response with info from either of the files."
       ),
-      tools = Seq(
-        RetrievalTool
-      ),
-      fileIds = Seq("file-abc123", "file-abc456"),
+      tools = Seq(FileSearchTool),
+      toolResources = Some(ToolResources(None, Some(FileSearchToolResource(Some(Seq("vs_1", "vs_2")))))),
       metadata = Map.empty
     )
 
@@ -321,25 +267,6 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // when
     val givenResponse: Either[Exception, DeleteAssistantResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
-
-    // then
-    givenResponse.value shouldBe expectedResponse
-  }
-
-  "Given delete assistant file response as Json" should "be properly deserialized to case class" in {
-    import sttp.openai.requests.assistants.AssistantsResponseData.DeleteAssistantFileResponse._
-    import sttp.openai.requests.assistants.AssistantsResponseData._
-
-    // given
-    val jsonResponse = fixtures.AssistantsFixture.jsonDeleteAssistantFileResponse
-    val expectedResponse: DeleteAssistantFileResponse = DeleteAssistantFileResponse(
-      id = "file-abc123",
-      `object` = "assistant.file.deleted",
-      deleted = true
-    )
-
-    // when
-    val givenResponse: Either[Exception, DeleteAssistantFileResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

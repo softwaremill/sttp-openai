@@ -25,25 +25,8 @@ object AssistantsFixture {
       |      "type": "code_interpreter"
       |    }
       |  ],
-      |  "file_ids": [],
+      |  "tool_resources": {},
       |  "metadata": {}
-      |}
-      |""".stripMargin
-
-  val jsonCreateAssistantFileRequest: String =
-    """
-      |{
-      |  "file_id": "file-abc123"
-      |}
-      |""".stripMargin
-
-  val jsonCreateAssistantFileResponse: String =
-    """
-      |{
-      |  "id": "file-abc123",
-      |  "object": "assistant.file",
-      |  "created_at": 1699055364,
-      |  "assistant_id": "asst_abc123"
       |}
       |""".stripMargin
 
@@ -61,7 +44,7 @@ object AssistantsFixture {
       |      "model": "gpt-4",
       |      "instructions": "You are a helpful assistant designed to make me better at coding!",
       |      "tools": [],
-      |      "file_ids": [],
+      |      "tool_resources": {},
       |      "metadata": {}
       |    },
       |    {
@@ -73,7 +56,7 @@ object AssistantsFixture {
       |      "model": "gpt-4",
       |      "instructions": "You are a helpful assistant designed to make me better at coding!",
       |      "tools": [],
-      |      "file_ids": [],
+      |      "tool_resources": {},
       |      "metadata": {}
       |    },
       |    {
@@ -85,7 +68,7 @@ object AssistantsFixture {
       |      "model": "gpt-4",
       |      "instructions": null,
       |      "tools": [],
-      |      "file_ids": [],
+      |      "tool_resources": {},
       |      "metadata": {}
       |    }
       |  ],
@@ -107,23 +90,16 @@ object AssistantsFixture {
       |  "instructions": "You are an HR bot, and you have access to files to answer employee questions about company policies.",
       |  "tools": [
       |    {
-      |      "type": "retrieval"
+      |      "type": "file_search"
       |    }
       |  ],
-      |  "file_ids": [
-      |    "file-abc123"
-      |  ],
+      |  "tool_resources": {
+      |     "file_search": {
+      |       "vector_store_ids": ["vs_1"]
+      |     }
+      |
+      |  },
       |  "metadata": {}
-      |}
-      |""".stripMargin
-
-  val jsonRetrieveAssistantFileResponse: String =
-    """
-      |{
-      |  "id": "file-abc123",
-      |  "object": "assistant.file",
-      |  "created_at": 1699055364,
-      |  "assistant_id": "asst_abc123"
       |}
       |""".stripMargin
 
@@ -131,9 +107,13 @@ object AssistantsFixture {
     """
       |{
       |  "instructions": "You are an HR bot, and you have access to files to answer employee questions about company policies. Always response with info from either of the files.",
-      |  "tools": [{"type": "retrieval"}],
+      |  "tools": [{"type": "file_search"}],
       |  "model": "gpt-4",
-      |  "file_ids": ["file-abc123", "file-abc456"]
+      |  "tool_resources": {
+      |     "file_search": {
+      |        "vector_store_ids": ["vs_1", "vs_3"]
+      |    }
+      |  }
       |}
       |""".stripMargin
 
@@ -149,13 +129,14 @@ object AssistantsFixture {
        |  "instructions": "You are an HR bot, and you have access to files to answer employee questions about company policies. Always response with info from either of the files.",
        |  "tools": [
        |    {
-       |      "type": "retrieval"
+       |      "type": "file_search"
        |    }
        |  ],
-       |  "file_ids": [
-       |    "file-abc123",
-       |    "file-abc456"
-       |  ],
+       |  "tool_resources": {
+       |    "file_search": {
+       |      "vector_store_ids": ["vs_1", "vs_2"]
+       |    }
+       |  },
        |  "metadata": {}
        |}
        |""".stripMargin
@@ -165,15 +146,6 @@ object AssistantsFixture {
       |{
       |  "id": "asst_abc123",
       |  "object": "assistant.deleted",
-      |  "deleted": true
-      |}
-      |""".stripMargin
-
-  val jsonDeleteAssistantFileResponse: String =
-    """
-      |{
-      |  "id": "file-abc123",
-      |  "object": "assistant.file.deleted",
       |  "deleted": true
       |}
       |""".stripMargin

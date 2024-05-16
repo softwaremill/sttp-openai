@@ -1,7 +1,7 @@
 package sttp.openai.requests.assistants
 
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.completions.chat.message.Tool
+import sttp.openai.requests.completions.chat.message.{Tool, ToolResources}
 
 object AssistantsRequestBody {
 
@@ -20,11 +20,11 @@ object AssistantsRequestBody {
     *
     * @param tools
     *   A list of tool enabled on the assistant. There can be a maximum of 128 tools per assistant. Tools can be of types code_interpreter,
-    *   retrieval, or function.
+    *   file_search, or function.
     *
-    * @param file_ids
-    *   A list of file IDs attached to this assistant. There can be a maximum of 20 files attached to the assistant. Files are ordered by
-    *   their creation date in ascending order.
+    * @param toolResources
+    *   A set of resources that are used by the assistant's tools. The resources are specific to the type of tool. For example, the
+    *   code_interpreter tool requires a list of file IDs, while the file_search tool requires a list of vector store IDs.
     *
     * @param metadata
     *   Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object
@@ -38,23 +38,11 @@ object AssistantsRequestBody {
       description: Option[String] = None,
       instructions: Option[String] = None,
       tools: Seq[Tool] = Seq.empty,
-      file_ids: Seq[String] = Seq.empty,
+      toolResources: Option[ToolResources] = None,
       metadata: Option[Map[String, String]] = None
   )
   object CreateAssistantBody {
     implicit val createAssistantBodyW: SnakePickle.Writer[CreateAssistantBody] = SnakePickle.macroW[CreateAssistantBody]
-  }
-
-  /** @param fileId
-    *   A File ID (with purpose="assistants") that the assistant should use. Useful for tools like retrieval and code_interpreter that can
-    *   access files.
-    *
-    * For more information please visit: [[https://platform.openai.com/docs/api-reference/assistants/createAssistantFile]]
-    */
-  case class CreateAssistantFileBody(fileId: String)
-
-  object CreateAssistantFileBody {
-    implicit val createAssistantFileBodyW: SnakePickle.Writer[CreateAssistantFileBody] = SnakePickle.macroW[CreateAssistantFileBody]
   }
 
   /** @param model
@@ -72,13 +60,11 @@ object AssistantsRequestBody {
     *
     * @param tools
     *   A list of tool enabled on the assistant. There can be a maximum of 128 tools per assistant. Tools can be of types code_interpreter,
-    *   retrieval, or function.
+    *   file_search, or function.
     *
-    * @param fileIds
-    *   A list of File IDs attached to this assistant. There can be a maximum of 20 files attached to the assistant. Files are ordered by
-    *   their creation date in ascending order. If a file was previously attached to the list but does not show up in the list, it will be
-    *   deleted from the assistant.
-    *
+    * @param toolResources
+    *   A set of resources that are used by the assistant's tools. The resources are specific to the type of tool. For example, the
+    *   code_interpreter tool requires a list of file IDs, while the file_search tool requires a list of vector store IDs. v
     * @param metadata
     *   Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object
     *   in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.
@@ -91,7 +77,7 @@ object AssistantsRequestBody {
       description: Option[String] = None,
       instructions: Option[String] = None,
       tools: Seq[Tool] = Seq.empty,
-      fileIds: Seq[String] = Seq.empty,
+      toolResources: Option[ToolResources] = None,
       metadata: Map[String, String] = Map.empty
   )
 

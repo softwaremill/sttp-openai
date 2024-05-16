@@ -4,11 +4,29 @@ object ThreadsFixture {
   val jsonCreateEmptyThreadRequest: String = """{}
       |""".stripMargin
 
+  val jsonCreateThreadWithMessagesRequestNoAttachments: String = """{
+      |    "messages": [{
+      |      "role": "user",
+      |      "content": "Hello, what is AI?"
+      |    }, {
+      |      "role": "user",
+      |      "content": "How does AI work? Explain it in simple terms."
+      |    }]
+      |  }""".stripMargin
+
   val jsonCreateThreadWithMessagesRequest: String = """{
     |    "messages": [{
     |      "role": "user",
     |      "content": "Hello, what is AI?",
-    |      "file_ids": ["file-abc123"]
+    |      "attachments": [
+    |        {
+    |         "file_id" : "file-abc123",
+    |         "tools": [
+    |           { "type": "code_interpreter" },
+    |           { "type": "file_search" }
+    |         ]
+    |        }
+    |       ]
     |    }, {
     |      "role": "user",
     |      "content": "How does AI work? Explain it in simple terms."
@@ -19,7 +37,14 @@ object ThreadsFixture {
     |    "messages": [{
     |      "role": "user",
     |      "content": "Hello, what is AI?",
-    |      "file_ids": ["file-abc123"]
+    |      "attachments": [
+    |        {
+    |         "file_id" : "file-abc456",
+    |         "tools": [
+    |           { "type": "code_interpreter" }
+    |         ]
+    |        }
+    |       ]
     |    }, {
     |      "role": "user",
     |      "content": "How does AI work? Explain it in simple terms."

@@ -31,10 +31,11 @@ object ThreadRunsFixture {
       |      "type": "code_interpreter"
       |    }
       |  ],
-      |  "file_ids": [
-      |    "file-abc123",
-      |    "file-abc456"
-      |  ],
+      |  "tool_resources": {
+      |   "code_interpreter": {
+      |     "file_ids": ["file-abc123", "file-abc456"]
+      |     }
+      |  },
       |  "metadata": {},
       |  "usage": null
       |}
@@ -70,7 +71,7 @@ object ThreadRunsFixture {
       |  "model": "gpt-4",
       |  "instructions": "You are a helpful assistant.",
       |  "tools": [],
-      |  "file_ids": [],
+      |  "tool_resources": {},
       |  "metadata": {},
       |  "usage": null
       |}
@@ -101,10 +102,11 @@ object ThreadRunsFixture {
       |          "type": "code_interpreter"
       |        }
       |      ],
-      |      "file_ids": [
-      |        "file-abc123",
-      |        "file-abc456"
-      |      ],
+      |      "tool_resources": {
+      |       "code_interpreter": {
+      |        "file_ids": ["file-abc123", "file-abc456"]
+      |        }
+      |      },
       |      "metadata": {},
       |      "usage": {
       |        "prompt_tokens": 123,
@@ -132,10 +134,11 @@ object ThreadRunsFixture {
       |          "type": "code_interpreter"
       |        }
       |      ],
-      |      "file_ids": [
-      |        "file-abc123",
-      |        "file-abc456"
-      |      ],
+      |      "tool_resources": {
+      |        "code_interpreter": {
+      |         "file_ids": ["file-abc123", "file-abc456"]
+      |         }
+      |       },
       |      "metadata": {},
       |      "usage": {
       |        "prompt_tokens": 123,
@@ -210,10 +213,11 @@ object ThreadRunsFixture {
       |      "type": "code_interpreter"
       |    }
       |  ],
-      |  "file_ids": [
-      |    "file-abc123",
-      |    "file-abc456"
-      |  ],
+      |  "tool_resources": {
+      |   "code_interpreter": {
+      |     "file_ids": ["file-abc123", "file-abc456"]
+      |     }
+      |  },
       |  "metadata": {},
       |  "usage": {
       |    "prompt_tokens": 123,
@@ -284,10 +288,11 @@ object ThreadRunsFixture {
       |      "type": "code_interpreter"
       |    }
       |  ],
-      |  "file_ids": [
-      |    "file-abc123",
-      |    "file-abc456"
-      |  ],
+      |  "tool_resources": {
+      |   "code_interpreter": {
+      |     "file_ids": ["file-abc123", "file-abc456"]
+      |     }
+      |  },
       |  "metadata": {
       |    "user_id": "user_abc123"
       |  },
@@ -356,7 +361,7 @@ object ThreadRunsFixture {
       |      }
       |    }
       |  ],
-      |  "file_ids": [],
+      |  "tool_resources": {},
       |  "metadata": {},
       |  "usage": null
       |}
@@ -381,10 +386,10 @@ object ThreadRunsFixture {
       |  "instructions": "You summarize books.",
       |  "tools": [
       |    {
-      |      "type": "retrieval"
+      |      "type": "file_search"
       |    }
       |  ],
-      |  "file_ids": [],
+      |  "tool_resources": {},
       |  "metadata": {},
       |  "usage": null
       |}

@@ -5,8 +5,10 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
-import sttp.openai.requests.completions.chat.message.Tool.{CodeInterpreterTool, FunctionTool, RetrievalTool}
+import sttp.openai.requests.completions.chat.message.Tool.{CodeInterpreterTool, FileSearchTool, FunctionTool}
 import sttp.openai.requests.completions.Usage
+import sttp.openai.requests.completions.chat.message.ToolResource.CodeInterpreterToolResource
+import sttp.openai.requests.completions.chat.message.ToolResources
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.ToolOutput
@@ -52,10 +54,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       model = "gpt-4",
       instructions = None,
       tools = Seq(CodeInterpreterTool),
-      fileIds = Seq(
-        "file-abc123",
-        "file-abc456"
-      ),
+      toolResources = Some(ToolResources(Some(CodeInterpreterToolResource(Some(Seq("file-abc123", "file-abc456")))))),
       metadata = Map.empty,
       usage = None
     )
@@ -107,7 +106,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       model = "gpt-4",
       instructions = Some("You are a helpful assistant."),
       tools = Seq.empty,
-      fileIds = Seq.empty,
+      toolResources = None,
       metadata = Map.empty,
       usage = None
     )
@@ -145,7 +144,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
             model = "gpt-3.5-turbo",
             instructions = None,
             tools = Seq(CodeInterpreterTool),
-            fileIds = Seq("file-abc123", "file-abc456"),
+            toolResources = Some(ToolResources(Some(CodeInterpreterToolResource(Some(Seq("file-abc123", "file-abc456")))))),
             metadata = Map.empty,
             usage = Some(Usage(promptTokens = 123, completionTokens = 456, totalTokens = 579))
           ),
@@ -165,7 +164,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
             model = "gpt-3.5-turbo",
             instructions = None,
             tools = Seq(CodeInterpreterTool),
-            fileIds = Seq("file-abc123", "file-abc456"),
+            toolResources = Some(ToolResources(Some(CodeInterpreterToolResource(Some(Seq("file-abc123", "file-abc456")))))),
             metadata = Map.empty,
             usage = Some(
               Usage(
@@ -258,7 +257,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
         model = "gpt-3.5-turbo",
         instructions = None,
         tools = Seq(CodeInterpreterTool),
-        fileIds = Seq("file-abc123", "file-abc456"),
+        toolResources = Some(ToolResources(Some(CodeInterpreterToolResource(Some(Seq("file-abc123", "file-abc456")))))),
         metadata = Map.empty,
         usage = Some(Usage(promptTokens = 123, completionTokens = 456, totalTokens = 579))
       )
@@ -340,7 +339,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
         model = "gpt-3.5-turbo",
         instructions = None,
         tools = Seq(CodeInterpreterTool),
-        fileIds = Seq("file-abc123", "file-abc456"),
+        toolResources = Some(ToolResources(Some(CodeInterpreterToolResource(Some(Seq("file-abc123", "file-abc456")))))),
         metadata = Map("user_id" -> "user_abc123"),
         usage = Some(Usage(promptTokens = 123, completionTokens = 456, totalTokens = 579))
       )
@@ -414,7 +413,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
             )
           )
         ),
-        fileIds = Seq.empty,
+        toolResources = None,
         metadata = Map.empty,
         usage = None
       )
@@ -448,8 +447,8 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
         lastError = None,
         model = "gpt-4",
         instructions = Some("You summarize books."),
-        tools = Seq(RetrievalTool),
-        fileIds = Seq.empty,
+        tools = Seq(FileSearchTool),
+        toolResources = None,
         metadata = Map.empty,
         usage = None
       )
