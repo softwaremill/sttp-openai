@@ -147,7 +147,7 @@ import sttp.openai.requests.completions.chat.message._
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
     // Read your API secret-key from env variables
-    private val apiKey = System.getenv("openai-key")
+    val apiKey = System.getenv("openai-key")
 
     // Create an instance of OpenAISyncClient providing your API secret-key
     val openAI: OpenAI = new OpenAI(apiKey, uri"https://api.groq.com/openai/v1")
@@ -220,7 +220,7 @@ import sttp.openai.requests.completions.chat.message._
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
     // Read your API secret-key from env variables
-    private val apiKey = System.getenv("openai-key")
+    val apiKey = System.getenv("openai-key")
 
     // Create an instance of OpenAISyncClient providing your API secret-key
     val openAI: OpenAI = new OpenAI(apiKey)
@@ -295,7 +295,7 @@ import sttp.openai.requests.completions.chat.message._
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
     // Read your API secret-key from env variables
-    private val apiKey = System.getenv("openai-key")
+    val apiKey = System.getenv("openai-key")
 
     // Create an instance of OpenAISyncClient providing your API secret-key
     val openAI: OpenAI = new OpenAI(apiKey)
