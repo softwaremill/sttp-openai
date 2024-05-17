@@ -14,10 +14,10 @@ object FileStatus {
     .readwriter[Value]
     .bimap[FileStatus](
       {
-        case InProgress => Value("in_progress")
-        case Completed => Value("completed")
-        case Failed => Value("failed")
-        case Cancelled => Value("cancelled")
+        case InProgress => "in_progress"
+        case Completed => "completed"
+        case Failed => "failed"
+        case Cancelled => "cancelled"
       },
       json => {
         json.str match {

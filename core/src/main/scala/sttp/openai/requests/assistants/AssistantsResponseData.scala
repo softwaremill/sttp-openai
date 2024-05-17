@@ -64,9 +64,11 @@ object AssistantsResponseData {
     * @param data
     *   A list of assistant objects.
     * @param firstId
+    *   Id of first object
     * @param lastId
+    *   Id of last object
     * @param hasMore
-    *   }
+    *   Denotes if there are more object available }
     */
   case class ListAssistantsResponse(
       `object`: String = "list",
@@ -80,6 +82,7 @@ object AssistantsResponseData {
   }
 
   /** @param id
+    *   Id of deleted object
     * @param `object`
     *   assistant.deleted
     * @param deleted

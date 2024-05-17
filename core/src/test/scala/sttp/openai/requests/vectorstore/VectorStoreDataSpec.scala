@@ -5,8 +5,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.VectorStoreFixture
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
-import sttp.openai.requests.vectorstore.VectorStoreRequestBody.CreateVectorStoreBody
-import sttp.openai.requests.vectorstore.VectorStoreResponseData.{FileCounts, InProgress, VectorStore}
+import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
+import sttp.openai.requests.vectorstore.VectorStoreResponseData.{Completed, DeleteVectorStoreResponse, FileCounts, InProgress, ListVectorStoresResponse, VectorStore}
 
 class VectorStoreDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -43,7 +43,23 @@ class VectorStoreDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     serializedJson shouldBe jsonRequest
   }
 
-  "Given create vector store mode" should "be properly deserialized from Json" in {
+  "Given modify vector store request" should "be properly serialized to Json" in {
+    // given
+    val givenRequest = ModifyVectorStoreBody(
+      name = Some("vs_3"),
+      expiresAfter = Some(ExpiresAfter("2322", 5))
+    )
+
+    val jsonRequest: ujson.Value = ujson.read(VectorStoreFixture.jsonModify)
+
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+
+    // then
+    serializedJson shouldBe jsonRequest
+  }
+
+  "Vector store object" should "be properly deserialized from Json" in {
     import sttp.openai.requests.vectorstore.VectorStoreResponseData.VectorStore._
     // given
     val givenResponse = VectorStore(
@@ -63,6 +79,65 @@ class VectorStoreDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // when
     val serializedJson: Either[Exception, VectorStore] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+
+    // then
+    serializedJson.value shouldBe givenResponse
+  }
+
+  "List of vector stores" should "be properly deserialized from Json" in {
+    import sttp.openai.requests.vectorstore.VectorStoreResponseData.ListVectorStoresResponse._
+    // given
+
+    val first = VectorStore(
+      id = "vs_abc123",
+      `object` = "vector_store",
+      createdAt = 1699061776,
+      name = "Support FAQ",
+      usageBytes = 139920,
+      status = Completed,
+      fileCounts = FileCounts(0, 3, 0, 0, 3)
+    )
+
+    val second = VectorStore(
+      id = "vs_abc456",
+      `object` = "vector_store",
+      createdAt = 1699061776,
+      name = "Support FAQ v2",
+      usageBytes = 139921,
+      status = InProgress,
+      fileCounts = FileCounts(1, 2, 2, 1, 6)
+    )
+    val givenResponse = ListVectorStoresResponse(
+      `object` = "list",
+      data = Seq(first, second),
+      firstId = "vs_abc123",
+      lastId = "vs_abc456",
+      hasMore = false
+    )
+
+    val jsonResponse = VectorStoreFixture.jsonList
+
+    // when
+    val serializedJson: Either[Exception, ListVectorStoresResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+
+    // then
+    serializedJson.value shouldBe givenResponse
+  }
+
+  "Delete of vector stores response" should "be properly deserialized from Json" in {
+    import sttp.openai.requests.vectorstore.VectorStoreResponseData.DeleteVectorStoreResponse._
+    // given
+
+    val givenResponse = DeleteVectorStoreResponse(
+      id = "vs_abc123",
+      `object` = "vector_store.deleted",
+      deleted = true
+    )
+
+    val jsonResponse = VectorStoreFixture.jsonDelete
+
+    // when
+    val serializedJson: Either[Exception, DeleteVectorStoreResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     serializedJson.value shouldBe givenResponse

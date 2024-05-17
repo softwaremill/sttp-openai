@@ -39,9 +39,10 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatComp
 import sttp.openai.requests.completions.chat.message._
 
 object Main extends App {
+  // Read your API secret-key from env variables
+  private val apiKey = System.getenv("openai-key")
+
   // Create an instance of OpenAISyncClient providing your API secret-key
-  private val apiKey = System.getProperty("openai-key")
-  
   val openAI: OpenAISyncClient = OpenAISyncClient(apiKey)
 
   // Create body of Chat Completions Request
@@ -98,7 +99,6 @@ object Main extends App {
       content = Content.TextContent("Hello!"),
     )
   )
-
   
   val chatRequestBody: ChatBody = ChatBody(
     // assuming one has already executed `ollama pull mistral` in console
@@ -146,7 +146,11 @@ import sttp.openai.requests.completions.chat.message._
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
-    val openAI: OpenAI = new OpenAI("your-secret-key", uri"https://api.groq.com/openai/v1")
+    // Read your API secret-key from env variables
+    private val apiKey = System.getenv("openai-key")
+
+    // Create an instance of OpenAISyncClient providing your API secret-key
+    val openAI: OpenAI = new OpenAI(apiKey, uri"https://api.groq.com/openai/v1")
 
     val bodyMessages: Seq[Message] = Seq(
       Message.UserMessage(
@@ -158,6 +162,7 @@ object Main extends IOApp {
       model = ChatCompletionModel.CustomChatCompletionModel("gemma-7b-it"),
       messages = bodyMessages
     )
+    
     HttpClientCatsBackend.resource[IO]().use { backend =>
       val response: IO[Either[OpenAIException, ChatResponse]] =
         openAI
@@ -214,7 +219,11 @@ import sttp.openai.requests.completions.chat.message._
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
-    val openAI: OpenAI = new OpenAI("your-secret-key")
+    // Read your API secret-key from env variables
+    private val apiKey = System.getenv("openai-key")
+
+    // Create an instance of OpenAISyncClient providing your API secret-key
+    val openAI: OpenAI = new OpenAI(apiKey)
 
     val bodyMessages: Seq[Message] = Seq(
       Message.UserMessage(
@@ -226,6 +235,7 @@ object Main extends IOApp {
       model = ChatCompletionModel.GPT35Turbo,
       messages = bodyMessages
     )
+    
     HttpClientCatsBackend.resource[IO]().use { backend =>
       val response: IO[Either[OpenAIException, ChatResponse]] =
         openAI
@@ -284,7 +294,11 @@ import sttp.openai.requests.completions.chat.message._
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
-    val openAI: OpenAI = new OpenAI("your-secret-key")
+    // Read your API secret-key from env variables
+    private val apiKey = System.getenv("openai-key")
+
+    // Create an instance of OpenAISyncClient providing your API secret-key
+    val openAI: OpenAI = new OpenAI(apiKey)
 
     val bodyMessages: Seq[Message] = Seq(
       Message.UserMessage(

@@ -16,7 +16,12 @@ import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
 import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.{DeleteFineTuneModelResponse, FineTuneEventsResponse, FineTuneResponse, GetFineTunesResponse}
+import sttp.openai.requests.finetunes.FineTunesResponseData.{
+  DeleteFineTuneModelResponse,
+  FineTuneEventsResponse,
+  FineTuneResponse,
+  GetFineTunesResponse
+}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -33,13 +38,23 @@ import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
-import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{CreateRun, CreateThreadAndRun, ModifyRun, SubmitToolOutputsToRun, ToolOutput}
+import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{
+  CreateRun,
+  CreateThreadAndRun,
+  ModifyRun,
+  SubmitToolOutputsToRun,
+  ToolOutput
+}
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
 import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, ListVectorStoreFilesResponse, VectorStoreFile}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
+  DeleteVectorStoreFileResponse,
+  ListVectorStoreFilesResponse,
+  VectorStoreFile
+}
 
 import java.io.File
 import java.nio.file.Paths
@@ -944,12 +959,26 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.threadRunCancel(threadId, runId))
       .response(asJsonSnake[RunData])
 
+  /** Creates vector store
+    *
+    * @param createVectorStoreBody
+    *   Options for new vector store
+    * @return
+    *   Newly created vector store or exception
+    */
   def createVectorStore(createVectorStoreBody: CreateVectorStoreBody): Request[Either[OpenAIException, VectorStore]] =
     betaOpenAIAuthRequest
       .post(openAIUris.VectorStores)
       .body(createVectorStoreBody)
       .response(asJsonSnake[VectorStore])
 
+  /** Lists vector store
+    *
+    * @param queryParameters
+    *   Search params
+    * @return
+    *   List of vector stores matching criteria or exception
+    */
   def listVectorStores(
       queryParameters: QueryParameters = QueryParameters.empty
   ): Request[Either[OpenAIException, ListVectorStoresResponse]] =
@@ -957,11 +986,27 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .get(openAIUris.VectorStores.withParams(queryParameters.toMap))
       .response(asJsonSnake[ListVectorStoresResponse])
 
+  /** Retrieves vector store by id
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @return
+    *   Vector store object or exception
+    */
   def retrieveVectorStore(vectorStoreId: String): Request[Either[OpenAIException, VectorStore]] =
     betaOpenAIAuthRequest
       .get(openAIUris.vectorStore(vectorStoreId))
       .response(asJsonSnake[VectorStore])
 
+  /** Modifies vector store
+    *
+    * @param vectorStoreId
+    *   Id of vector store to modify
+    * @param modifyVectorStoreBody
+    *   New values for store properties
+    * @return
+    *   Modified vector store object
+    */
   def modifyVectorStore(
       vectorStoreId: String,
       modifyVectorStoreBody: ModifyVectorStoreBody
@@ -971,11 +1016,27 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .body(modifyVectorStoreBody)
       .response(asJsonSnake[VectorStore])
 
+  /** Deletes vector store
+    *
+    * @param vectorStoreId
+    *   Id of vector store to be deleted
+    * @return
+    *   Result of deleted operation
+    */
   def deleteVectorStore(vectorStoreId: String): Request[Either[OpenAIException, DeleteVectorStoreResponse]] =
     betaOpenAIAuthRequest
       .delete(openAIUris.vectorStore(vectorStoreId))
       .response(asJsonSnake[DeleteVectorStoreResponse])
 
+  /** Creates vector store file
+    *
+    * @param vectorStoreId
+    *   Id of vector store for file
+    * @param createVectorStoreFileBody
+    *   Properties of file
+    * @return
+    *   Newly created vector store file
+    */
   def createVectorStoreFile(
       vectorStoreId: String,
       createVectorStoreFileBody: CreateVectorStoreFileBody
@@ -985,6 +1046,15 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .body(createVectorStoreFileBody)
       .response(asJsonSnake[VectorStoreFile])
 
+  /** List files belonging to particular datastore
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @param queryParameters
+    *   Search params
+    * @return
+    *   List of vector store files
+    */
   def listVectorStoreFiles(
       vectorStoreId: String,
       queryParameters: ListVectorStoreFilesBody = ListVectorStoreFilesBody()
@@ -993,11 +1063,29 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .get(openAIUris.vectorStoreFiles(vectorStoreId).withParams(queryParameters.toMap))
       .response(asJsonSnake[ListVectorStoreFilesResponse])
 
+  /** Retrieves vector store file by id
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @param fileId
+    *   Id of vector store file
+    * @return
+    *   Vector store file
+    */
   def retrieveVectorStoreFile(vectorStoreId: String, fileId: String): Request[Either[OpenAIException, VectorStoreFile]] =
     betaOpenAIAuthRequest
       .get(openAIUris.vectorStoreFile(vectorStoreId, fileId))
       .response(asJsonSnake[VectorStoreFile])
 
+  /** Deletes vector store file by id
+   *
+   * @param vectorStoreId
+   *   Id of vector store
+   * @param fileId
+   *   Id of vector store file
+   * @return
+   *   Result of delete operation
+   */
   def deleteVectorStoreFile(vectorStoreId: String, fileId: String): Request[Either[OpenAIException, DeleteVectorStoreFileResponse]] =
     betaOpenAIAuthRequest
       .delete(openAIUris.vectorStoreFile(vectorStoreId, fileId))

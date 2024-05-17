@@ -18,6 +18,15 @@ object VectorStoreFixture {
       |   }
       |}""".stripMargin
 
+  val jsonModify: String =
+    """{
+      |  "name": "vs_3",
+      |  "expires_after": {
+      |   "anchor": "2322",
+      |   "days": 5
+      |   }
+      |}""".stripMargin
+
   val jsonObject: String =
     """{
       |  "id": "vs_1",
@@ -37,5 +46,52 @@ object VectorStoreFixture {
       |  },
       |  "metadata": {},
       |  "last_used_at": 1698107681
+      |}""".stripMargin
+
+  val jsonList: String =
+    """{
+      |"object": "list",
+      |  "data": [
+      |    {
+      |      "id": "vs_abc123",
+      |      "object": "vector_store",
+      |      "created_at": 1699061776,
+      |      "name": "Support FAQ",
+      |      "usage_bytes": 139920,
+      |      "status": "completed",
+      |      "file_counts": {
+      |        "in_progress": 0,
+      |        "completed": 3,
+      |        "failed": 0,
+      |        "cancelled": 0,
+      |        "total": 3
+      |      }
+      |    },
+      |    {
+      |      "id": "vs_abc456",
+      |      "object": "vector_store",
+      |      "created_at": 1699061776,
+      |      "name": "Support FAQ v2",
+      |      "usage_bytes": 139921,
+      |      "status": "in_progress",
+      |      "file_counts": {
+      |        "in_progress": 1,
+      |        "completed": 2,
+      |        "failed": 2,
+      |        "cancelled": 1,
+      |        "total": 6
+      |      }
+      |    }
+      |  ],
+      |  "first_id": "vs_abc123",
+      |  "last_id": "vs_abc456",
+      |  "has_more": false
+      |}""".stripMargin
+
+  val jsonDelete: String =
+    """{
+      | "id": "vs_abc123",
+      | "object": "vector_store.deleted",
+      | "deleted": true
       |}""".stripMargin
 }

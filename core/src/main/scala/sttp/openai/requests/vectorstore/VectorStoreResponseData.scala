@@ -76,7 +76,7 @@ object VectorStoreResponseData {
   case object Expired extends StoreStatus
 
   object StoreStatus {
-    implicit val storeStatusRW: SnakePickle.Reader[StoreStatus] = SnakePickle
+    implicit val storeStatusR: SnakePickle.Reader[StoreStatus] = SnakePickle
       .reader[Value]
       .map(json =>
         json.str match {
@@ -87,6 +87,17 @@ object VectorStoreResponseData {
       )
   }
 
+  /** @param object
+   *   Always "list"
+   * @param data
+   *   A list of vector store objects.
+   * @param firstId
+   *  Id of first object
+   * @param lastId
+   *  Id of last object
+   * @param hasMore
+   *   Denotes if there are more object available
+   */
   case class ListVectorStoresResponse(
       `object`: String = "list",
       data: Seq[VectorStore],
@@ -99,6 +110,14 @@ object VectorStoreResponseData {
     implicit val listVectorStoresResponseR: SnakePickle.Reader[ListVectorStoresResponse] = SnakePickle.macroR[ListVectorStoresResponse]
   }
 
+  /** @param id
+   *   Id of deleted object
+   * @param `object`
+   *   vector_store.deleted
+   * @param deleted
+   *  boolean describing whether or not operation was successful
+   * For more information please visit: [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistant]]
+   */
   case class DeleteVectorStoreResponse(
       id: String,
       `object`: String,
