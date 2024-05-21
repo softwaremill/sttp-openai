@@ -2,7 +2,7 @@ package sttp.openai.requests.threads.runs
 
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.Usage
-import sttp.openai.requests.completions.chat.message.Tool
+import sttp.openai.requests.completions.chat.message.{Tool, ToolResources}
 
 object ThreadRunsResponseData {
 
@@ -57,8 +57,9 @@ object ThreadRunsResponseData {
     * @param tools
     *   The list of tools that the assistant used for this run.
     *
-    * @param fileIds
-    *   The list of File IDs the assistant used for this run.
+    * @param toolResources
+    *   A set of resources that are used by the assistant's tools. The resources are specific to the type of tool. For example, the
+    *   code_interpreter tool requires a list of file IDs, while the file_search tool requires a list of vector store IDs.
     *
     * @param metadata
     *   Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object
@@ -86,7 +87,7 @@ object ThreadRunsResponseData {
       model: String,
       instructions: Option[String] = None,
       tools: Seq[Tool] = Seq.empty,
-      fileIds: Seq[String] = Seq.empty,
+      toolResources: Option[ToolResources] = None,
       metadata: Map[String, String] = Map.empty,
       usage: Option[Usage] = None
   )
@@ -319,7 +320,7 @@ object ThreadRunsResponseData {
     *   Always tool_calls.
     * @param toolCalls
     *   An array of tool calls the run step was involved in. These can be associated with one of three types of tools: code_interpreter,
-    *   retrieval, or function.
+    *   file_search, or function.
     */
   case class ToolCalls(`type`: String, toolCalls: Seq[ToolCall]) extends StepDetails
 
@@ -339,8 +340,8 @@ object ThreadRunsResponseData {
         json("type").str match {
           case "code_interpreter" =>
             SnakePickle.read[CodeInterpreterToolCall](json)
-          case "retrieval" =>
-            SnakePickle.read[RetrievalToolCall](json)
+          case "file_search" =>
+            SnakePickle.read[FileSearchToolCall](json)
           case "function" =>
             SnakePickle.read[FunctionToolCall](json)
         }
@@ -367,24 +368,24 @@ object ThreadRunsResponseData {
     implicit val codeInterpreterToolCallR: SnakePickle.Reader[CodeInterpreterToolCall] = SnakePickle.macroR[CodeInterpreterToolCall]
   }
 
-  /** Retrieval tool call
+  /** FileSearch tool call
     * @param id
     *   The ID of the tool call object.
     *
     * @param type
-    *   The type of tool call. This is always going to be retrieval for this type of tool call.
+    *   The type of tool call. This is always going to be file_search for this type of tool call.
     *
-    * @param retrieval
+    * @param fileSearch
     *   For now, this is always going to be an empty object.
     */
-  case class RetrievalToolCall(
+  case class FileSearchToolCall(
       id: String,
       `type`: String,
-      retrieval: Map[String, String]
+      fileSearch: Map[String, String]
   ) extends ToolCall
 
-  object RetrievalToolCall {
-    implicit val retrievalToolCallR: SnakePickle.Reader[RetrievalToolCall] = SnakePickle.macroR[RetrievalToolCall]
+  object FileSearchToolCall {
+    implicit val fileSearchToolCallR: SnakePickle.Reader[FileSearchToolCall] = SnakePickle.macroR[FileSearchToolCall]
   }
 
   /** Function tool call

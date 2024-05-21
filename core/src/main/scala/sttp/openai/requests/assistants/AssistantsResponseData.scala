@@ -1,7 +1,7 @@
 package sttp.openai.requests.assistants
 
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.completions.chat.message.Tool
+import sttp.openai.requests.completions.chat.message.{Tool, ToolResources}
 
 object AssistantsResponseData {
 
@@ -30,11 +30,11 @@ object AssistantsResponseData {
     *
     * @param tools
     *   A list of tool enabled on the assistant. There can be a maximum of 128 tools per assistant. Tools can be of types code_interpreter,
-    *   retrieval, or function.
+    *   file_search, or function.
     *
-    * @param fileIds
-    *   A list of file IDs attached to this assistant. There can be a maximum of 20 files attached to the assistant. Files are ordered by
-    *   their creation date in ascending order.
+    * @param toolResources
+    *   A set of resources that are used by the assistant's tools. The resources are specific to the type of tool. For example, the
+    *   code_interpreter tool requires a list of file IDs, while the file_search tool requires a list of vector store IDs.
     *
     * @param metadata
     *   Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object
@@ -51,7 +51,7 @@ object AssistantsResponseData {
       model: String,
       instructions: Option[String],
       tools: Seq[Tool],
-      fileIds: Seq[String],
+      toolResources: Option[ToolResources],
       metadata: Map[String, String]
   )
 
@@ -59,40 +59,16 @@ object AssistantsResponseData {
     implicit val assistantDataR: SnakePickle.Reader[AssistantData] = SnakePickle.macroR[AssistantData]
   }
 
-  /** @param id
-    *   The identifier, which can be referenced in API endpoints.
-    *
-    * @param object
-    *   The object type, which is always assistant.file.
-    *
-    * @param createdAt
-    *   The Unix timestamp (in seconds) for when the assistant file was created.
-    *
-    * @param assistantId
-    *   The assistant ID that the file is attached to.
-    *
-    * For more information please visit: [[https://platform.openai.com/docs/api-reference/assistants/file-object]]
-    */
-
-  case class AssistantFileData(
-      id: String,
-      `object`: String,
-      createdAt: Int,
-      assistantId: String
-  )
-
-  object AssistantFileData {
-    implicit val assistantFileDataR: SnakePickle.Reader[AssistantFileData] = SnakePickle.macroR[AssistantFileData]
-  }
-
   /** @param object
     *   Always "list"
     * @param data
     *   A list of assistant objects.
     * @param firstId
+    *   Id of first object
     * @param lastId
+    *   Id of last object
     * @param hasMore
-    *   }
+    *   Denotes if there are more object available }
     */
   case class ListAssistantsResponse(
       `object`: String = "list",
@@ -105,28 +81,8 @@ object AssistantsResponseData {
     implicit val listAssistantsResponseR: SnakePickle.Reader[ListAssistantsResponse] = SnakePickle.macroR[ListAssistantsResponse]
   }
 
-  /** @param object
-    *   Always "list"
-    * @param data
-    *   A list of assistant objects.
-    * @param firstId
-    * @param lastId
-    * @param hasMore
-    *   }
-    */
-  case class ListAssistantFilesResponse(
-      `object`: String = "list",
-      data: Seq[AssistantFileData],
-      firstId: String,
-      lastId: String,
-      hasMore: Boolean
-  )
-  object ListAssistantFilesResponse {
-    implicit val listAssistantFilesResponseR: SnakePickle.Reader[ListAssistantFilesResponse] =
-      SnakePickle.macroR[ListAssistantFilesResponse]
-  }
-
   /** @param id
+    *   Id of deleted object
     * @param `object`
     *   assistant.deleted
     * @param deleted
@@ -142,23 +98,5 @@ object AssistantsResponseData {
   object DeleteAssistantResponse {
     implicit val deleteAssistantResponseReadWriter: SnakePickle.ReadWriter[DeleteAssistantResponse] =
       SnakePickle.macroRW[DeleteAssistantResponse]
-  }
-
-  /** @param id
-    * @param `object`
-    *   assistant.file.deleted
-    * @param deleted
-    *
-    * For more information please visit: [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistantFile]]
-    */
-  case class DeleteAssistantFileResponse(
-      id: String,
-      `object`: String,
-      deleted: Boolean
-  )
-
-  object DeleteAssistantFileResponse {
-    implicit val deleteAssistantFileResponseReadWriter: SnakePickle.ReadWriter[DeleteAssistantFileResponse] =
-      SnakePickle.macroRW[DeleteAssistantFileResponse]
   }
 }

@@ -4,15 +4,8 @@ import sttp.client4._
 import sttp.model.{Header, Uri}
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.json.SttpUpickleApiExtension.{asJsonSnake, asStreamSnake, asStringEither, upickleBodySerializer}
-import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, CreateAssistantFileBody, ModifyAssistantBody}
-import sttp.openai.requests.assistants.AssistantsResponseData.{
-  AssistantData,
-  AssistantFileData,
-  DeleteAssistantFileResponse,
-  DeleteAssistantResponse,
-  ListAssistantFilesResponse,
-  ListAssistantsResponse
-}
+import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
+import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -44,12 +37,7 @@ import sttp.capabilities.Streams
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{
-  ListMessageFilesResponse,
-  ListMessagesResponse,
-  MessageData,
-  MessageFileData
-}
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{
   CreateRun,
   CreateThreadAndRun,
@@ -59,6 +47,14 @@ import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{
 }
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
 import sttp.openai.requests.threads.QueryParameters
+import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
+import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
+  DeleteVectorStoreFileResponse,
+  ListVectorStoreFilesResponse,
+  VectorStoreFile
+}
 
 import java.io.File
 import java.nio.file.Paths
@@ -715,30 +711,6 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .response(asJsonSnake[ListMessagesResponse])
   }
 
-  /** Returns a list of message files.
-    *
-    * [[https://platform.openai.com/docs/api-reference/messages/listMessageFiles]]
-    *
-    * @param threadId
-    *   The ID of the thread that the message and files belong to.
-    *
-    * @param messageId
-    *   The ID of the message that the files belongs to.
-    */
-  def listThreadMessageFiles(
-      threadId: String,
-      messageId: String,
-      queryParameters: QueryParameters = QueryParameters.empty
-  ): Request[Either[OpenAIException, ListMessageFilesResponse]] = {
-    val uri = openAIUris
-      .threadMessageFiles(threadId, messageId)
-      .withParams(queryParameters.toMap)
-
-    betaOpenAIAuthRequest
-      .get(uri)
-      .response(asJsonSnake[ListMessageFilesResponse])
-  }
-
   /** Retrieve a message.
     *
     * [[https://platform.openai.com/docs/api-reference/messages/getMessage]]
@@ -756,28 +728,6 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     betaOpenAIAuthRequest
       .get(openAIUris.threadMessage(threadId, messageId))
       .response(asJsonSnake[MessageData])
-
-  /** Retrieves a message file.
-    *
-    * [[https://platform.openai.com/docs/api-reference/messages/getMessageFile]]
-    *
-    * @param threadId
-    *   The ID of the thread to which the message and File belong.
-    *
-    * @param messageId
-    *   The ID of the message the file belongs to.
-    *
-    * @param fileId
-    *   The ID of the file being retrieved.
-    */
-  def retrieveThreadMessageFile(
-      threadId: String,
-      messageId: String,
-      fileId: String
-  ): Request[Either[OpenAIException, MessageFileData]] =
-    betaOpenAIAuthRequest
-      .get(openAIUris.threadMessageFile(threadId, messageId, fileId))
-      .response(asJsonSnake[MessageFileData])
 
   /** Modifies a message.
     *
@@ -808,23 +758,6 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .body(createAssistantBody)
       .response(asJsonSnake[AssistantData])
 
-  /** Create an assistant file by attaching a File to an assistant.
-    *
-    * [[https://platform.openai.com/docs/api-reference/assistants/createAssistantFile]]
-    *
-    * @param assistantId
-    *   The ID of the assistant for which to create a File.
-    *
-    * @param fileId
-    *   A File ID (with purpose="assistants") that the assistant should use. Useful for tools like retrieval and code_interpreter that can
-    *   access files..
-    */
-  def createAssistantFile(assistantId: String, fileId: String): Request[Either[OpenAIException, AssistantFileData]] =
-    betaOpenAIAuthRequest
-      .post(openAIUris.assistantFiles(assistantId))
-      .body(CreateAssistantFileBody(fileId))
-      .response(asJsonSnake[AssistantFileData])
-
   /** Returns a list of assistants.
     *
     * [[https://platform.openai.com/docs/api-reference/assistants/listAssistants]]
@@ -840,26 +773,6 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .response(asJsonSnake[ListAssistantsResponse])
   }
 
-  /** Returns a list of assistant files.
-    *
-    * [[https://platform.openai.com/docs/api-reference/assistants/listAssistantFiles]]
-    *
-    * @param assistantId
-    *   The ID of the assistant the file belongs to.
-    */
-  def listAssistantFiles(
-      assistantId: String,
-      queryParameters: QueryParameters = QueryParameters.empty
-  ): Request[Either[OpenAIException, ListAssistantFilesResponse]] = {
-    val uri = openAIUris
-      .assistantFiles(assistantId)
-      .withParams(queryParameters.toMap)
-
-    betaOpenAIAuthRequest
-      .get(uri)
-      .response(asJsonSnake[ListAssistantFilesResponse])
-  }
-
   /** Retrieves an assistant.
     *
     * [[https://platform.openai.com/docs/api-reference/assistants/getAssistant]]
@@ -871,21 +784,6 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     betaOpenAIAuthRequest
       .get(openAIUris.assistant(assistantId))
       .response(asJsonSnake[AssistantData])
-
-  /** Retrieves an AssistantFile.
-    *
-    * [[https://platform.openai.com/docs/api-reference/assistants/getAssistantFile]]
-    *
-    * @param assistantId
-    *   The ID of the assistant who the file belongs to.
-    *
-    * @param fileId
-    *   The ID of the file we're getting.
-    */
-  def retrieveAssistantFile(assistantId: String, fileId: String): Request[Either[OpenAIException, AssistantFileData]] =
-    betaOpenAIAuthRequest
-      .get(openAIUris.assistantFile(assistantId, fileId))
-      .response(asJsonSnake[AssistantFileData])
 
   /** Modifies an assistant.
     *
@@ -914,21 +812,6 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     betaOpenAIAuthRequest
       .delete(openAIUris.assistant(assistantId))
       .response(asJsonSnake[DeleteAssistantResponse])
-
-  /** Delete an assistant file.
-    *
-    * [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistantFile]]
-    *
-    * @param assistantId
-    *   The ID of the assistant that the file belongs to.
-    *
-    * @param fileId
-    *   The ID of the file to delete.
-    */
-  def deleteAssistantFile(assistantId: String, fileId: String): Request[Either[OpenAIException, DeleteAssistantFileResponse]] =
-    betaOpenAIAuthRequest
-      .delete(openAIUris.assistantFile(assistantId, fileId))
-      .response(asJsonSnake[DeleteAssistantFileResponse])
 
   /** Create a run.
     *
@@ -1060,7 +943,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.threadRunSubmitToolOutputs(threadId, runId))
       .body(SubmitToolOutputsToRun(toolOutputs))
       .response(asJsonSnake[RunData])
-//
+
   /** Cancels a run that is in_progress.
     *
     * [[https://platform.openai.com/docs/api-reference/runs/cancelRun]]
@@ -1076,12 +959,143 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.threadRunCancel(threadId, runId))
       .response(asJsonSnake[RunData])
 
+  /** Creates vector store
+    *
+    * @param createVectorStoreBody
+    *   Options for new vector store
+    * @return
+    *   Newly created vector store or exception
+    */
+  def createVectorStore(createVectorStoreBody: CreateVectorStoreBody): Request[Either[OpenAIException, VectorStore]] =
+    betaOpenAIAuthRequest
+      .post(openAIUris.VectorStores)
+      .body(createVectorStoreBody)
+      .response(asJsonSnake[VectorStore])
+
+  /** Lists vector store
+    *
+    * @param queryParameters
+    *   Search params
+    * @return
+    *   List of vector stores matching criteria or exception
+    */
+  def listVectorStores(
+      queryParameters: QueryParameters = QueryParameters.empty
+  ): Request[Either[OpenAIException, ListVectorStoresResponse]] =
+    betaOpenAIAuthRequest
+      .get(openAIUris.VectorStores.withParams(queryParameters.toMap))
+      .response(asJsonSnake[ListVectorStoresResponse])
+
+  /** Retrieves vector store by id
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @return
+    *   Vector store object or exception
+    */
+  def retrieveVectorStore(vectorStoreId: String): Request[Either[OpenAIException, VectorStore]] =
+    betaOpenAIAuthRequest
+      .get(openAIUris.vectorStore(vectorStoreId))
+      .response(asJsonSnake[VectorStore])
+
+  /** Modifies vector store
+    *
+    * @param vectorStoreId
+    *   Id of vector store to modify
+    * @param modifyVectorStoreBody
+    *   New values for store properties
+    * @return
+    *   Modified vector store object
+    */
+  def modifyVectorStore(
+      vectorStoreId: String,
+      modifyVectorStoreBody: ModifyVectorStoreBody
+  ): Request[Either[OpenAIException, VectorStore]] =
+    betaOpenAIAuthRequest
+      .post(openAIUris.vectorStore(vectorStoreId))
+      .body(modifyVectorStoreBody)
+      .response(asJsonSnake[VectorStore])
+
+  /** Deletes vector store
+    *
+    * @param vectorStoreId
+    *   Id of vector store to be deleted
+    * @return
+    *   Result of deleted operation
+    */
+  def deleteVectorStore(vectorStoreId: String): Request[Either[OpenAIException, DeleteVectorStoreResponse]] =
+    betaOpenAIAuthRequest
+      .delete(openAIUris.vectorStore(vectorStoreId))
+      .response(asJsonSnake[DeleteVectorStoreResponse])
+
+  /** Creates vector store file
+    *
+    * @param vectorStoreId
+    *   Id of vector store for file
+    * @param createVectorStoreFileBody
+    *   Properties of file
+    * @return
+    *   Newly created vector store file
+    */
+  def createVectorStoreFile(
+      vectorStoreId: String,
+      createVectorStoreFileBody: CreateVectorStoreFileBody
+  ): Request[Either[OpenAIException, VectorStoreFile]] =
+    betaOpenAIAuthRequest
+      .post(openAIUris.vectorStoreFiles(vectorStoreId))
+      .body(createVectorStoreFileBody)
+      .response(asJsonSnake[VectorStoreFile])
+
+  /** List files belonging to particular datastore
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @param queryParameters
+    *   Search params
+    * @return
+    *   List of vector store files
+    */
+  def listVectorStoreFiles(
+      vectorStoreId: String,
+      queryParameters: ListVectorStoreFilesBody = ListVectorStoreFilesBody()
+  ): Request[Either[OpenAIException, ListVectorStoreFilesResponse]] =
+    betaOpenAIAuthRequest
+      .get(openAIUris.vectorStoreFiles(vectorStoreId).withParams(queryParameters.toMap))
+      .response(asJsonSnake[ListVectorStoreFilesResponse])
+
+  /** Retrieves vector store file by id
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @param fileId
+    *   Id of vector store file
+    * @return
+    *   Vector store file
+    */
+  def retrieveVectorStoreFile(vectorStoreId: String, fileId: String): Request[Either[OpenAIException, VectorStoreFile]] =
+    betaOpenAIAuthRequest
+      .get(openAIUris.vectorStoreFile(vectorStoreId, fileId))
+      .response(asJsonSnake[VectorStoreFile])
+
+  /** Deletes vector store file by id
+   *
+   * @param vectorStoreId
+   *   Id of vector store
+   * @param fileId
+   *   Id of vector store file
+   * @return
+   *   Result of delete operation
+   */
+  def deleteVectorStoreFile(vectorStoreId: String, fileId: String): Request[Either[OpenAIException, DeleteVectorStoreFileResponse]] =
+    betaOpenAIAuthRequest
+      .delete(openAIUris.vectorStoreFile(vectorStoreId, fileId))
+      .response(asJsonSnake[DeleteVectorStoreFileResponse])
+
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 
   protected val betaOpenAIAuthRequest: PartialRequest[Either[String, String]] =
-    openAIAuthRequest.withHeaders(openAIAuthRequest.headers :+ Header("OpenAI-Beta", "assistants=v1"))
-
+    openAIAuthRequest.withHeaders(openAIAuthRequest.headers :+ Header("OpenAI-Beta", "assistants=v2"))
 }
 
 private class OpenAIUris(val baseUri: Uri) {
@@ -1105,6 +1119,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Assistants: Uri = uri"$baseUri/assistants"
   val Threads: Uri = uri"$baseUri/threads"
   val ThreadsRuns: Uri = uri"$baseUri/threads/runs"
+  val VectorStores: Uri = uri"$baseUri/vector_stores"
 
   def cancelFineTune(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId, "cancel")
   def file(fileId: String): Uri = Files.addPath(fileId)
@@ -1115,19 +1130,10 @@ private class OpenAIUris(val baseUri: Uri) {
   def model(modelId: String): Uri = Models.addPath(modelId)
 
   def assistant(assistantId: String): Uri = Assistants.addPath(assistantId)
-  def assistantFiles(assistantId: String): Uri = Assistants.addPath(assistantId).addPath("files")
-  def assistantFile(assistantId: String, fileId: String): Uri = Assistants.addPath(assistantId).addPath("files").addPath(fileId)
 
   def thread(threadId: String): Uri = Threads.addPath(threadId)
-
   def threadMessages(threadId: String): Uri = Threads.addPath(threadId).addPath("messages")
   def threadMessage(threadId: String, messageId: String): Uri = Threads.addPath(threadId).addPath("messages").addPath(messageId)
-
-  def threadMessageFiles(threadId: String, messageId: String): Uri =
-    Threads.addPath(threadId).addPath("messages", messageId, "files")
-  def threadMessageFile(threadId: String, messageId: String, fileId: String): Uri =
-    Threads.addPath(threadId).addPath("messages", messageId, "files", fileId)
-
   def threadRuns(threadId: String): Uri = Threads.addPath(threadId, "runs")
   def threadRun(threadId: String, runId: String): Uri = Threads.addPath(threadId, "runs", runId)
 
@@ -1141,6 +1147,12 @@ private class OpenAIUris(val baseUri: Uri) {
   def threadRunSubmitToolOutputs(threadId: String, runId: String): Uri =
     Threads.addPath(threadId, "runs", runId, "submit_tool_outputs")
 
+  def vectorStore(vectorStoreId: String): Uri =
+    VectorStores.addPath(vectorStoreId)
+  def vectorStoreFiles(vectorStoreId: String): Uri =
+    vectorStore(vectorStoreId).addPath("files")
+  def vectorStoreFile(vectorStoreId: String, fileId: String): Uri =
+    vectorStoreFiles(vectorStoreId).addPath(fileId)
 }
 
 object OpenAIUris {

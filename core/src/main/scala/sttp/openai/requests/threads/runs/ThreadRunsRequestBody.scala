@@ -1,7 +1,7 @@
 package sttp.openai.requests.threads.runs
 
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.completions.chat.message.Tool
+import sttp.openai.requests.completions.chat.message.{Tool, ToolResources}
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 
 object ThreadRunsRequestBody {
@@ -69,6 +69,7 @@ object ThreadRunsRequestBody {
       model: Option[String] = None,
       instructions: Option[String] = None,
       tools: Seq[Tool] = Seq.empty,
+      toolResources: Option[ToolResources] = None,
       metadata: Map[String, String] = Map.empty
   )
 

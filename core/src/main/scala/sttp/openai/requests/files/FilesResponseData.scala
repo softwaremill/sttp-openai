@@ -10,8 +10,8 @@ object FilesResponseData {
       filename: String,
       bytes: Int,
       createdAt: Int,
-      status: String,
-      statusDetails: Option[String]
+      @deprecated("Mark as deprecated in OpenAI spec") status: String,
+      @deprecated("Mark as deprecated in OpenAI spec") statusDetails: Option[String]
   )
 
   object FileData {

@@ -5,13 +5,9 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.requests.completions.chat.message.Attachment
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.Content.{TextContent, TextContentValue}
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{
-  ListMessageFilesResponse,
-  ListMessagesResponse,
-  MessageData,
-  MessageFileData
-}
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
 
 class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -52,7 +48,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
           )
         )
       ),
-      fileIds = Seq.empty,
+      attachments = Some(Seq.empty),
       assistantId = None,
       runId = None,
       metadata = Map.empty
@@ -87,7 +83,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
               )
             )
           ),
-          fileIds = Seq.empty,
+          attachments = Some(Seq.empty),
           assistantId = None,
           runId = None,
           metadata = Map.empty
@@ -107,9 +103,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
               )
             )
           ),
-          fileIds = Seq(
-            "file-abc123"
-          ),
+          attachments = Some(Seq(Attachment(Some("file-abc123")))),
           assistantId = None,
           runId = None,
           metadata = Map.empty
@@ -122,38 +116,6 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
 
     // when
     val givenResponse: Either[Exception, ListMessagesResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
-
-    // then
-    givenResponse.value shouldBe expectedResponse
-  }
-
-  "Given list message files response as Json" should "be properly deserialized to case class" in {
-    import ListMessageFilesResponse._
-    // given
-    val jsonResponse = fixtures.ThreadMessagesFixture.jsonListMessageFilesResponse
-    val expectedResponse: ListMessageFilesResponse = ListMessageFilesResponse(
-      `object` = "list",
-      data = Seq(
-        MessageFileData(
-          id = "file-abc123",
-          `object` = "thread.message.file",
-          createdAt = 1699061776,
-          messageId = "msg_abc123"
-        ),
-        MessageFileData(
-          id = "file-abc123",
-          `object` = "thread.message.file",
-          createdAt = 1699061776,
-          messageId = "msg_abc123"
-        )
-      ),
-      firstId = "file-abc123",
-      lastId = "file-abc123",
-      hasMore = false
-    )
-
-    // when
-    val givenResponse: Either[Exception, ListMessageFilesResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -178,7 +140,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
           )
         )
       ),
-      fileIds = Seq.empty,
+      attachments = None,
       assistantId = None,
       runId = None,
       metadata = Map.empty
@@ -186,24 +148,6 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
 
     // when
     val givenResponse: Either[Exception, MessageData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
-
-    // then
-    givenResponse.value shouldBe expectedResponse
-  }
-
-  "Given retrieve message file response as Json" should "be properly deserialized to case class" in {
-    import MessageFileData._
-    // given
-    val jsonResponse = fixtures.ThreadMessagesFixture.jsonRetrieveMessageFileResponse
-    val expectedResponse: MessageFileData = MessageFileData(
-      id = "file-abc123",
-      `object` = "thread.message.file",
-      createdAt = 1699061776,
-      messageId = "msg_abc123"
-    )
-
-    // when
-    val givenResponse: Either[Exception, MessageFileData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -228,7 +172,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
           )
         )
       ),
-      fileIds = Seq.empty,
+      attachments = Some(Seq.empty),
       assistantId = None,
       runId = None,
       metadata = Map(

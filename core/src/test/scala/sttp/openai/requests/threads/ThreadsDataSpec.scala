@@ -7,6 +7,8 @@ import sttp.client4.IsOption._
 import sttp.openai.fixtures
 import sttp.openai.json.SnakePickle
 import sttp.openai.json.SttpUpickleApiExtension
+import sttp.openai.requests.completions.chat.message.Attachment
+import sttp.openai.requests.completions.chat.message.Tool.{CodeInterpreterTool, FileSearchTool}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -24,6 +26,33 @@ class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     serializedJson shouldBe jsonRequest
   }
 
+  "Given create threads request with messages and no attachments" should "be properly serialized to Json" in {
+
+    // given
+    val givenRequest = ThreadsRequestBody.CreateThreadBody(
+      messages = Some(
+        Seq(
+          CreateMessage(
+            role = "user",
+            content = "Hello, what is AI?"
+          ),
+          CreateMessage(
+            role = "user",
+            content = "How does AI work? Explain it in simple terms."
+          )
+        )
+      )
+    )
+
+    val jsonRequest: ujson.Value = ujson.read(fixtures.ThreadsFixture.jsonCreateThreadWithMessagesRequestNoAttachments)
+
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+
+    // then
+    serializedJson shouldBe jsonRequest
+  }
+
   "Given create threads request with messages" should "be properly serialized to Json" in {
 
     // given
@@ -33,7 +62,7 @@ class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           CreateMessage(
             role = "user",
             content = "Hello, what is AI?",
-            file_ids = Seq("file-abc123")
+            attachments = Some(Seq(Attachment(Some("file-abc123"), Some(Seq(CodeInterpreterTool, FileSearchTool)))))
           ),
           CreateMessage(
             role = "user",
@@ -61,7 +90,7 @@ class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           CreateMessage(
             role = "user",
             content = "Hello, what is AI?",
-            file_ids = Seq("file-abc123")
+            attachments = Some(Seq(Attachment(Some("file-abc456"), Some(Seq(CodeInterpreterTool)))))
           ),
           CreateMessage(
             role = "user",

@@ -25,7 +25,7 @@ object ThreadMessagesFixture {
       |      }
       |    }
       |  ],
-      |  "file_ids": [],
+      |  "attachments": [],
       |  "assistant_id": null,
       |  "run_id": null,
       |  "metadata": {}
@@ -52,7 +52,7 @@ object ThreadMessagesFixture {
       |          }
       |        }
       |      ],
-      |      "file_ids": [],
+      |      "attachments": [],
       |      "assistant_id": null,
       |      "run_id": null,
       |      "metadata": {}
@@ -72,9 +72,12 @@ object ThreadMessagesFixture {
       |          }
       |        }
       |      ],
-      |      "file_ids": [
-      |        "file-abc123"
-      |      ],
+      |      "attachments": [
+      |        {
+      |         "file_id" : "file-abc123",
+      |         "tools": []
+      |        }
+      |       ],
       |      "assistant_id": null,
       |      "run_id": null,
       |      "metadata": {}
@@ -82,30 +85,6 @@ object ThreadMessagesFixture {
       |  ],
       |  "first_id": "msg_abc123",
       |  "last_id": "msg_abc456",
-      |  "has_more": false
-      |}
-      |""".stripMargin
-
-  val jsonListMessageFilesResponse: String =
-    """
-      |{
-      |  "object": "list",
-      |  "data": [
-      |    {
-      |      "id": "file-abc123",
-      |      "object": "thread.message.file",
-      |      "created_at": 1699061776,
-      |      "message_id": "msg_abc123"
-      |    },
-      |    {
-      |      "id": "file-abc123",
-      |      "object": "thread.message.file",
-      |      "created_at": 1699061776,
-      |      "message_id": "msg_abc123"
-      |    }
-      |  ],
-      |  "first_id": "file-abc123",
-      |  "last_id": "file-abc123",
       |  "has_more": false
       |}
       |""".stripMargin
@@ -127,20 +106,9 @@ object ThreadMessagesFixture {
       |      }
       |    }
       |  ],
-      |  "file_ids": [],
       |  "assistant_id": null,
       |  "run_id": null,
       |  "metadata": {}
-      |}
-      |""".stripMargin
-
-  val jsonRetrieveMessageFileResponse: String =
-    """
-      |{
-      |  "id": "file-abc123",
-      |  "object": "thread.message.file",
-      |  "created_at": 1699061776,
-      |  "message_id": "msg_abc123"
       |}
       |""".stripMargin
 
@@ -161,7 +129,7 @@ object ThreadMessagesFixture {
       |      }
       |    }
       |  ],
-      |  "file_ids": [],
+      |  "attachments": [],
       |  "assistant_id": null,
       |  "run_id": null,
       |  "metadata": {

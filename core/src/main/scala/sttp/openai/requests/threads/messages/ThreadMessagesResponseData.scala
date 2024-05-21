@@ -1,6 +1,7 @@
 package sttp.openai.requests.threads.messages
 
 import sttp.openai.json.SnakePickle
+import sttp.openai.requests.completions.chat.message.Attachment
 
 object ThreadMessagesResponseData {
 
@@ -20,9 +21,8 @@ object ThreadMessagesResponseData {
     *   If applicable, the ID of the assistant that authored this message.
     * @param runId
     *   If applicable, the ID of the run associated with the authoring of this message.
-    * @param fileIds
-    *   A list of file IDs that the assistant should use. Useful for tools like retrieval and code_interpreter that can access files. A
-    *   maximum of 10 files can be attached to a message.
+    * @param attachments
+    *   A list of files attached to the message, and the tools they were added to.
     * @param metadata
     *   Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object
     *   in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.
@@ -38,7 +38,7 @@ object ThreadMessagesResponseData {
       content: Seq[Content],
       assistantId: Option[String] = None,
       runId: Option[String] = None,
-      fileIds: Seq[String] = Seq.empty,
+      attachments: Option[Seq[Attachment]] = None,
       metadata: Map[String, String] = Map.empty
   )
 
@@ -66,51 +66,6 @@ object ThreadMessagesResponseData {
     implicit val listMessagesResponseR: SnakePickle.Reader[ListMessagesResponse] = SnakePickle.macroR[ListMessagesResponse]
   }
 
-  /** @param id
-    *   The identifier, which can be referenced in API endpoints.
-    *
-    * @param object
-    *   The object type, which is always thread.message.file.
-    *
-    * @param createdAt
-    *   The Unix timestamp (in seconds) for when the message file was created.
-    *
-    * @param messageId
-    *   The ID of the message that the File is attached to.
-    *
-    * For more information please visit: [[https://platform.openai.com/docs/api-reference/messages/file-object]]
-    */
-  case class MessageFileData(
-      id: String,
-      `object`: String,
-      createdAt: Int,
-      messageId: String
-  )
-
-  object MessageFileData {
-    implicit val messageFileDataR: SnakePickle.Reader[MessageFileData] = SnakePickle.macroR[MessageFileData]
-  }
-
-  /** @param object
-    *   Always "list"
-    * @param data
-    *   A list of message file objects.
-    * @param firstId
-    * @param lastId
-    * @param hasMore
-    *   }
-    */
-  case class ListMessageFilesResponse(
-      `object`: String = "list",
-      data: Seq[MessageFileData],
-      firstId: String,
-      lastId: String,
-      hasMore: Boolean
-  )
-  object ListMessageFilesResponse {
-    implicit val listMessageFilesResponseR: SnakePickle.Reader[ListMessageFilesResponse] = SnakePickle.macroR[ListMessageFilesResponse]
-  }
-
   sealed trait Annotation
 
   /** @param fileId
@@ -127,7 +82,7 @@ object ThreadMessagesResponseData {
   implicit val fileCitationR: SnakePickle.Reader[FileCitation] = SnakePickle.macroR[FileCitation]
 
   /** A citation within the message that points to a specific quote from a specific File associated with the assistant or the message.
-    * Generated when the assistant uses the "retrieval" tool to search files.
+    * Generated when the assistant uses the "file_search" tool to search files.
     * @param type
     *   Always file_citation.
     *
