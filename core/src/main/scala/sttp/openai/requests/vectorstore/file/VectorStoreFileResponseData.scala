@@ -66,16 +66,16 @@ object VectorStoreFileResponseData {
   }
 
   /** @param object
-   *   Always "list"
-   * @param data
-   *   A list of vector store file objects.
-   * @param firstId
-   *  Id of first object
-   * @param lastId
-   *  Id of last object
-   * @param hasMore
-   *   Denotes if there are more object available
-   */
+    *   Always "list"
+    * @param data
+    *   A list of vector store file objects.
+    * @param firstId
+    *   Id of first object
+    * @param lastId
+    *   Id of last object
+    * @param hasMore
+    *   Denotes if there are more object available
+    */
   case class ListVectorStoreFilesResponse(
       `object`: String = "list",
       data: Seq[VectorStoreFile],
@@ -88,14 +88,15 @@ object VectorStoreFileResponseData {
     implicit val listVectorStoreFilesResponseR: SnakePickle.Reader[ListVectorStoreFilesResponse] =
       SnakePickle.macroR[ListVectorStoreFilesResponse]
   }
+
   /** @param id
-   *   Id of deleted object
-   * @param `object`
-   *   vector_store.file.deleted
-   * @param deleted
-   *  boolean describing whether or not operation was successful
-   * For more information please visit: [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistant]]
-   */
+    *   Id of deleted object
+    * @param `object`
+    *   vector_store.file.deleted
+    * @param deleted
+    *   boolean describing whether or not operation was successful For more information please visit:
+    *   [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistant]]
+    */
   case class DeleteVectorStoreFileResponse(
       id: String,
       `object`: String,

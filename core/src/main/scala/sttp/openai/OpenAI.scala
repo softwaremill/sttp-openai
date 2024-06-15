@@ -1078,14 +1078,14 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .response(asJsonSnake[VectorStoreFile])
 
   /** Deletes vector store file by id
-   *
-   * @param vectorStoreId
-   *   Id of vector store
-   * @param fileId
-   *   Id of vector store file
-   * @return
-   *   Result of delete operation
-   */
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @param fileId
+    *   Id of vector store file
+    * @return
+    *   Result of delete operation
+    */
   def deleteVectorStoreFile(vectorStoreId: String, fileId: String): Request[Either[OpenAIException, DeleteVectorStoreFileResponse]] =
     betaOpenAIAuthRequest
       .delete(openAIUris.vectorStoreFile(vectorStoreId, fileId))

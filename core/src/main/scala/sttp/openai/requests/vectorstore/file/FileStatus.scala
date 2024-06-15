@@ -15,17 +15,16 @@ object FileStatus {
     .bimap[FileStatus](
       {
         case InProgress => "in_progress"
-        case Completed => "completed"
-        case Failed => "failed"
-        case Cancelled => "cancelled"
+        case Completed  => "completed"
+        case Failed     => "failed"
+        case Cancelled  => "cancelled"
       },
-      json => {
+      json =>
         json.str match {
           case "in_progress" => InProgress
-          case "completed" => Completed
-          case "failed" => Failed
-          case "cancelled" => Cancelled
+          case "completed"   => Completed
+          case "failed"      => Failed
+          case "cancelled"   => Cancelled
         }
-      }
     )
 }

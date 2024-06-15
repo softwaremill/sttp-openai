@@ -17,12 +17,12 @@ object ToolResources {
       {
         case Some(resources) =>
           (resources.fileSearch, resources.codeInterpreter) match {
-              case (Some(fileSearch), Some(codeInterpreter)) =>
-                Obj("file_search" -> SnakePickle.writeJs(fileSearch), "code_interpreter" -> SnakePickle.writeJs(codeInterpreter))
-              case (Some(fileSearch), None)      => Obj("file_search" -> SnakePickle.writeJs(fileSearch))
-              case (None, Some(codeInterpreter)) => Obj("code_interpreter" -> SnakePickle.writeJs(codeInterpreter))
-              case _                             => Obj()
-            }
+            case (Some(fileSearch), Some(codeInterpreter)) =>
+              Obj("file_search" -> SnakePickle.writeJs(fileSearch), "code_interpreter" -> SnakePickle.writeJs(codeInterpreter))
+            case (Some(fileSearch), None)      => Obj("file_search" -> SnakePickle.writeJs(fileSearch))
+            case (None, Some(codeInterpreter)) => Obj("code_interpreter" -> SnakePickle.writeJs(codeInterpreter))
+            case _                             => Obj()
+          }
         case None => Obj()
       },
       json => {

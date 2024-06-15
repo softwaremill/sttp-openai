@@ -691,46 +691,46 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
     sendOrThrow(openAI.cancelRun(threadId, runId))
 
   /** Creates vector store
-   *
-   * @param createVectorStoreBody
-   *   Options for new vector store
-   * @return
-   *   Newly created vector store or exception
-   */
+    *
+    * @param createVectorStoreBody
+    *   Options for new vector store
+    * @return
+    *   Newly created vector store or exception
+    */
   def createVectorStore(createVectorStoreBody: CreateVectorStoreBody): VectorStore =
     sendOrThrow(openAI.createVectorStore(createVectorStoreBody))
 
   /** Lists vector store
-   *
-   * @param queryParameters
-   *   Search params
-   * @return
-   *   List of vector stores matching criteria or exception
-   */
+    *
+    * @param queryParameters
+    *   Search params
+    * @return
+    *   List of vector stores matching criteria or exception
+    */
   def listVectorStores(
       queryParameters: QueryParameters = QueryParameters.empty
   ): ListVectorStoresResponse =
     sendOrThrow(openAI.listVectorStores(queryParameters))
 
   /** Retrieves vector store by id
-   *
-   * @param vectorStoreId
-   *   Id of vector store
-   * @return
-   *   Vector store object or exception
-   */
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @return
+    *   Vector store object or exception
+    */
   def retrieveVectorStore(vectorStoreId: String): VectorStore =
     sendOrThrow(openAI.retrieveVectorStore(vectorStoreId))
 
   /** Modifies vector store
-   *
-   * @param vectorStoreId
-   *   Id of vector store to modify
-   * @param modifyVectorStoreBody
-   *   New values for store properties
-   * @return
-   *   Modified vector store object
-   */
+    *
+    * @param vectorStoreId
+    *   Id of vector store to modify
+    * @param modifyVectorStoreBody
+    *   New values for store properties
+    * @return
+    *   Modified vector store object
+    */
   def modifyVectorStore(
       vectorStoreId: String,
       modifyVectorStoreBody: ModifyVectorStoreBody
@@ -738,24 +738,24 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
     sendOrThrow(openAI.modifyVectorStore(vectorStoreId, modifyVectorStoreBody))
 
   /** Deletes vector store
-   *
-   * @param vectorStoreId
-   *   Id of vector store to be deleted
-   * @return
-   *   Result of deleted operation
-   */
+    *
+    * @param vectorStoreId
+    *   Id of vector store to be deleted
+    * @return
+    *   Result of deleted operation
+    */
   def deleteVectorStore(vectorStoreId: String): DeleteVectorStoreResponse =
     sendOrThrow(openAI.deleteVectorStore(vectorStoreId))
 
   /** Creates vector store file
-   *
-   * @param vectorStoreId
-   *   Id of vector store for file
-   * @param createVectorStoreFileBody
-   *   Properties of file
-   * @return
-   *   Newly created vector store file
-   */
+    *
+    * @param vectorStoreId
+    *   Id of vector store for file
+    * @param createVectorStoreFileBody
+    *   Properties of file
+    * @return
+    *   Newly created vector store file
+    */
   def createVectorStoreFile(
       vectorStoreId: String,
       createVectorStoreFileBody: CreateVectorStoreFileBody
@@ -763,14 +763,14 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
     sendOrThrow(openAI.createVectorStoreFile(vectorStoreId, createVectorStoreFileBody))
 
   /** List files belonging to particular datastore
-   *
-   * @param vectorStoreId
-   *   Id of vector store
-   * @param queryParameters
-   *   Search params
-   * @return
-   *   List of vector store files
-   */
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @param queryParameters
+    *   Search params
+    * @return
+    *   List of vector store files
+    */
   def listVectorStoreFiles(
       vectorStoreId: String,
       queryParameters: ListVectorStoreFilesBody = ListVectorStoreFilesBody()
@@ -778,26 +778,26 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
     sendOrThrow(openAI.listVectorStoreFiles(vectorStoreId, queryParameters))
 
   /** Retrieves vector store file by id
-   *
-   * @param vectorStoreId
-   *   Id of vector store
-   * @param fileId
-   *   Id of vector store file
-   * @return
-   *   Vector store file
-   */
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @param fileId
+    *   Id of vector store file
+    * @return
+    *   Vector store file
+    */
   def retrieveVectorStoreFile(vectorStoreId: String, fileId: String): VectorStoreFile =
     sendOrThrow(openAI.retrieveVectorStoreFile(vectorStoreId, fileId))
 
   /** Deletes vector store file by id
-   *
-   * @param vectorStoreId
-   *   Id of vector store
-   * @param fileId
-   *   Id of vector store file
-   * @return
-   *   Result of delete operation
-   */
+    *
+    * @param vectorStoreId
+    *   Id of vector store
+    * @param fileId
+    *   Id of vector store file
+    * @return
+    *   Result of delete operation
+    */
   def deleteVectorStoreFile(vectorStoreId: String, fileId: String): DeleteVectorStoreFileResponse =
     sendOrThrow(openAI.deleteVectorStoreFile(vectorStoreId, fileId))
 
