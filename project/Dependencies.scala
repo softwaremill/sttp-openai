@@ -7,7 +7,7 @@ object Dependencies {
     val scalaTestCats = "1.5.0"
 
     val sttpClient = "4.0.0-M14"
-    val pekkoStreams = "1.0.2"
+    val pekkoStreams = "1.0.3"
     val akkaStreams = "2.6.20"
     val uPickle = "3.1.4"
   }
