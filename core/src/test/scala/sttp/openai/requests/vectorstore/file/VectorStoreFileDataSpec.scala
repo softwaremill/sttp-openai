@@ -6,7 +6,14 @@ import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.VectorStoreFileFixture
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, LastError, ListVectorStoreFilesResponse, RateLimitExceeded, ServerError, VectorStoreFile}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
+  DeleteVectorStoreFileResponse,
+  LastError,
+  ListVectorStoreFilesResponse,
+  RateLimitExceeded,
+  ServerError,
+  VectorStoreFile
+}
 
 class VectorStoreFileDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
