@@ -88,16 +88,16 @@ object VectorStoreResponseData {
   }
 
   /** @param object
-   *   Always "list"
-   * @param data
-   *   A list of vector store objects.
-   * @param firstId
-   *  Id of first object
-   * @param lastId
-   *  Id of last object
-   * @param hasMore
-   *   Denotes if there are more object available
-   */
+    *   Always "list"
+    * @param data
+    *   A list of vector store objects.
+    * @param firstId
+    *   Id of first object
+    * @param lastId
+    *   Id of last object
+    * @param hasMore
+    *   Denotes if there are more object available
+    */
   case class ListVectorStoresResponse(
       `object`: String = "list",
       data: Seq[VectorStore],
@@ -111,13 +111,13 @@ object VectorStoreResponseData {
   }
 
   /** @param id
-   *   Id of deleted object
-   * @param `object`
-   *   vector_store.deleted
-   * @param deleted
-   *  boolean describing whether or not operation was successful
-   * For more information please visit: [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistant]]
-   */
+    *   Id of deleted object
+    * @param `object`
+    *   vector_store.deleted
+    * @param deleted
+    *   boolean describing whether or not operation was successful For more information please visit:
+    *   [[https://platform.openai.com/docs/api-reference/assistants/deleteAssistant]]
+    */
   case class DeleteVectorStoreResponse(
       id: String,
       `object`: String,
