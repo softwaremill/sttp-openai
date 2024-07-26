@@ -52,8 +52,9 @@ object Main extends App {
     )
   )
 
+  // use ChatCompletionModel.CustomChatCompletionModel("gpt-some-future-version") for models not yet supported here
   val chatRequestBody: ChatBody = ChatBody(
-    model = ChatCompletionModel.GPT35Turbo,
+    model = ChatCompletionModel.GPT4oMini,
     messages = bodyMessages
   )
 
@@ -66,7 +67,7 @@ object Main extends App {
       ChatResponse(
        chatcmpl-79shQITCiqTHFlI9tgElqcbMTJCLZ,chat.completion,
        1682589572,
-       gpt-3.5-turbo-0301,
+       gpt-4o-mini,
        Usage(10,10,20),
        List(
          Choices(
