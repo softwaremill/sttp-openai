@@ -143,6 +143,8 @@ object ChatRequestBody {
 
     case object GPT4o extends ChatCompletionModel("gpt-4o")
 
+    case object GPT4oMini extends ChatCompletionModel("gpt-4o-mini")
+
     case class CustomChatCompletionModel(customChatCompletionModel: String) extends ChatCompletionModel(customChatCompletionModel)
 
     val values: Set[ChatCompletionModel] =
@@ -155,7 +157,8 @@ object ChatRequestBody {
         GPT35Turbo0301,
         GPT4Turbo,
         GPT4TurboVision,
-        GPT4o
+        GPT4o,
+        GPT4oMini
       )
 
     private val byChatModelValue = values.map(model => model.value -> model).toMap
