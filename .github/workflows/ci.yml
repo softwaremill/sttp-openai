@@ -10,7 +10,7 @@ jobs:
     # run on 1) push, 2) external PRs, 3) softwaremill-ci PRs
     # do not run on internal, non-steward PRs since those will be run by push to branch
     if: |
-      github.event_name != 'pull_request' || 
+      github.event_name == 'push' || 
       github.event.pull_request.head.repo.full_name != github.repository ||
       github.event.pull_request.user.login == 'softwaremill-ci'
     runs-on: ubuntu-22.04
@@ -29,6 +29,11 @@ jobs:
       run: sbt -v compileDocs
     - name: Test
       run: sbt -v test
+    - uses: actions/upload-artifact@v3  # upload test results
+      if: success() || failure()        # run this step even if previous step failed
+      with:
+        name: 'tests-results'
+        path: '**/test-reports/TEST*.xml'
 
   publish:
     name: Publish release
@@ -109,3 +114,16 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           MERGE_METHOD: "squash"
+
+  test-report:
+    runs-on: ubuntu-22.04
+    # If the workflow run was skipped or cancelled this action would fail, generating a test report is unnecessary.
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure' }}
+    needs: [ ci ]
+    steps:
+      - uses: dorny/test-reporter@v1
+        with:
+          artifact: '/tests-results-(.*)/'
+          name: 'Test report for $1'
+          path: '**/test-reports/TEST*.xml'
+          reporter: java-junit
