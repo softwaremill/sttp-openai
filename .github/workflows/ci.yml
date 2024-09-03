@@ -114,16 +114,3 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           MERGE_METHOD: "squash"
-
-  test-report:
-    # If the workflow run was skipped or cancelled this action would fail, generating a test report is unnecessary.
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure' }}
-    needs: [ ci ]
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: dorny/test-reporter@v1
-        with:
-          artifact: '/tests-results-(.*)/'
-          name: 'Test report for $1'
-          path: '**/test-reports/TEST*.xml'
-          reporter: java-junit
