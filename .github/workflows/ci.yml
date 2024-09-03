@@ -13,57 +13,39 @@ jobs:
       github.event_name == 'push' || 
       github.event.pull_request.head.repo.full_name != github.repository ||
       github.event.pull_request.user.login == 'softwaremill-ci'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v1
+      uses: actions/checkout@v4
+    - name: Set up JDK
+      uses: actions/setup-java@v4
       with:
-        java-version: 11
-    - name: Cache sbt
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.sbt
-          ~/.ivy2/cache
-          ~/.coursier
-        key: sbt-cache-${{ runner.os }}-${{ hashFiles('project/build.properties') }}
+        distribution: 'zulu'
+        java-version: '21'
+        cache: 'sbt'
     - name: Compile
       run: sbt -v compile
     - name: Compile documentation
       run: sbt -v compileDocs
     - name: Test
       run: sbt -v test
-    - name: Cleanup
-      run: |
-        rm -rf "$HOME/.ivy2/local" || true
-        find $HOME/.ivy2/cache                       -name "ivydata-*.properties" -delete || true
-        find $HOME/.ivy2/cache                       -name "*-LM-SNAPSHOT*"       -delete || true
-        find $HOME/.cache/coursier/v1                -name "ivydata-*.properties" -delete || true
-        find $HOME/.sbt                              -name "*.lock"               -delete || true
+
   publish:
     name: Publish release
     needs: [ci]
     if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       JAVA_OPTS: -Xmx4G
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
-          java-version: 11
-      - name: Cache sbt
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier
-          key: sbt-cache-${{ runner.os }}-${{ hashFiles('project/build.properties') }}
+          distribution: 'zulu'
+          java-version: '21'
+          cache: 'sbt'
       - name: Compile
         run: sbt compile
       - name: Publish artifacts
@@ -89,13 +71,6 @@ jobs:
           version: "v${{ env.VERSION }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Cleanup
-        run: |
-          rm -rf "$HOME/.ivy2/local" || true
-          find $HOME/.ivy2/cache                       -name "ivydata-*.properties" -delete || true
-          find $HOME/.ivy2/cache                       -name "*-LM-SNAPSHOT*"       -delete || true
-          find $HOME/.cache/coursier/v1                -name "ivydata-*.properties" -delete || true
-          find $HOME/.sbt                              -name "*.lock"               -delete || true
 
   # `automerge` label is attached iff there is exactly one file changed by steward and this file belongs to a
   # whitelist specified by `labeler.yml`
@@ -103,7 +78,7 @@ jobs:
     name: Attach automerge label
     # only for PRs by softwaremill-ci
     if: github.event.pull_request.user.login == 'softwaremill-ci'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -126,7 +101,7 @@ jobs:
     # only for PRs by softwaremill-ci
     if: github.event.pull_request.user.login == 'softwaremill-ci'
     needs: [ ci, label ]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - id: automerge
         name: automerge
