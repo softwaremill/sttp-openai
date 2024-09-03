@@ -116,10 +116,10 @@ jobs:
           MERGE_METHOD: "squash"
 
   test-report:
-    runs-on: ubuntu-22.04
     # If the workflow run was skipped or cancelled this action would fail, generating a test report is unnecessary.
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure' }}
     needs: [ ci ]
+    runs-on: ubuntu-22.04
     steps:
       - uses: dorny/test-reporter@v1
         with:
