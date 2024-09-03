@@ -22,6 +22,7 @@ lazy val allAgregates = core.projectRefs ++
   zio.projectRefs ++
   pekko.projectRefs ++
   akka.projectRefs ++
+  ox.projectRefs ++
   docs.projectRefs
 
 lazy val core = (projectMatrix in file("core"))
@@ -70,6 +71,16 @@ lazy val akka = (projectMatrix in file("streaming/akka"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Libraries.sttpClientAkka
+  )
+  .dependsOn(core % "compile->compile;test->test")
+
+lazy val ox = (projectMatrix in file("streaming/ox"))
+  .jvmPlatform(
+    scalaVersions = scala3
+  )
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Libraries.sttpClientOx
   )
   .dependsOn(core % "compile->compile;test->test")
 

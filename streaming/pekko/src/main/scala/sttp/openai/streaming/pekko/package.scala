@@ -28,7 +28,7 @@ package object pekko {
         chatBody: ChatBody
     ): StreamRequest[Either[OpenAIException, Source[ChatChunkResponse, Any]], PekkoStreams] =
       client
-        .createChatCompletion(PekkoStreams, chatBody)
+        .createChatCompletionAsBinaryStream(PekkoStreams, chatBody)
         .mapResponse(mapEventToResponse)
   }
 

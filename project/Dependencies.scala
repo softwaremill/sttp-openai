@@ -38,6 +38,11 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream" % V.akkaStreams
     )
 
+    val sttpClientOx = Seq(
+      "com.softwaremill.sttp.client4" %% "ox" % V.sttpClient,
+      "com.softwaremill.ox" %% "core" % "0.3.3"
+    )
+
     val uPickle = "com.lihaoyi" %% "upickle" % V.uPickle
 
   }

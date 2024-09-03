@@ -28,7 +28,7 @@ package object akka {
         chatBody: ChatBody
     ): StreamRequest[Either[OpenAIException, Source[ChatChunkResponse, Any]], AkkaStreams] =
       client
-        .createChatCompletion(AkkaStreams, chatBody)
+        .createChatCompletionAsBinaryStream(AkkaStreams, chatBody)
         .mapResponse(mapEventToResponse)
   }
 

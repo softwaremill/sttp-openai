@@ -27,7 +27,7 @@ package object fs2 {
         chatBody: ChatBody
     ): StreamRequest[Either[OpenAIException, Stream[F, ChatChunkResponse]], Fs2Streams[F]] =
       client
-        .createChatCompletion(Fs2Streams[F], chatBody)
+        .createChatCompletionAsBinaryStream(Fs2Streams[F], chatBody)
         .mapResponse(mapEventToResponse[F])
   }
 

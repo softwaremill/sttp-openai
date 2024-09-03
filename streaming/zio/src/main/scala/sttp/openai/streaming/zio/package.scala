@@ -28,7 +28,7 @@ package object zio {
         chatBody: ChatBody
     ): StreamRequest[Either[OpenAIException, Stream[Throwable, ChatChunkResponse]], ZioStreams] =
       client
-        .createChatCompletion(ZioStreams, chatBody)
+        .createChatCompletionAsBinaryStream(ZioStreams, chatBody)
         .mapResponse(mapEventToResponse)
   }
 

@@ -22,7 +22,7 @@ Add the following dependency:
 "com.softwaremill.sttp.openai" %% "core" % "0.2.1"
 ```
 
-sttp openai is available for Scala 2.13 and Scala 3
+sttp-openai is available for Scala 2.13 and Scala 3
 
 ## Project content
 
@@ -271,15 +271,19 @@ object Main extends IOApp {
 #### Create completion with streaming:
 
 To enable streaming support for the Chat Completion API using server-sent events, you must include the appropriate
-dependency for your chosen streaming library. We provide support for the following libraries: _Fs2_, _ZIO_, _Akka / Pekko Streams_
+dependency for your chosen streaming library. We provide support for the following libraries: _fs2_, _ZIO_, _Akka / Pekko Streams_ and _Ox_.
 
-For example, to use `Fs2` add the following import:
+For example, to use `fs2` add the following dependency & import:
 
 ```scala
+// sbt dependency
+"com.softwaremill.sttp.openai" %% "fs2" % "0.2.1"
+
+// import 
 import sttp.openai.streaming.fs2._
 ```
 
-Example below uses `HttpClientFs2Backend` as a backend.
+Example below uses `HttpClientFs2Backend` as a backend:
 
 ```scala mdoc:compile-only
 import cats.effect.{ExitCode, IO, IOApp}
@@ -359,6 +363,22 @@ object Main extends IOApp {
     ...
    */
 }
+```
+
+To use direct-style streaming (requires Scala 3) add the following dependency & import:
+
+```scala
+// sbt dependency
+"com.softwaremill.sttp.openai" %% "ox" % "0.2.1"
+
+// import 
+import sttp.openai.streaming.ox.*
+```
+
+Example code:
+
+```
+TODO
 ```
 
 ## Contributing
