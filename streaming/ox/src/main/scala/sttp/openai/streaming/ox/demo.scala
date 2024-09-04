@@ -1,6 +1,7 @@
 package sttp.openai.streaming.ox
 
 import ox.channels.Source
+import ox.either.orThrow
 import ox.*
 import sttp.client4.DefaultSyncBackend
 import sttp.openai.OpenAI
@@ -32,15 +33,13 @@ object demo extends OxApp:
 
     val backend = useCloseableInScope(DefaultSyncBackend())
     supervised {
-      val source: Source[Either[DeserializationOpenAIException, ChatChunkResponse]] =
-        openAI
-          .createStreamedChatCompletion(chatRequestBody)
-          .send(backend)
-          .body
-          // TODO: use either-unwrapping method (https://github.com/softwaremill/ox/issues/203)
-          .fold(throw _, identity)
+      val source = openAI
+        .createStreamedChatCompletion(chatRequestBody)
+        .send(backend)
+        .body
+        .orThrow
 
-      source.foreach(el => println(el.fold(throw _, identity)))
+      source.foreach(el => println(el.orThrow))
     }
 
     ExitCode.Success

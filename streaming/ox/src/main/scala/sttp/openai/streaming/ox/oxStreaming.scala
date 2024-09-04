@@ -37,9 +37,10 @@ private def mapEventToResponse(
     response: Either[OpenAIException, InputStream]
 ): Either[OpenAIException, Ox ?=> IO ?=> Source[Either[DeserializationOpenAIException, ChatChunkResponse]]] =
   response.map(s =>
-    // TODO: replace with .collect once available (https://github.com/softwaremill/ox/issues/202)
-    OxServerSentEvents.parse(s).takeWhile(_ != DoneEvent).mapConcat {
-      case ServerSentEvent(Some(data), _, _, _) => List(deserializeJsonSnake[ChatChunkResponse].apply(data))
-      case _                                    => Nil
-    }
+    OxServerSentEvents
+      .parse(s)
+      .takeWhile(_ != DoneEvent)
+      .collect { case ServerSentEvent(Some(data), _, _, _) =>
+        deserializeJsonSnake[ChatChunkResponse].apply(data)
+      }
   )
