@@ -415,7 +415,7 @@ object Main extends OxApp:
         .createStreamedChatCompletion(chatRequestBody)
         .send(backend)
         .body // this gives us an Either[OpenAIException, Source[ChatChunkResponse]]
-        .orThrow // we choose to throw any exceptions and fail the whole
+        .orThrow // we choose to throw any exceptions and fail the whole app
       
       source.foreach(el => println(el.orThrow))
     }
