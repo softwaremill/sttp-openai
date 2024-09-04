@@ -44,11 +44,8 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatComp
 import sttp.openai.requests.completions.chat.message._
 
 object Main extends App {
-  // Read your API secret-key from env variables
-  private val apiKey = System.getenv("openai-key")
-
-  // Create an instance of OpenAISyncClient providing your API secret-key
-  val openAI: OpenAISyncClient = OpenAISyncClient(apiKey)
+  val apiKey = System.getenv("OPENAI_KEY")
+  val openAI = OpenAISyncClient(apiKey)
 
   // Create body of Chat Completions Request
   val bodyMessages: Seq[Message] = Seq(
@@ -157,11 +154,8 @@ import sttp.openai.requests.completions.chat.message._
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
-    // Read your API secret-key from env variables
-    val apiKey = System.getenv("openai-key")
-
-    // Create an instance of OpenAISyncClient providing your API secret-key
-    val openAI: OpenAI = new OpenAI(apiKey, uri"https://api.groq.com/openai/v1")
+    val apiKey = System.getenv("OPENAI_KEY")
+    val openAI = new OpenAI(apiKey, uri"https://api.groq.com/openai/v1")
 
     val bodyMessages: Seq[Message] = Seq(
       Message.UserMessage(
@@ -234,11 +228,8 @@ import sttp.openai.requests.completions.chat.message._
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
-    // Read your API secret-key from env variables
-    val apiKey = System.getenv("openai-key")
-
-    // Create an instance of OpenAISyncClient providing your API secret-key
-    val openAI: OpenAI = new OpenAI(apiKey)
+    val apiKey = System.getenv("OPENAI_KEY")
+    val openAI = new OpenAI(apiKey)
 
     val bodyMessages: Seq[Message] = Seq(
       Message.UserMessage(
@@ -315,11 +306,8 @@ import sttp.openai.requests.completions.chat.message._
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
-    // Read your API secret-key from env variables
-    val apiKey = System.getenv("openai-key")
-
-    // Create an instance of OpenAISyncClient providing your API secret-key
-    val openAI: OpenAI = new OpenAI(apiKey)
+    val apiKey = System.getenv("OPENAI_KEY")
+    val openAI = new OpenAI(apiKey)
 
     val bodyMessages: Seq[Message] = Seq(
       Message.UserMessage(
@@ -395,7 +383,6 @@ Example code:
 
 ```scala
 //> using dep com.softwaremill.sttp.openai::ox:0.2.2
-//> using dep com.softwaremill.ox::core:0.3.5
 
 import ox.*
 import ox.either.orThrow
@@ -407,11 +394,8 @@ import sttp.openai.streaming.ox.*
 
 object Main extends OxApp:
   override def run(args: Vector[String])(using Ox, IO): ExitCode =
-    // Read your API secret-key from env variables
-    val apiKey = System.getenv("openai-key")
-    
-    // Create an instance of OpenAISyncClient providing your API secret-key
-    val openAI: OpenAI = new OpenAI(apiKey)
+    val apiKey = System.getenv("OPENAI_KEY")
+    val openAI = new OpenAI(apiKey)
     
     val bodyMessages: Seq[Message] = Seq(
       Message.UserMessage(
