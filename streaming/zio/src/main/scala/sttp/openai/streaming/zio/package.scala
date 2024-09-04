@@ -17,7 +17,8 @@ package object zio {
 
   implicit class extension(val client: OpenAI) {
 
-    /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
+    /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody. The request will complete
+      * and the connection close only once the source is fully consumed.
       *
       * [[https://platform.openai.com/docs/api-reference/chat/create]]
       *
@@ -28,7 +29,7 @@ package object zio {
         chatBody: ChatBody
     ): StreamRequest[Either[OpenAIException, Stream[Throwable, ChatChunkResponse]], ZioStreams] =
       client
-        .createChatCompletion(ZioStreams, chatBody)
+        .createChatCompletionAsBinaryStream(ZioStreams, chatBody)
         .mapResponse(mapEventToResponse)
   }
 

@@ -1,10 +1,10 @@
-![sttp-model](https://github.com/softwaremill/sttp-openai/raw/master/banner.jpg)
-
+![sttp-openai](https://github.com/softwaremill/sttp-openai/raw/master/banner.jpg)
 
 [![Ideas, suggestions, problems, questions](https://img.shields.io/badge/Discourse-ask%20question-blue)](https://softwaremill.community/c/tapir)
 [![CI](https://github.com/softwaremill/sttp-openai/workflows/CI/badge.svg)](https://github.com/softwaremill/sttp-openai/actions?query=workflow%3ACI+branch%3Amaster)
 
 [//]: # ([![Maven Central]&#40;https://maven-badges.herokuapp.com/maven-central/com.softwaremill.sttp.openai.svg&#41;&#40;https://maven-badges.herokuapp.com/maven-central/com.softwaremill.sttp.openai&#41;)
+
 sttp is a family of Scala HTTP-related projects, and currently includes:
 
 * [sttp client](https://github.com/softwaremill/sttp): The Scala HTTP client you always wanted!
@@ -12,7 +12,8 @@ sttp is a family of Scala HTTP-related projects, and currently includes:
 * sttp openai: this project. Non-official Scala client wrapper for OpenAI (and OpenAI-compatible) API. Use the power of ChatGPT inside your code!
 
 ## Intro
-Sttp-openai uses sttp client to describe requests and responses used in OpenAI (and OpenAI-compatible) endpoints.
+
+sttp-openai uses sttp client to describe requests and responses used in OpenAI (and OpenAI-compatible) endpoints.
 
 ## Quickstart with sbt
 
@@ -22,7 +23,7 @@ Add the following dependency:
 "com.softwaremill.sttp.openai" %% "core" % "0.2.1"
 ```
 
-sttp openai is available for Scala 2.13 and Scala 3
+sttp-openai is available for Scala 2.13 and Scala 3
 
 ## Project content
 
@@ -30,9 +31,13 @@ OpenAI API Official Documentation https://platform.openai.com/docs/api-reference
 
 ## Example
 
+Examples are runnable using [scala-cli](https://scala-cli.virtuslab.org).
+
 ### To use ChatGPT
 
 ```scala mdoc:compile-only 
+//> using dep com.softwaremill.sttp.openai::core:0.2.1
+
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
@@ -82,7 +87,9 @@ object Main extends App {
 
 Ollama with sync backend:
 
-```scala mdoc:compile-only 
+```scala mdoc:compile-only
+//> using dep com.softwaremill.sttp.openai::core:0.2.1
+
 import sttp.model.Uri._
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
@@ -134,7 +141,10 @@ object Main extends App {
 
 Grok with cats-effect based backend:
 
-```scala mdoc:compile-only 
+```scala mdoc:compile-only
+//> using dep com.softwaremill.sttp.openai::core:0.2.1
+//> using dep com.softwaremill.sttp.client4::cats:4.0.0-M17
+
 import cats.effect.{ExitCode, IO, IOApp}
 import sttp.client4.httpclient.cats.HttpClientCatsBackend
 
@@ -208,7 +218,10 @@ If you want to make use of other effects, you have to use `OpenAI` and pass the 
 Example below uses `HttpClientCatsBackend` as a backend, make sure to [add it to the dependencies](https://sttp.softwaremill.com/en/latest/backends/catseffect.html)
 or use backend of your choice.
 
-```scala mdoc:compile-only 
+```scala mdoc:compile-only
+//> using dep com.softwaremill.sttp.openai::core:0.2.1
+//> using dep com.softwaremill.sttp.client4::cats:4.0.0-M17
+
 import cats.effect.{ExitCode, IO, IOApp}
 import sttp.client4.httpclient.cats.HttpClientCatsBackend
 
@@ -271,17 +284,23 @@ object Main extends IOApp {
 #### Create completion with streaming:
 
 To enable streaming support for the Chat Completion API using server-sent events, you must include the appropriate
-dependency for your chosen streaming library. We provide support for the following libraries: _Fs2_, _ZIO_, _Akka / Pekko Streams_
+dependency for your chosen streaming library. We provide support for the following libraries: _fs2_, _ZIO_, _Akka / Pekko Streams_ and _Ox_.
 
-For example, to use `Fs2` add the following import:
+For example, to use `fs2` add the following dependency & import:
 
 ```scala
+// sbt dependency
+"com.softwaremill.sttp.openai" %% "fs2" % "0.2.1"
+
+// import 
 import sttp.openai.streaming.fs2._
 ```
 
-Example below uses `HttpClientFs2Backend` as a backend.
+Example below uses `HttpClientFs2Backend` as a backend:
 
 ```scala mdoc:compile-only
+//> using dep com.softwaremill.sttp.openai::fs2:0.2.1
+
 import cats.effect.{ExitCode, IO, IOApp}
 import fs2.Stream
 import sttp.client4.httpclient.fs2.HttpClientFs2Backend
@@ -361,6 +380,63 @@ object Main extends IOApp {
 }
 ```
 
+To use direct-style streaming (requires Scala 3) add the following dependency & import:
+
+```scala
+// sbt dependency
+"com.softwaremill.sttp.openai" %% "ox" % "0.2.1"
+
+// import 
+import sttp.openai.streaming.ox.*
+```
+
+Example code:
+
+```scala
+//> using dep com.softwaremill.sttp.openai::ox:0.2.1
+//> using dep com.softwaremill.ox::core:0.3.5
+
+import ox.*
+import ox.either.orThrow
+import sttp.client4.DefaultSyncBackend
+import sttp.openai.OpenAI
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
+import sttp.openai.requests.completions.chat.message.*
+import sttp.openai.streaming.ox.*
+
+object Main extends OxApp:
+  override def run(args: Vector[String])(using Ox, IO): ExitCode =
+    // Read your API secret-key from env variables
+    val apiKey = System.getenv("openai-key")
+    
+    // Create an instance of OpenAISyncClient providing your API secret-key
+    val openAI: OpenAI = new OpenAI(apiKey)
+    
+    val bodyMessages: Seq[Message] = Seq(
+      Message.UserMessage(
+        content = Content.TextContent("Hello!")
+      )
+    )
+    
+    val chatRequestBody: ChatBody = ChatBody(
+      model = ChatCompletionModel.GPT35Turbo,
+      messages = bodyMessages
+    )
+    
+    val backend = useCloseableInScope(DefaultSyncBackend())
+    supervised {
+      val source = openAI
+        .createStreamedChatCompletion(chatRequestBody)
+        .send(backend)
+        .body // this gives us an Either[OpenAIException, Source[ChatChunkResponse]]
+        .orThrow // we choose to throw any exceptions and fail the whole                                                                      
+    
+      source.foreach(el => println(el.orThrow))
+    }
+    
+    ExitCode.Success
+```
+
 ## Contributing
 
 If you have a question, or hit a problem, feel free to post on our community https://softwaremill.community/c/open-source/
@@ -373,4 +449,4 @@ We offer commercial support for sttp and related technologies, as well as develo
 
 ## Copyright
 
-Copyright (C) 2023 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
+Copyright (C) 2023-2024 SoftwareMill [https://softwaremill.com](https://softwaremill.com).

@@ -16,7 +16,8 @@ package object fs2 {
 
   implicit class extension(val client: OpenAI) {
 
-    /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
+    /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody. The request will complete
+      * and the connection close only once the source is fully consumed.
       *
       * [[https://platform.openai.com/docs/api-reference/chat/create]]
       *
@@ -27,7 +28,7 @@ package object fs2 {
         chatBody: ChatBody
     ): StreamRequest[Either[OpenAIException, Stream[F, ChatChunkResponse]], Fs2Streams[F]] =
       client
-        .createChatCompletion(Fs2Streams[F], chatBody)
+        .createChatCompletionAsBinaryStream(Fs2Streams[F], chatBody)
         .mapResponse(mapEventToResponse[F])
   }
 

@@ -17,7 +17,8 @@ package object pekko {
 
   implicit class extension(val client: OpenAI) {
 
-    /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
+    /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody. The request will complete
+      * and the connection close only once the source is fully consumed.
       *
       * [[https://platform.openai.com/docs/api-reference/chat/create]]
       *
@@ -28,7 +29,7 @@ package object pekko {
         chatBody: ChatBody
     ): StreamRequest[Either[OpenAIException, Source[ChatChunkResponse, Any]], PekkoStreams] =
       client
-        .createChatCompletion(PekkoStreams, chatBody)
+        .createChatCompletionAsBinaryStream(PekkoStreams, chatBody)
         .mapResponse(mapEventToResponse)
   }
 

@@ -3,7 +3,13 @@ package sttp.openai
 import sttp.client4._
 import sttp.model.{Header, Uri}
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai.json.SttpUpickleApiExtension.{asJsonSnake, asStreamSnake, asStringEither, upickleBodySerializer}
+import sttp.openai.json.SttpUpickleApiExtension.{
+  asInputStreamStreamSnake,
+  asJsonSnake,
+  asStreamSnake,
+  asStringEither,
+  upickleBodySerializer
+}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
@@ -56,7 +62,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   VectorStoreFile
 }
 
-import java.io.File
+import java.io.{File, InputStream}
 import java.nio.file.Paths
 
 class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
@@ -265,7 +271,10 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .body(chatBody)
       .response(asJsonSnake[ChatResponse])
 
-  /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
+  /** Creates a model response for the given chat conversation defined in chatBody.
+    *
+    * The response is streamed in chunks as server-sent events, which are returned unparsed as a binary stream, using the given streams
+    * implementation.
     *
     * [[https://platform.openai.com/docs/api-reference/chat/create]]
     *
@@ -274,11 +283,26 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param chatBody
     *   Chat request body.
     */
-  def createChatCompletion[S](s: Streams[S], chatBody: ChatBody): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
+  def createChatCompletionAsBinaryStream[S](s: Streams[S], chatBody: ChatBody): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
     openAIAuthRequest
       .post(openAIUris.ChatCompletions)
       .body(ChatBody.withStreaming(chatBody))
       .response(asStreamSnake(s))
+
+  /** Creates a model response for the given chat conversation defined in chatBody.
+    *
+    * The response is streamed in chunks as server-sent events, which are returned unparsed as a [[InputStream]].
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/create]]
+    *
+    * @param chatBody
+    *   Chat request body.
+    */
+  def createChatCompletionAsInputStream(chatBody: ChatBody): Request[Either[OpenAIException, InputStream]] =
+    openAIAuthRequest
+      .post(openAIUris.ChatCompletions)
+      .body(ChatBody.withStreaming(chatBody))
+      .response(asInputStreamStreamSnake)
 
   /** Returns a list of files that belong to the user's organization.
     *
