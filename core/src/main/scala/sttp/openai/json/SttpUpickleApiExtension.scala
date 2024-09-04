@@ -17,17 +17,17 @@ import java.io.InputStream
 object SttpUpickleApiExtension extends SttpUpickleApi {
   override val upickleApi: SnakePickle.type = SnakePickle
 
-  def asStreamSnake[S](s: Streams[S]): StreamResponseAs[Either[OpenAIException, s.BinaryStream], S] =
+  def asStreamUnsafe_parseErrors[S](s: Streams[S]): StreamResponseAs[Either[OpenAIException, s.BinaryStream], S] =
     asStreamUnsafe(s).mapWithMetadata { (body, meta) =>
       body.left.map(errorBody => httpToOpenAIError(HttpError(errorBody, meta.code)))
     }
 
-  def asInputStreamStreamSnake: ResponseAs[Either[OpenAIException, InputStream]] =
+  def asInputStreamUnsafe_parseErrors: ResponseAs[Either[OpenAIException, InputStream]] =
     asInputStreamUnsafe.mapWithMetadata { (body, meta) =>
       body.left.map(errorBody => httpToOpenAIError(HttpError(errorBody, meta.code)))
     }
 
-  def asJsonSnake[B: upickleApi.Reader: IsOption]: ResponseAs[Either[OpenAIException, B]] =
+  def asJson_parseErrors[B: upickleApi.Reader: IsOption]: ResponseAs[Either[OpenAIException, B]] =
     asString.mapWithMetadata(deserializeRightWithMappedExceptions(deserializeJsonSnake)).showAsJson
 
   private def deserializeRightWithMappedExceptions[T](
