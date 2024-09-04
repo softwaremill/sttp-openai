@@ -209,9 +209,10 @@ object Main extends IOApp {
 }
 ```
 
-#### Available backend implementations:
-* `OpenAISyncBackend` which uses identity monad `Id[A]` as an effect `F[A]` and throws `OpenAIException`
-* `OpenAI` which provides raw sttp `Request`s and wraps `Response`s into `Either[OpenAIException, A]`
+#### Available client implementations:
+
+* `OpenAISyncClient` which provides high-level methods to interact with OpenAI. All the methods send requests synchronously and are blocking, might throw `OpenAIException`
+* `OpenAI` which provides raw sttp-client4 `Request`s and parses `Response`s as `Either[OpenAIException, A]`
 
 If you want to make use of other effects, you have to use `OpenAI` and pass the chosen backend directly to `request.send(backend)` function.
 
