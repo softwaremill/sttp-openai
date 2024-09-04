@@ -54,7 +54,8 @@ object Main extends App {
     )
   )
 
-  // use ChatCompletionModel.CustomChatCompletionModel("gpt-some-future-version") for models not yet supported here
+  // use ChatCompletionModel.CustomChatCompletionModel("gpt-some-future-version") 
+  // for models not yet supported here
   val chatRequestBody: ChatBody = ChatBody(
     model = ChatCompletionModel.GPT4oMini,
     messages = bodyMessages
@@ -414,8 +415,8 @@ object Main extends OxApp:
         .createStreamedChatCompletion(chatRequestBody)
         .send(backend)
         .body // this gives us an Either[OpenAIException, Source[ChatChunkResponse]]
-        .orThrow // we choose to throw any exceptions and fail the whole                                                                      
-    
+        .orThrow // we choose to throw any exceptions and fail the whole
+      
       source.foreach(el => println(el.orThrow))
     }
     
