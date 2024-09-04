@@ -19,7 +19,7 @@ extension (client: OpenAI)
   /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
     *
     * The chunk [[Source]] can be obtained from the response within a concurrency scope (e.g. [[ox.supervised]]), and the [[IO]] capability
-    * must be provided.
+    * must be provided. The request will complete and the connection close only once the source is fully consumed.
     *
     * [[https://platform.openai.com/docs/api-reference/chat/create]]
     *
@@ -39,8 +39,10 @@ private def mapEventToResponse(
   response.map(s =>
     OxServerSentEvents
       .parse(s)
-      .takeWhile(_ != DoneEvent)
-      .collect { case ServerSentEvent(Some(data), _, _, _) =>
-        deserializeJsonSnake[ChatChunkResponse].apply(data)
+      .transform {
+        _.takeWhile(_ != DoneEvent)
+          .collect { case ServerSentEvent(Some(data), _, _, _) =>
+            deserializeJsonSnake[ChatChunkResponse].apply(data)
+          }
       }
   )
