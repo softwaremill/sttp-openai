@@ -23,6 +23,7 @@ lazy val allAgregates = core.projectRefs ++
   pekko.projectRefs ++
   akka.projectRefs ++
   ox.projectRefs ++
+  examples.projectRefs ++
   docs.projectRefs
 
 lazy val core = (projectMatrix in file("core"))
@@ -83,6 +84,21 @@ lazy val ox = (projectMatrix in file("streaming/ox"))
     libraryDependencies ++= Libraries.sttpClientOx
   )
   .dependsOn(core % "compile->compile;test->test")
+
+lazy val examples = (projectMatrix in file("examples"))
+  .jvmPlatform(
+    scalaVersions = scala3
+  )
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.11.2",
+      "com.softwaremill.sttp.client4" %% "ox" % "4.0.0-M17",
+      "ch.qos.logback" % "logback-classic" % "1.5.6"
+    ),
+    publish / skip := true
+  )
+  .dependsOn(ox)
 
 val compileDocs: TaskKey[Unit] = taskKey[Unit]("Compiles docs module throwing away its output")
 compileDocs := {
