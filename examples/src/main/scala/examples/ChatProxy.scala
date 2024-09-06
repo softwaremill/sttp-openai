@@ -1,7 +1,7 @@
 //> using dep com.softwaremill.sttp.openai::ox:0.2.2
 //> using dep com.softwaremill.sttp.tapir::tapir-netty-server-sync:1.11.2
 //> using dep com.softwaremill.sttp.client4::ox:4.0.0-M17
-//> using dep com.softwaremill.ox::core:0.3.6
+//> using dep com.softwaremill.ox::core:0.3.7
 //> using dep ch.qos.logback:logback-classic:1.5.7
 
 // Remember to set the OPENAI_KEY env variable!
@@ -10,7 +10,7 @@ package examples
 
 import org.slf4j.{Logger, LoggerFactory}
 import ox.*
-import ox.channels.Channel
+import ox.channels.{Channel, ChannelClosed}
 import ox.either.orThrow
 import sttp.client4.{DefaultSyncBackend, SyncBackend}
 import sttp.openai.OpenAI
@@ -46,39 +46,39 @@ def chat(sttpBackend: SyncBackend, openAI: OpenAI)(using IO): OxStreams.Pipe[Cha
 
       // main processing loop: receives messages from the WS and queries OpenAI with the chat's history
       @tailrec
-      def loop(history: Vector[Message]): Unit = {
-        val nextMessage = incoming.receive()
-        val nextHistory = history :+ Message.UserMessage(content = Content.TextContent(nextMessage.message))
+      def loop(history: Vector[Message]): Unit = incoming.receiveOrDone() match
+        case ChannelClosed.Done => outgoing.done() // we won't be sending any more messages to the client
+        case nextMessage: ChatMessage =>
+          val nextHistory = history :+ Message.UserMessage(content = Content.TextContent(nextMessage.message))
 
-        // querying OpenAI with the entire chat history, as each request is stateless
-        val chatRequestBody: ChatBody = ChatBody(
-          model = ChatCompletionModel.GPT4oMini,
-          messages = nextHistory
-        )
+          // querying OpenAI with the entire chat history, as each request is stateless
+          val chatRequestBody: ChatBody = ChatBody(
+            model = ChatCompletionModel.GPT4oMini,
+            messages = nextHistory
+          )
 
-        // requesting a streaming completion, so that we can get back to the user as the answer is being generated
-        val source = openAI
-          .createStreamedChatCompletion(chatRequestBody)
-          .send(sttpBackend)
-          .body
-          .orThrow // there might be an OpenAI HTTP-error
+          // requesting a streaming completion, so that we can get back to the user as the answer is being generated
+          val source = openAI
+            .createStreamedChatCompletion(chatRequestBody)
+            .send(sttpBackend)
+            .body
+            .orThrow // there might be an OpenAI HTTP-error
 
-        // a side-channel onto which we'll collect all the responses, to store it in history for subsequent messages
-        val gatherResponse = Channel.bufferedDefault[ChatMessage]
-        val gatherResponseFork = fork(gatherResponse.toList.map(_.message).mkString) // collecting the response in the background
+          // a side-channel onto which we'll collect all the responses, to store it in history for subsequent messages
+          val gatherResponse = Channel.bufferedDefault[ChatMessage]
+          val gatherResponseFork = fork(gatherResponse.toList.map(_.message).mkString) // collecting the response in the background
 
-        // extracting the response increments, sending to the outgoing channel, as well as to the side-channel
-        source
-          .mapAsView(_.orThrow.choices.head.delta.content)
-          .collectAsView { case Some(msg) => ChatMessage(msg) }
-          .alsoTo(gatherResponse)
-          .pipeTo(outgoing, propagateDone = false)
+          // extracting the response increments, sending to the outgoing channel, as well as to the side-channel
+          source
+            .mapAsView(_.orThrow.choices.head.delta.content)
+            .collectAsView { case Some(msg) => ChatMessage(msg) }
+            .alsoTo(gatherResponse)
+            .pipeTo(outgoing, propagateDone = false)
 
-        val gatheredResponse = gatherResponseFork.join()
-        val nextNextHistory = nextHistory :+ Message.AssistantMessage(content = gatheredResponse)
+          val gatheredResponse = gatherResponseFork.join()
+          val nextNextHistory = nextHistory :+ Message.AssistantMessage(content = gatheredResponse)
 
-        loop(nextNextHistory)
-      }
+          loop(nextNextHistory)
 
       // running the processing in the background, so that we can return the outgoing channel to the library ...
       fork(loop(Vector.empty))
