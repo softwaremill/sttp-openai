@@ -423,6 +423,8 @@ object Main extends OxApp:
     ExitCode.Success
 ```
 
+See also the [ChatProxy](https://github.com/softwaremill/sttp-openai/blob/master/examples/src/main/scala/examples/ChatProxy.scala) example application.
+
 ## Contributing
 
 If you have a question, or hit a problem, feel free to post on our community https://softwaremill.community/c/open-source/
