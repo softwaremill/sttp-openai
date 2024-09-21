@@ -13,6 +13,7 @@ object ChatRequestBody {
   object ResponseFormat {
     case object Text extends ResponseFormat
     case object JsonObject extends ResponseFormat
+    case class JsonSchema(schema: ujson.Value, strict: Boolean = false) extends ResponseFormat
 
     implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
       .readwriter[Value]
@@ -28,17 +29,33 @@ object ChatRequestBody {
         _ => JsonObject
       )
 
+    implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle
+      .readwriter[Value]
+      .bimap[JsonSchema](
+        js => {
+          val jsonSchemaObj = Obj("schema" -> js.schema)
+          if (js.strict) jsonSchemaObj("strict") = true
+          Obj("type" -> "json_schema", "json_schema" -> jsonSchemaObj)
+        },
+        json => JsonSchema(
+          json("json_schema")("schema"), 
+          json("json_schema").obj.get("strict").exists(_.bool)
+        )
+      )
+
     implicit val responseFormatRW: SnakePickle.ReadWriter[ResponseFormat] = SnakePickle
       .readwriter[Value]
       .bimap[ResponseFormat](
         {
-          case text: Text.type             => SnakePickle.writeJs(text)
-          case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
+          case Text => SnakePickle.writeJs(Text)
+          case JsonObject => SnakePickle.writeJs(JsonObject)
+          case js: JsonSchema => SnakePickle.writeJs(js)
         },
         json =>
           json("type").str match {
-            case "text"        => SnakePickle.read[Text.type](json)
-            case "json_object" => SnakePickle.read[JsonObject.type](json)
+            case "text" => Text
+            case "json_object" => JsonObject
+            case "json_schema" => SnakePickle.read[JsonSchema](json)
           }
       )
   }
@@ -61,7 +78,7 @@ object ChatRequestBody {
     *   model's likelihood to talk about new topics.
     * @param responseFormat
     *   An object specifying the format that the model must output. Setting to {"type": "json_object"} enables JSON mode, which guarantees
-    *   the message the model generates is valid JSON.
+    *   the message the model generates is valid JSON. For Structured Outputs use ResponseFormat.JsonSchema.
     * @param seed
     *   This feature is in Beta. If specified, our system will make a best effort to sample deterministically, such that repeated requests
     *   with the same seed and parameters should return the same result. Determinism is not guaranteed, and you should refer to the
