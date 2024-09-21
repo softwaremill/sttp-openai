@@ -8,8 +8,8 @@ object Dependencies {
 
     val sttpClient = "4.0.0-M17"
     val pekkoStreams = "1.1.1"
-    val akkaStreams = "2.6.20"
-    val uPickle = "3.1.4"
+    val akkaStreams = "2.6.21"
+    val uPickle = "3.3.1"
   }
 
   object Libraries {
