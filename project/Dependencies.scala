@@ -40,7 +40,7 @@ object Dependencies {
 
     val sttpClientOx = Seq(
       "com.softwaremill.sttp.client4" %% "ox" % V.sttpClient,
-      "com.softwaremill.ox" %% "core" % "0.3.9"
+      "com.softwaremill.ox" %% "core" % "0.4.0"
     )
 
     val uPickle = "com.lihaoyi" %% "upickle" % V.uPickle
