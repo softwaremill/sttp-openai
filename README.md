@@ -394,7 +394,7 @@ import sttp.openai.requests.completions.chat.message.*
 import sttp.openai.streaming.ox.*
 
 object Main extends OxApp:
-  override def run(args: Vector[String])(using Ox, IO): ExitCode =
+  override def run(args: Vector[String])(using Ox): ExitCode =
     val apiKey = System.getenv("OPENAI_KEY")
     val openAI = new OpenAI(apiKey)
     
