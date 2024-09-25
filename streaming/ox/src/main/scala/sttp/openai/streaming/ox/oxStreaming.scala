@@ -1,7 +1,7 @@
 package sttp.openai.streaming.ox
 
 import ox.channels.Source
-import ox.{IO, Ox}
+import ox.Ox
 import sttp.client4.Request
 import sttp.client4.impl.ox.sse.OxServerSentEvents
 import sttp.model.sse.ServerSentEvent
@@ -28,14 +28,14 @@ extension (client: OpenAI)
     */
   def createStreamedChatCompletion(
       chatBody: ChatBody
-  ): Request[Either[OpenAIException, Ox ?=> IO ?=> Source[Either[DeserializationOpenAIException, ChatChunkResponse]]]] =
+  ): Request[Either[OpenAIException, Ox ?=> Source[Either[DeserializationOpenAIException, ChatChunkResponse]]]] =
     client
       .createChatCompletionAsInputStream(chatBody)
       .mapResponse(mapEventToResponse)
 
 private def mapEventToResponse(
     response: Either[OpenAIException, InputStream]
-): Either[OpenAIException, Ox ?=> IO ?=> Source[Either[DeserializationOpenAIException, ChatChunkResponse]]] =
+): Either[OpenAIException, Ox ?=> Source[Either[DeserializationOpenAIException, ChatChunkResponse]]] =
   response.map(s =>
     OxServerSentEvents
       .parse(s)

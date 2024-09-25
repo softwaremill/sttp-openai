@@ -3,7 +3,6 @@ package sttp.openai.streaming.ox
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ox.IO.globalForTesting.given
 import ox.{supervised, Ox}
 import sttp.client4.DefaultSyncBackend
 import sttp.model.sse.ServerSentEvent
