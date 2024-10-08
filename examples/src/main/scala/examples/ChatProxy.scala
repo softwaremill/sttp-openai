@@ -36,7 +36,7 @@ val chatProxyEndpoint = infallibleEndpoint.get
   .in("chat")
   .out(webSocketBody[ChatMessage, TextPlain, ChatMessage, TextPlain](OxStreams))
 
-def chat(sttpBackend: SyncBackend, openAI: OpenAI)(using IO): OxStreams.Pipe[ChatMessage, ChatMessage] =
+def chat(sttpBackend: SyncBackend, openAI: OpenAI): OxStreams.Pipe[ChatMessage, ChatMessage] =
   ox ?=> // running within a concurrency scope
     incoming => {
       val outgoing = Channel.bufferedDefault[ChatMessage]
@@ -88,7 +88,7 @@ def chat(sttpBackend: SyncBackend, openAI: OpenAI)(using IO): OxStreams.Pipe[Cha
     }
 
 object ChatProxy extends OxApp:
-  override def run(args: Vector[String])(using Ox, IO): ExitCode =
+  override def run(args: Vector[String])(using Ox): ExitCode =
     val openAI = new OpenAI(System.getenv("OPENAI_KEY"))
     val sttpBackend = useCloseableInScope(DefaultSyncBackend())
     val chatProxyServerEndpoint = chatProxyEndpoint.handleSuccess(_ => chat(sttpBackend, openAI))

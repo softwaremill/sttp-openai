@@ -6,7 +6,7 @@ object Dependencies {
     val scalaTest = "3.2.19"
     val scalaTestCats = "1.5.0"
 
-    val sttpClient = "4.0.0-M17"
+    val sttpClient = "4.0.0-M18"
     val pekkoStreams = "1.1.1"
     val akkaStreams = "2.6.21"
     val uPickle = "3.3.1"
@@ -39,8 +39,7 @@ object Dependencies {
     )
 
     val sttpClientOx = Seq(
-      "com.softwaremill.sttp.client4" %% "ox" % V.sttpClient,
-      "com.softwaremill.ox" %% "core" % "0.3.9"
+      "com.softwaremill.sttp.client4" %% "ox" % V.sttpClient
     )
 
     val uPickle = "com.lihaoyi" %% "upickle" % V.uPickle
