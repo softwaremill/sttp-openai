@@ -3,7 +3,7 @@ import com.softwaremill.Publish.ossPublishSettings
 import Dependencies._
 
 val scala2 = List("2.13.15")
-val scala3 = List("3.3.4")
+val scala3 = List("3.3.3")
 
 def dependenciesFor(version: String)(deps: (Option[(Long, Long)] => ModuleID)*): Seq[ModuleID] =
   deps.map(_.apply(CrossVersion.partialVersion(version)))
@@ -92,9 +92,9 @@ lazy val examples = (projectMatrix in file("examples"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.11.5",
+      "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.11.4",
       "com.softwaremill.sttp.client4" %% "ox" % "4.0.0-M17",
-      "ch.qos.logback" % "logback-classic" % "1.5.6"
+      "ch.qos.logback" % "logback-classic" % "1.5.8"
     ),
     publish / skip := true
   )

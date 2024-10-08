@@ -13,14 +13,31 @@ object Tool {
     *   The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
     * @param parameters
     *   The parameters the functions accepts, described as a JSON Schema object
+    * @param strict
+    *   Whether to enable strict schema adherence when generating the function call. If set to true, the model will follow the exact schema
+    *   defined in the parameters field. Only a subset of JSON Schema is supported when strict is true.
     */
-  case class FunctionTool(description: String, name: String, parameters: Map[String, Value]) extends Tool
+  case class FunctionTool(description: String, name: String, parameters: Map[String, Value], strict: Boolean = false) extends Tool
 
   implicit val functionToolRW: SnakePickle.ReadWriter[FunctionTool] = SnakePickle
     .readwriter[Value]
     .bimap[FunctionTool](
-      functionTool => Obj("description" -> functionTool.description, "name" -> functionTool.name, "parameters" -> functionTool.parameters),
-      json => FunctionTool(json("description").str, json("name").str, json("parameters").obj.toMap)
+      functionTool => {
+        val baseObj = Obj(
+          "description" -> functionTool.description,
+          "name" -> functionTool.name,
+          "parameters" -> functionTool.parameters
+        )
+        if (functionTool.strict) baseObj("strict") = true
+        baseObj
+      },
+      json =>
+        FunctionTool(
+          json("description").str,
+          json("name").str,
+          json("parameters").obj.toMap,
+          json.obj.get("strict").exists(_.bool)
+        )
     )
 
   /** Code interpreter tool
