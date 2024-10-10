@@ -31,7 +31,11 @@ lazy val core = (projectMatrix in file("core"))
     scalaVersions = scala2 ++ scala3
   )
   .settings(
-    libraryDependencies ++= Seq(Libraries.uPickle) ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
+    libraryDependencies ++= Seq(
+      Libraries.tapirApispecDocs,
+      Libraries.uJsonCirce,
+      Libraries.uPickle
+    ) ++ Libraries.sttpApispec ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
   )
   .settings(commonSettings: _*)
 

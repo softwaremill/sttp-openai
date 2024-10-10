@@ -1,10 +1,15 @@
 package sttp.openai.requests.completions.chat
 
+import io.circe.DecodingFailure
+import io.circe.syntax._
+import sttp.apispec.Schema
+import sttp.apispec.circe._
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.Stop
 import sttp.openai.requests.completions.chat.message.{Message, Tool, ToolChoice}
 import ujson._
+import ujson.circe.CirceJson
 
 object ChatRequestBody {
 
@@ -13,6 +18,48 @@ object ChatRequestBody {
   object ResponseFormat {
     case object Text extends ResponseFormat
     case object JsonObject extends ResponseFormat
+    case class JsonSchema(name: String, strict: Boolean, schema: Schema) extends ResponseFormat
+    object JsonSchema {
+      case class ParseException(circeException: DecodingFailure) extends Exception("Failed to parse JSON schema", circeException)
+
+      private case class InternalRepr(json_schema: JsonSchema)
+
+      private object InternalRepr {
+        implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SnakePickle
+          .readwriter[Value]
+          .bimap(
+            s => CirceJson.transform(s.asJson, upickle.default.reader[Value]),
+            v =>
+              upickle.default.transform(v).to(CirceJson).as[Schema] match {
+                case Left(e)  => throw new ParseException(e)
+                case Right(s) => s
+              }
+          )
+
+        implicit private val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle
+          .readwriter[Value]
+          .bimap(
+            s => Obj("name" -> s.name, "strict" -> s.strict, "schema" -> SnakePickle.writeJs(s.schema)),
+            v => {
+              val o = v.obj
+              JsonSchema(
+                name = o("name").str,
+                strict = o("strict").bool,
+                schema = SnakePickle.read[Schema](o("schema"))
+              )
+            }
+          )
+
+        implicit val internalReprRW: SnakePickle.ReadWriter[InternalRepr] = SnakePickle.macroRW
+      }
+
+      implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle
+        .readwriter[Value]
+        .bimap[JsonSchema](
+          s => Obj(SnakePickle.writeJs(InternalRepr(s)).obj.addOne("type" -> "json_schema")),
+          v => SnakePickle.read[InternalRepr](v).json_schema
+        )
+    }
 
     implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
       .readwriter[Value]
@@ -34,11 +81,13 @@ object ChatRequestBody {
         {
           case text: Text.type             => SnakePickle.writeJs(text)
           case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
+          case jsonSchema: JsonSchema      => SnakePickle.writeJs(jsonSchema)
         },
         json =>
           json("type").str match {
             case "text"        => SnakePickle.read[Text.type](json)
             case "json_object" => SnakePickle.read[JsonObject.type](json)
+            case "json_schema" => SnakePickle.read[JsonSchema](json)
           }
       )
   }

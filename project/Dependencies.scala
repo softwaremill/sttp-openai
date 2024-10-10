@@ -6,15 +6,22 @@ object Dependencies {
     val scalaTest = "3.2.19"
     val scalaTestCats = "1.5.0"
 
+    val sttpApispec = "0.11.3"
     val sttpClient = "4.0.0-M18"
     val pekkoStreams = "1.1.2"
     val akkaStreams = "2.6.20"
+    val tapir = "1.11.7"
     val uPickle = "3.1.4"
   }
 
   object Libraries {
 
     val scalaTest = "org.scalatest" %% "scalatest" % V.scalaTest % Test
+
+    val sttpApispec = Seq(
+      "com.softwaremill.sttp.apispec" %% "apispec-model" % V.sttpApispec,
+      "com.softwaremill.sttp.apispec" %% "jsonschema-circe" % V.sttpApispec
+    )
 
     val sttpClient = Seq(
       "com.softwaremill.sttp.client4" %% "core" % V.sttpClient,
@@ -41,6 +48,10 @@ object Dependencies {
     val sttpClientOx = Seq(
       "com.softwaremill.sttp.client4" %% "ox" % V.sttpClient
     )
+
+    val tapirApispecDocs = "com.softwaremill.sttp.tapir" %% "tapir-apispec-docs" % V.tapir
+
+    val uJsonCirce = "com.lihaoyi" %% "ujson-circe" % V.uPickle
 
     val uPickle = "com.lihaoyi" %% "upickle" % V.uPickle
 
