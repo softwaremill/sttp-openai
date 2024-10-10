@@ -1,6 +1,6 @@
 package sttp.openai.requests.completions.chat
 
-import io.circe.DecodingFailure
+import io.circe.{DecodingFailure, Json, JsonNumber, JsonObject}
 import io.circe.syntax._
 import sttp.apispec.Schema
 import sttp.apispec.circe._
@@ -25,10 +25,61 @@ object ChatRequestBody {
       private case class InternalRepr(json_schema: JsonSchema)
 
       private object InternalRepr {
+        case class FolderState(
+            fields: List[(String, Json)],
+            addAdditionalProperties: Boolean,
+            requiredProperties: List[String]
+        )
+
+        /** OpenAI's JSON schema support has a couple limitations/requirements we need to account for:
+          *
+          *   1. All fields must be `required` https://platform.openai.com/docs/guides/structured-outputs/all-fields-must-be-required
+          *
+          * 2. `additionalProperties: false` must always be set in objects
+          * https://platform.openai.com/docs/guides/structured-outputs/additionalproperties-false-must-always-be-set-in-objects
+          *
+          * We handle both of these by folding over the JSON structure, looking specifically for JSON objects.
+          *
+          * If the object has a "properties" key, then we handle both limitations listed above.
+          *
+          * If the object has a "type" key AND the "type" is "object", then we handle limitation 1.
+          */
+        private val schemaFolder: Json.Folder[Json] = new Json.Folder[Json] {
+          lazy val onNull = Json.Null
+          def onBoolean(value: Boolean): Json = Json.fromBoolean(value)
+          def onNumber(value: JsonNumber): Json = Json.fromJsonNumber(value)
+          def onString(value: String): Json = Json.fromString(value)
+          def onArray(value: Vector[Json]): Json = Json.fromValues(value.map(_.foldWith(this)))
+          def onObject(value: JsonObject): Json = {
+            val state = value.toList.foldRight(FolderState(Nil, false, Nil)) { case ((k, v), acc) =>
+              if (k == "properties")
+                acc.copy(
+                  fields = (k, v.foldWith(this)) :: acc.fields,
+                  addAdditionalProperties = true,
+                  requiredProperties = v.asObject.fold(List.empty[String])(_.keys.toList)
+                )
+              else if (k == "type")
+                acc.copy(
+                  fields = (k, v.foldWith(this)) :: acc.fields,
+                  addAdditionalProperties = acc.addAdditionalProperties || v.asString.filter(_ == "object").isDefined
+                )
+              else
+                acc.copy(fields = (k, v.foldWith(this)) :: acc.fields)
+            }
+
+            val fields =
+              (if (state.addAdditionalProperties) List("additionalProperties" := false) else Nil) ++
+                (if (state.requiredProperties.nonEmpty) List("required" := state.requiredProperties) else Nil) ++
+                state.fields
+
+            Json.fromFields(fields)
+          }
+        }
+
         implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SnakePickle
           .readwriter[Value]
           .bimap(
-            s => CirceJson.transform(s.asJson, upickle.default.reader[Value]),
+            s => CirceJson.transform(s.asJson.deepDropNullValues.foldWith(schemaFolder), upickle.default.reader[Value]),
             v =>
               upickle.default.transform(v).to(CirceJson).as[Schema] match {
                 case Left(e)  => throw new ParseException(e)
