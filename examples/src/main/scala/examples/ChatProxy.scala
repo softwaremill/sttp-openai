@@ -1,4 +1,4 @@
-//> using dep com.softwaremill.sttp.openai::ox:0.2.2
+//> using dep com.softwaremill.sttp.openai::ox:0.2.3
 //> using dep com.softwaremill.sttp.tapir::tapir-netty-server-sync:1.11.2
 //> using dep com.softwaremill.sttp.client4::ox:4.0.0-M17
 //> using dep com.softwaremill.ox::core:0.3.7
