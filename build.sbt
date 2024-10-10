@@ -92,7 +92,7 @@ lazy val examples = (projectMatrix in file("examples"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.11.5",
+      "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.11.7",
       "com.softwaremill.sttp.client4" %% "ox" % "4.0.0-M17",
       "ch.qos.logback" % "logback-classic" % "1.5.6"
     ),
