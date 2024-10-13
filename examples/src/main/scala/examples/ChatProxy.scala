@@ -2,7 +2,7 @@
 //> using dep com.softwaremill.sttp.tapir::tapir-netty-server-sync:1.11.2
 //> using dep com.softwaremill.sttp.client4::ox:4.0.0-M17
 //> using dep com.softwaremill.ox::core:0.3.7
-//> using dep ch.qos.logback:logback-classic:1.5.7
+//> using dep ch.qos.logback:logback-classic:1.5.10
 
 // Remember to set the OPENAI_KEY env variable!
 
