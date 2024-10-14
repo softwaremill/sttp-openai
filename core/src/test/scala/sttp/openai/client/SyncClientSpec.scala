@@ -9,6 +9,9 @@ import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.OpenAISyncClient
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.requests.models.ModelsResponseData._
+import sttp.openai.CustomizeOpenAIRequest
+import java.util.concurrent.atomic.AtomicReference
+import sttp.client4.testing.ResponseStub
 
 class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
   for ((statusCode, expectedError) <- ErrorFixture.testData)
@@ -21,11 +24,11 @@ class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       val caught = intercept[OpenAIException](syncClient.getModels)
 
       // then
-      caught.getClass shouldBe expectedError.getClass
-      caught.message shouldBe expectedError.message
-      caught.cause shouldBe expectedError.cause
-      caught.code shouldBe expectedError.code
-      caught.param shouldBe expectedError.param
+      caught.getClass shouldBe expectedError.getClass: Unit
+      caught.message shouldBe expectedError.message: Unit
+      caught.cause shouldBe expectedError.cause: Unit
+      caught.code shouldBe expectedError.code: Unit
+      caught.param shouldBe expectedError.param: Unit
       caught.`type` shouldBe expectedError.`type`
     }
 
@@ -66,5 +69,31 @@ class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // when & then
     syncClient.getModels shouldBe deserializedModels
+  }
+
+  "Customizing the request" should "be additive" in {
+    // given
+    val capturedRequest = new AtomicReference[GenericRequest[_, _]](null)
+    val syncBackendStub = DefaultSyncBackend.stub.whenAnyRequest.thenRespondF { request =>
+      capturedRequest.set(request)
+      ResponseStub.ok(sttp.openai.fixtures.ModelsGetResponse.singleModelResponse)
+    }
+    val syncClient = OpenAISyncClient(authToken = "test-token", backend = syncBackendStub)
+
+    // when
+    syncClient
+      .customizeRequest(new CustomizeOpenAIRequest {
+        override def apply[A](request: Request[Either[OpenAIException, A]]): Request[Either[OpenAIException, A]] =
+          request.header("X-Test", "test")
+      })
+      .customizeRequest(new CustomizeOpenAIRequest {
+        override def apply[A](request: Request[Either[OpenAIException, A]]): Request[Either[OpenAIException, A]] =
+          request.header("X-Test-2", "test-2")
+      })
+      .getModels: Unit
+
+    // then
+    capturedRequest.get().headers.find(_.is("X-Test")).map(_.value) shouldBe Some("test"): Unit
+    capturedRequest.get().headers.find(_.is("X-Test-2")).map(_.value) shouldBe Some("test-2")
   }
 }
