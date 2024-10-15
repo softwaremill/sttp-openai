@@ -42,7 +42,7 @@ object ChatRequestBody {
           *
           * If the object has a "properties" key, then we handle both limitations listed above.
           *
-          * If the object has a "type" key AND the "type" is "object", then we handle limitation 1.
+          * If the object has a "type" key AND the "type" is "object", then we handle limitation 2.
           */
         private val schemaFolder: Json.Folder[Json] = new Json.Folder[Json] {
           lazy val onNull = Json.Null
@@ -67,10 +67,21 @@ object ChatRequestBody {
                 acc.copy(fields = (k, v.foldWith(this)) :: acc.fields)
             }
 
-            val fields =
-              (if (state.addAdditionalProperties) List("additionalProperties" := false) else Nil) ++
-                (if (state.requiredProperties.nonEmpty) List("required" := state.requiredProperties) else Nil) ++
-                state.fields
+            val (addlPropsRemove, addlPropsAdd) =
+              if (state.addAdditionalProperties)
+                (Set("additionalProperties"), List("additionalProperties" := false))
+              else
+                (Set(), Nil)
+
+            val (requiredRemove, requiredAdd) =
+              if (state.requiredProperties.nonEmpty)
+                (Set("required"), List("required" := state.requiredProperties))
+              else
+                (Set(), Nil)
+
+            val remove = addlPropsRemove ++ requiredRemove
+
+            val fields = addlPropsAdd ++ requiredAdd ++ state.fields.filterNot { case (k, _) => remove.contains(k) }
 
             Json.fromFields(fields)
           }
