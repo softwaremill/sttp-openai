@@ -412,15 +412,12 @@ object Main extends OxApp:
     )
     
     val backend = useCloseableInScope(DefaultSyncBackend())
-    supervised {
-      val source = openAI
-        .createStreamedChatCompletion(chatRequestBody)
-        .send(backend)
-        .body // this gives us an Either[OpenAIException, Source[ChatChunkResponse]]
-        .orThrow // we choose to throw any exceptions and fail the whole app
-      
-      source.foreach(el => println(el.orThrow))
-    }
+    openAI
+      .createStreamedChatCompletion(chatRequestBody)
+      .send(backend)
+      .body // this gives us an Either[OpenAIException, Flow[ChatChunkResponse]]
+      .orThrow // we choose to throw any exceptions and fail the whole app
+      .runForeach(el => println(el.orThrow))
     
     ExitCode.Success
 ```
