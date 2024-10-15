@@ -50,7 +50,13 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
 
 import java.io.File
 
-class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeClient: Boolean, baseUri: Uri) {
+class OpenAISyncClient private (
+    authToken: String,
+    backend: SyncBackend,
+    closeClient: Boolean,
+    baseUri: Uri,
+    customizeRequest: CustomizeOpenAIRequest
+) {
 
   private val openAI = new OpenAI(authToken, baseUri)
 
@@ -801,20 +807,44 @@ class OpenAISyncClient private (authToken: String, backend: SyncBackend, closeCl
   def deleteVectorStoreFile(vectorStoreId: String, fileId: String): DeleteVectorStoreFileResponse =
     sendOrThrow(openAI.deleteVectorStoreFile(vectorStoreId, fileId))
 
-  /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op.
-    */
+  /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()
 
+  /** Specifies a function, which will be applied to the generated request before sending it. If a function has been specified before, it
+    * will be applied before the given one.
+    */
+  def customizeRequest(customize: CustomizeOpenAIRequest): OpenAISyncClient =
+    new OpenAISyncClient(authToken, backend, closeClient, baseUri, customizeRequest.andThen(customize))
+
   private def sendOrThrow[A](request: Request[Either[OpenAIException, A]]): A =
-    request.send(backend).body match {
+    customizeRequest.apply(request).send(backend).body match {
       case Right(value)    => value
       case Left(exception) => throw exception
     }
 }
 
 object OpenAISyncClient {
-  def apply(authToken: String) = new OpenAISyncClient(authToken, DefaultSyncBackend(), true, OpenAIUris.OpenAIBaseUri)
-  def apply(authToken: String, backend: SyncBackend) = new OpenAISyncClient(authToken, backend, false, OpenAIUris.OpenAIBaseUri)
-  def apply(authToken: String, backend: SyncBackend, baseUrl: Uri) = new OpenAISyncClient(authToken, backend, false, baseUrl)
-  def apply(authToken: String, baseUrl: Uri) = new OpenAISyncClient(authToken, DefaultSyncBackend(), true, baseUrl)
+  def apply(authToken: String) =
+    new OpenAISyncClient(authToken, DefaultSyncBackend(), true, OpenAIUris.OpenAIBaseUri, CustomizeOpenAIRequest.Identity)
+  def apply(authToken: String, backend: SyncBackend) =
+    new OpenAISyncClient(authToken, backend, false, OpenAIUris.OpenAIBaseUri, CustomizeOpenAIRequest.Identity)
+  def apply(authToken: String, backend: SyncBackend, baseUrl: Uri) =
+    new OpenAISyncClient(authToken, backend, false, baseUrl, CustomizeOpenAIRequest.Identity)
+  def apply(authToken: String, baseUrl: Uri) =
+    new OpenAISyncClient(authToken, DefaultSyncBackend(), true, baseUrl, CustomizeOpenAIRequest.Identity)
+}
+
+trait CustomizeOpenAIRequest {
+  def apply[A](request: Request[Either[OpenAIException, A]]): Request[Either[OpenAIException, A]]
+
+  def andThen(customize: CustomizeOpenAIRequest): CustomizeOpenAIRequest = new CustomizeOpenAIRequest {
+    override def apply[A](request: Request[Either[OpenAIException, A]]): Request[Either[OpenAIException, A]] =
+      customize.apply(CustomizeOpenAIRequest.this(request))
+  }
+}
+
+object CustomizeOpenAIRequest {
+  val Identity: CustomizeOpenAIRequest = new CustomizeOpenAIRequest {
+    override def apply[A](request: Request[Either[OpenAIException, A]]): Request[Either[OpenAIException, A]] = request
+  }
 }
