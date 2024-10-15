@@ -432,7 +432,7 @@ and support for JSON Schema, you can use `ResponseFormat.JsonSchema` when creati
 The example below produces a JSON object:
 
 ```scala mdoc:compile-only
-//> using dep com.softwaremill.sttp.openai::core:0.2.3
+//> using dep com.softwaremill.sttp.openai::core:0.2.4
 
 import scala.collection.immutable.ListMap
 import sttp.apispec.{Schema, SchemaType}
@@ -514,6 +514,8 @@ To derive the same math reasoning schema used above, you can use
 [Tapir's support for generating a JSON schema from a Tapir schema](https://tapir.softwaremill.com/en/latest/docs/json-schema.html):
 
 ```scala mdoc:compile-only
+//> using dep com.softwaremill.sttp.tapir::tapir-apispec-docs:1.11.7
+
 import sttp.apispec.{Schema => ASchema}
 import sttp.tapir.Schema
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
