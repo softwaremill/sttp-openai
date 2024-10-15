@@ -427,6 +427,119 @@ object Main extends OxApp:
 
 See also the [ChatProxy](https://github.com/softwaremill/sttp-openai/blob/master/examples/src/main/scala/examples/ChatProxy.scala) example application.
 
+#### Structured Outputs/JSON Schema support
+
+To take advantage of [OpenAI's Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs/introduction)
+and support for JSON Schema, you can use `ResponseFormat.JsonSchema` when creating a completion.
+
+The example below produces a JSON object:
+
+```scala mdoc:compile-only
+//> using dep com.softwaremill.sttp.openai::core:0.2.3
+
+import scala.collection.immutable.ListMap
+import sttp.apispec.{Schema, SchemaType}
+import sttp.openai.OpenAISyncClient
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, ResponseFormat}
+import sttp.openai.requests.completions.chat.message._
+
+object Main extends App {
+  val apiKey = System.getenv("OPENAI_KEY")
+  val openAI = OpenAISyncClient(apiKey)
+
+  val jsonSchema: Schema =
+    Schema(SchemaType.Object).copy(properties =
+      ListMap(
+        "steps" -> Schema(SchemaType.Array).copy(items =
+          Some(Schema(SchemaType.Object).copy(properties =
+            ListMap(
+              "explanation" -> Schema(SchemaType.String),
+              "output" -> Schema(SchemaType.String)
+            )
+          ))
+        ),
+        "finalAnswer" -> Schema(SchemaType.String)
+      ),
+    )
+
+  val responseFormat: ResponseFormat.JsonSchema =
+    ResponseFormat.JsonSchema(
+      name = "mathReasoning",
+      strict = true,
+      schema = jsonSchema
+    )
+
+  val bodyMessages: Seq[Message] = Seq(
+    Message.SystemMessage(content = "You are a helpful math tutor. Guide the user through the solution step by step."),
+    Message.UserMessage(content = Content.TextContent("How can I solve 8x + 7 = -23"))
+  )
+
+  // Create body of Chat Completions Request, using our JSON Schema as the `responseFormat`
+  val chatRequestBody: ChatBody = ChatBody(
+    model = ChatCompletionModel.GPT4oMini,
+    messages = bodyMessages,
+    responseFormat = Some(responseFormat)
+  )
+
+  val chatResponse: ChatResponse = openAI.createChatCompletion(chatRequestBody)
+
+  println(chatResponse.choices)
+  /*
+    List(
+      Choices(
+        Message(
+          Assistant,
+          {
+            "steps": [
+              {"explanation": "Start with the original equation: 8x + 7 = -23", "output": "8x + 7 = -23"},
+              {"explanation": "Subtract 7 from both sides to isolate the term with x.", "output": "8x + 7 - 7 = -23 - 7"},
+              {"explanation": "This simplifies to: 8x = -30", "output": "8x = -30"},
+              {"explanation": "Now, divide both sides by 8 to solve for x.", "output": "x = -30 / 8"},
+              {"explanation": "Simplify -30 / 8 to its simplest form. Both the numerator and denominator can be divided by 2.", "output": "x = -15 / 4"}
+            ],
+            "finalAnswer": "x = -15/4"
+          },
+          List(),
+          None
+        ),
+        stop,
+        0
+      )
+    )
+  */
+}
+```
+
+##### Deriving a JSON Schema with tapir
+
+To derive the same math reasoning schema used above, you can use
+[Tapir's support for generating a JSON schema from a Tapir schema](https://tapir.softwaremill.com/en/latest/docs/json-schema.html):
+
+```scala mdoc:compile-only
+import sttp.apispec.{Schema => ASchema}
+import sttp.tapir.Schema
+import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
+import sttp.tapir.generic.auto._
+
+case class Step(
+  explanation: String,
+  output: String
+)
+
+case class MathReasoning(
+  steps: List[Step],
+  finalAnswer: String
+)
+
+val tSchema = implicitly[Schema[MathReasoning]]
+
+val jsonSchema: ASchema = TapirSchemaToJsonSchema(
+  tSchema,
+  markOptionsAsNullable = true
+)
+```
+
 ## Contributing
 
 If you have a question, or hit a problem, feel free to post on our community https://softwaremill.community/c/open-source/
