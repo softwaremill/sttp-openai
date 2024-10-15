@@ -68,7 +68,7 @@ class OxClientSpec extends AnyFlatSpec with Matchers with EitherValues {
         .send(stub)
         .body
         .value
-        .toList
+        .runToList()
 
       // then
       response(0) shouldBe a[Left[DeserializationOpenAIException, Any]]
@@ -133,7 +133,7 @@ class OxClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       .send(stub)
       .body
       .value
-      .toList
+      .runToList()
       .map(_.value)
 
     // then

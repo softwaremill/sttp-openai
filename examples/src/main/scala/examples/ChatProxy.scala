@@ -1,16 +1,18 @@
-//> using dep com.softwaremill.sttp.openai::ox:0.2.2
-//> using dep com.softwaremill.sttp.tapir::tapir-netty-server-sync:1.11.2
-//> using dep com.softwaremill.sttp.client4::ox:4.0.0-M17
-//> using dep com.softwaremill.ox::core:0.3.7
+//> using dep com.softwaremill.sttp.openai::ox:0.2.4
+//> using dep com.softwaremill.sttp.tapir::tapir-netty-server-sync:1.11.7
+//> using dep com.softwaremill.sttp.client4::ox:4.0.0-M19
+//> using dep com.softwaremill.ox::core:0.5.1
 //> using dep ch.qos.logback:logback-classic:1.5.10
 
-// Remember to set the OPENAI_KEY env variable!
+// remember to set the OPENAI_KEY env variable!
+// run with: OPENAI_KEY=... scala-cli run ChatProxy.scala
+
+// test by connecting to ws://localhost:8080/chat using a WebSocket client
 
 package examples
 
 import org.slf4j.{Logger, LoggerFactory}
 import ox.*
-import ox.channels.{Channel, ChannelClosed}
 import ox.either.orThrow
 import sttp.client4.{DefaultSyncBackend, SyncBackend}
 import sttp.openai.OpenAI
@@ -21,7 +23,7 @@ import sttp.tapir.*
 import sttp.tapir.CodecFormat.*
 import sttp.tapir.server.netty.sync.{NettySyncServer, OxStreams}
 
-import scala.annotation.tailrec
+import ox.flow.Flow
 
 //
 
@@ -37,18 +39,14 @@ val chatProxyEndpoint = infallibleEndpoint.get
   .out(webSocketBody[ChatMessage, TextPlain, ChatMessage, TextPlain](OxStreams))
 
 def chat(sttpBackend: SyncBackend, openAI: OpenAI): OxStreams.Pipe[ChatMessage, ChatMessage] =
-  ox ?=> // running within a concurrency scope
-    incoming => {
-      val outgoing = Channel.bufferedDefault[ChatMessage]
-
-      // incoming - messages sent by the end-user over the web socket
-      // outgoing - messages to be sent to the end user over the web socket
-
-      // main processing loop: receives messages from the WS and queries OpenAI with the chat's history
-      @tailrec
-      def loop(history: Vector[Message]): Unit = incoming.receiveOrDone() match
-        case ChannelClosed.Done => outgoing.done() // we won't be sending any more messages to the client
-        case nextMessage: ChatMessage =>
+  // the OxStreams.Pipe converts a flow of *incoming* messages (sent by the end-user over the web socket), to a flow
+  // of *outgoing* messages (sent to the end-user over the web socket)t
+  incoming =>
+    // we're returning an *outgoing* flow where we can freely emit elements (in our case - incremental chat responses)
+    Flow.usingEmit { emit =>
+      incoming
+        // main processing loop: receives messages from the WS and queries OpenAI with the chat's history
+        .mapStateful(() => Vector.empty[Message]) { (history, nextMessage) =>
           val nextHistory = history :+ Message.UserMessage(content = Content.TextContent(nextMessage.message))
 
           // querying OpenAI with the entire chat history, as each request is stateless
@@ -58,33 +56,27 @@ def chat(sttpBackend: SyncBackend, openAI: OpenAI): OxStreams.Pipe[ChatMessage, 
           )
 
           // requesting a streaming completion, so that we can get back to the user as the answer is being generated
-          val source = openAI
+          val chatCompletionFlow = openAI
             .createStreamedChatCompletion(chatRequestBody)
             .send(sttpBackend)
             .body
             .orThrow // there might be an OpenAI HTTP-error
 
-          // a side-channel onto which we'll collect all the responses, to store it in history for subsequent messages
-          val gatherResponse = Channel.bufferedDefault[ChatMessage]
-          val gatherResponseFork = fork(gatherResponse.toList.map(_.message).mkString) // collecting the response in the background
+          // extracting the response increments
+          val responseList = chatCompletionFlow
+            .map(_.orThrow.choices.head.delta.content)
+            .collect { case Some(msg) => ChatMessage(msg) }
+            .tap(emit.apply) // emitting each to the *outgoing* flow
+            .runToList() // accumulating all repsonses so they become part of the history for the next request
 
-          // extracting the response increments, sending to the outgoing channel, as well as to the side-channel
-          source
-            .mapAsView(_.orThrow.choices.head.delta.content)
-            .collectAsView { case Some(msg) => ChatMessage(msg) }
-            .alsoTo(gatherResponse)
-            .pipeTo(outgoing, propagateDone = false)
+          val entireResponse = responseList.map(_.message).mkString
+          val nextNextHistory = nextHistory :+ Message.AssistantMessage(content = entireResponse)
 
-          val gatheredResponse = gatherResponseFork.join()
-          val nextNextHistory = nextHistory :+ Message.AssistantMessage(content = gatheredResponse)
-
-          loop(nextNextHistory)
-
-      // running the processing in the background, so that we can return the outgoing channel to the library ...
-      fork(loop(Vector.empty))
-
-      // ... so that the messages can be sent over the WS
-      outgoing
+          (nextNextHistory, ())
+        }
+        // when the outer flow is run, running the incoming flow as well; it doesn't produce any meaningful results
+        // (apart from emitting responses to the outer flow), so discarding its result
+        .runDrain()
     }
 
 object ChatProxy extends OxApp:
