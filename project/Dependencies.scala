@@ -4,7 +4,7 @@ object Dependencies {
 
   object V {
     val scalaTest = "3.2.19"
-    val scalaTestCats = "1.5.0"
+    val scalaTestCats = "1.6.0"
 
     val sttpApispec = "0.11.3"
     val sttpClient = "4.0.0-M19"
