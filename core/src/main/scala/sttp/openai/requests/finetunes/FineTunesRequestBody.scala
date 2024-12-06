@@ -65,7 +65,7 @@ object FineTuneModel {
       jsonValue =>
         SnakePickle.read[ujson.Value](jsonValue) match {
           case Str(value) =>
-            byFineTuneModelValue.getOrElse(value, throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value")))
+            byFineTuneModelValue.getOrElse(value, CustomFineTuneModel(value))
           case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
         }
     )
