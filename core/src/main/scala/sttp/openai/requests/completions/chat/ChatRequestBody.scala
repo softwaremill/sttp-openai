@@ -31,18 +31,17 @@ object ChatRequestBody {
             requiredProperties: List[String]
         )
 
-        /** OpenAI's JSON schema support has a couple limitations/requirements we need to account for:
+        /** OpenAI's JSON schema support imposes two requirements:
           *
-          *   1. All fields must be `required` https://platform.openai.com/docs/guides/structured-outputs/all-fields-must-be-required
+          *   1. All fields must be `required`: 
+          *      https://platform.openai.com/docs/guides/structured-outputs/all-fields-must-be-required
           *
-          * 2. `additionalProperties: false` must always be set in objects
-          * https://platform.openai.com/docs/guides/structured-outputs/additionalproperties-false-must-always-be-set-in-objects
+          *   2. `additionalProperties: false` must always be set in objects:
+          *      https://platform.openai.com/docs/guides/structured-outputs/additionalproperties-false-must-always-be-set-in-objects
           *
-          * We handle both of these by folding over the JSON structure, looking specifically for JSON objects.
-          *
-          * If the object has a "properties" key, then we handle both limitations listed above.
-          *
-          * If the object has a "type" key AND the "type" is "object", then we handle limitation 2.
+          * We implement these by folding over the JSON structure.
+          * However, if a schema uses discriminated unions (indicated by a `discriminator` property),
+          * we skip forcing `additionalProperties: false` to preserve flexibility in selecting sub-schemas.
           */
         private val schemaFolder: Json.Folder[Json] = new Json.Folder[Json] {
           lazy val onNull = Json.Null
@@ -51,24 +50,28 @@ object ChatRequestBody {
           def onString(value: String): Json = Json.fromString(value)
           def onArray(value: Vector[Json]): Json = Json.fromValues(value.map(_.foldWith(this)))
           def onObject(value: JsonObject): Json = {
-            val state = value.toList.foldRight(FolderState(Nil, false, Nil)) { case ((k, v), acc) =>
-              if (k == "properties")
-                acc.copy(
-                  fields = (k, v.foldWith(this)) :: acc.fields,
-                  addAdditionalProperties = true,
-                  requiredProperties = v.asObject.fold(List.empty[String])(_.keys.toList)
-                )
-              else if (k == "type")
-                acc.copy(
-                  fields = (k, v.foldWith(this)) :: acc.fields,
-                  addAdditionalProperties = acc.addAdditionalProperties || v.asString.filter(_ == "object").isDefined
-                )
-              else
-                acc.copy(fields = (k, v.foldWith(this)) :: acc.fields)
+            val state = value.toList.foldRight(FolderState(Nil, false, Nil)) {
+              case ((k, v), acc) =>
+                if (k == "properties")
+                  acc.copy(
+                    fields = (k, v.foldWith(this)) :: acc.fields,
+                    addAdditionalProperties = true,
+                    requiredProperties = v.asObject.fold(List.empty[String])(_.keys.toList)
+                  )
+                else if (k == "type")
+                  acc.copy(
+                    fields = (k, v.foldWith(this)) :: acc.fields,
+                    addAdditionalProperties = acc.addAdditionalProperties || v.asString.contains("object")
+                  )
+                else
+                  acc.copy(fields = (k, v.foldWith(this)) :: acc.fields)
             }
 
+            // Detect if this object is part of a discriminated union by checking for a "discriminator" property.
+            val isDiscriminatedUnion = value.contains("discriminator")
+
             val (addlPropsRemove, addlPropsAdd) =
-              if (state.addAdditionalProperties)
+              if (state.addAdditionalProperties && !isDiscriminatedUnion)
                 (Set("additionalProperties"), List("additionalProperties" := false))
               else
                 (Set(), Nil)
@@ -80,7 +83,6 @@ object ChatRequestBody {
                 (Set(), Nil)
 
             val remove = addlPropsRemove ++ requiredRemove
-
             val fields = addlPropsAdd ++ requiredAdd ++ state.fields.filterNot { case (k, _) => remove.contains(k) }
 
             Json.fromFields(fields)
