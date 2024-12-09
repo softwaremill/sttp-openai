@@ -44,7 +44,7 @@ object EditRequestBody {
         jsonValue =>
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
-              byEditModelValue.getOrElse(value, throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value")))
+              byEditModelValue.getOrElse(value, CustomEditModel(value))
             case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
           }
       )

@@ -4,13 +4,13 @@ object Dependencies {
 
   object V {
     val scalaTest = "3.2.19"
-    val scalaTestCats = "1.5.0"
+    val scalaTestCats = "1.6.0"
 
     val sttpApispec = "0.11.3"
     val sttpClient = "4.0.0-M19"
     val pekkoStreams = "1.1.2"
     val akkaStreams = "2.6.20"
-    val tapir = "1.11.7"
+    val tapir = "1.11.10"
     val uPickle = "3.1.4"
   }
 
