@@ -104,9 +104,8 @@ lazy val examples = (projectMatrix in file("examples"))
   .dependsOn(ox)
 
 val compileDocs: TaskKey[Unit] = taskKey[Unit]("Compiles docs module throwing away its output")
-compileDocs := {
+compileDocs :=
   (docs.jvm(scala2.head) / mdoc).toTask(" --out target/sttp-openai-docs").value
-}
 
 lazy val docs = (projectMatrix in file("generated-docs")) // important: it must not be docs/
   .enablePlugins(MdocPlugin)
