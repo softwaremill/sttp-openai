@@ -3,7 +3,7 @@ import com.softwaremill.Publish.ossPublishSettings
 import Dependencies._
 
 val scala2 = List("2.13.16")
-val scala3 = List("3.3.4")
+val scala3 = List("3.3.5")
 
 def dependenciesFor(version: String)(deps: (Option[(Long, Long)] => ModuleID)*): Seq[ModuleID] =
   deps.map(_.apply(CrossVersion.partialVersion(version)))
