@@ -4,7 +4,13 @@ import sttp.capabilities.Streams
 import sttp.client4._
 import sttp.model.{Header, Uri}
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai.json.SttpUpickleApiExtension.{asInputStreamUnsafe_parseErrors, asJson_parseErrors, asStreamUnsafe_parseErrors, asStringEither, upickleBodySerializer}
+import sttp.openai.json.SttpUpickleApiExtension.{
+  asInputStreamUnsafe_parseErrors,
+  asJson_parseErrors,
+  asStreamUnsafe_parseErrors,
+  asStringEither,
+  upickleBodySerializer
+}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
@@ -37,7 +43,11 @@ import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsRes
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, ListVectorStoreFilesResponse, VectorStoreFile}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
+  DeleteVectorStoreFileResponse,
+  ListVectorStoreFilesResponse,
+  VectorStoreFile
+}
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
