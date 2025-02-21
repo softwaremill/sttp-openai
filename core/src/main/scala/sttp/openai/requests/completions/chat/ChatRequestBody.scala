@@ -1,7 +1,7 @@
 package sttp.openai.requests.completions.chat
 
-import io.circe.{DecodingFailure, Json, JsonNumber, JsonObject}
 import io.circe.syntax._
+import io.circe.{DecodingFailure, Json, JsonNumber, JsonObject}
 import sttp.apispec.Schema
 import sttp.apispec.circe._
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
