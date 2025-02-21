@@ -35,11 +35,7 @@ import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsRes
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
-  DeleteVectorStoreFileResponse,
-  ListVectorStoreFilesResponse,
-  VectorStoreFile
-}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, ListVectorStoreFilesResponse, VectorStoreFile}
 
 import java.io.File
 
