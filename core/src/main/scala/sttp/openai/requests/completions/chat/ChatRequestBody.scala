@@ -249,8 +249,6 @@ object ChatRequestBody {
 
     case object GPT4Turbo extends ChatCompletionModel("gpt-4-1106-preview")
 
-    case object GPT4TurboVision extends ChatCompletionModel("gpt-4-vision-preview")
-
     case object GPT4o extends ChatCompletionModel("gpt-4o")
 
     case object GPT4oMini extends ChatCompletionModel("gpt-4o-mini")
@@ -266,7 +264,6 @@ object ChatRequestBody {
         GPT35Turbo,
         GPT35Turbo0301,
         GPT4Turbo,
-        GPT4TurboVision,
         GPT4o,
         GPT4oMini
       )

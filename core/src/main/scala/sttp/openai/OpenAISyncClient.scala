@@ -13,18 +13,9 @@ import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
-import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
-import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
-import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.{
-  DeleteFineTuneModelResponse,
-  FineTuneEventsResponse,
-  FineTuneResponse,
-  GetFineTunesResponse
-}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -42,11 +33,7 @@ import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsRes
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
-  DeleteVectorStoreFileResponse,
-  ListVectorStoreFilesResponse,
-  VectorStoreFile
-}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, ListVectorStoreFilesResponse, VectorStoreFile}
 
 import java.io.File
 
@@ -170,16 +157,6 @@ class OpenAISyncClient private (
     */
   def imageVariations(imageVariationsConfig: ImageVariationsConfig): ImageResponse =
     sendOrThrow(openAI.imageVariations(imageVariationsConfig))
-
-  /** Creates a new edit for provided request body.
-    *
-    * [[https://platform.openai.com/docs/api-reference/edits/create]]
-    *
-    * @param editRequestBody
-    *   Edit request body.
-    */
-  def createEdit(editRequestBody: EditBody): EditResponse =
-    sendOrThrow(openAI.createEdit(editRequestBody))
 
   /** Creates a model response for the given chat conversation defined in chatBody.
     *
@@ -367,33 +344,6 @@ class OpenAISyncClient private (
   def createTranscription(transcriptionConfig: TranscriptionConfig): AudioResponse =
     sendOrThrow(openAI.createTranscription(transcriptionConfig))
 
-  /** Creates a job that fine-tunes a specified model from a given dataset.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/create]]
-    *
-    * @param fineTunesRequestBody
-    *   Request body that will be used to create a fine-tune.
-    */
-  def createFineTune(fineTunesRequestBody: FineTunesRequestBody): FineTuneResponse =
-    sendOrThrow(openAI.createFineTune(fineTunesRequestBody))
-
-  /** List of your organization's fine-tuning jobs.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/list]]
-    */
-  def getFineTunes: GetFineTunesResponse =
-    sendOrThrow(openAI.getFineTunes)
-
-  /** Immediately cancel a fine-tune job.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/cancel]]
-    *
-    * @param fineTuneId
-    *   The ID of the fine-tune job to cancel.
-    */
-  def cancelFineTune(fineTuneId: String): FineTuneResponse =
-    sendOrThrow(openAI.cancelFineTune(fineTuneId))
-
   /** Gets info about the fine-tune job.
     *
     * [[https://platform.openai.com/docs/api-reference/embeddings/create]]
@@ -403,36 +353,6 @@ class OpenAISyncClient private (
     */
   def createEmbeddings(embeddingsBody: EmbeddingsBody): EmbeddingResponse =
     sendOrThrow(openAI.createEmbeddings(embeddingsBody))
-
-  /** Gets info about the fine-tune job.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/retrieve]]
-    *
-    * @param fineTuneId
-    *   The ID of the fine-tune job.
-    */
-  def retrieveFineTune(fineTuneId: String): FineTuneResponse =
-    sendOrThrow(openAI.retrieveFineTune(fineTuneId))
-
-  /** Delete a fine-tuned model. You must have the Owner role in your organization.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/delete-model]]
-    *
-    * @param model
-    *   The model to delete.
-    */
-  def deleteFineTuneModel(model: String): DeleteFineTuneModelResponse =
-    sendOrThrow(openAI.deleteFineTuneModel(model))
-
-  /** Get fine-grained status updates for a fine-tune job.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/events]]
-    *
-    * @param fineTuneId
-    *   The ID of the fine-tune job to get events for.
-    */
-  def getFineTuneEvents(fineTuneId: String): FineTuneEventsResponse =
-    sendOrThrow(openAI.getFineTuneEvents(fineTuneId))
 
   /** Create a thread.
     *
