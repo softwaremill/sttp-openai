@@ -11,7 +11,7 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given completions response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.completions.CompletionsResponseData._
     import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse._
-    import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.TextDavinci003
+    import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.GPT35TurboInstruct
 
     // given
     val jsonResponse = fixtures.CompletionsFixture.jsonSinglePromptResponse
@@ -19,7 +19,7 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       id = "cmpl-75C628xoevz3eE8zsTFDumZ5wqwmY",
       `object` = "text_completion",
       created = 1681472494,
-      model = TextDavinci003,
+      model = GPT35TurboInstruct,
       choices = Seq(
         Choices(
           text = "\n\nThis is indeed a test.",
@@ -45,11 +45,11 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given completions request as case class" should "be properly serialized to Json" in {
     import sttp.openai.requests.completions.CompletionsRequestBody._
     import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody._
-    import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.TextDavinci003
+    import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.GPT35TurboInstruct
 
     // given
     val givenRequest = CompletionsRequestBody.CompletionsBody(
-      model = TextDavinci003,
+      model = GPT35TurboInstruct,
       prompt = Some(SinglePrompt("Say this is a test")),
       maxTokens = Some(7),
       temperature = Some(0),
@@ -71,7 +71,7 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given completions of MultiplePrompt response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.completions.CompletionsResponseData._
     import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse._
-    import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.TextDavinci003
+    import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.GPT35TurboInstruct
 
     // given
     val jsonResponse = fixtures.CompletionsFixture.jsonMultiplePromptResponse
@@ -79,7 +79,7 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       id = "cmpl-76D8UlnqOEkhVXu29nY7UPZFDTTlP",
       `object` = "text_completion",
       created = 1681714818,
-      model = TextDavinci003,
+      model = GPT35TurboInstruct,
       choices = Seq(
         Choices(
           text = "\n\nThis is indeed a test",
@@ -111,11 +111,11 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given completions of MultiplePrompt request as case class" should "be properly serialized to Json" in {
     import sttp.openai.requests.completions.CompletionsRequestBody._
     import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody._
-    import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.TextDavinci003
+    import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.GPT35TurboInstruct
 
     // given
     val givenRequest = CompletionsRequestBody.CompletionsBody(
-      model = TextDavinci003,
+      model = GPT35TurboInstruct,
       prompt = Some(MultiplePrompt(Seq("Say this is a test", "Say this is also a test"))),
       maxTokens = Some(7),
       temperature = Some(0),
