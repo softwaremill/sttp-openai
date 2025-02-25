@@ -24,6 +24,8 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
+import sttp.openai.requests.finetuning
+import sttp.openai.requests.finetuning._
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -541,6 +543,36 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       }
       .response(asJson_parseErrors[AudioResponse])
 
+  /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
+    *
+    * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/create]]
+    *
+    * @param fineTuningRequestBody
+    *   Request body that will be used to create a fine-tuning job.
+    */
+  def createFineTuningJob(fineTuningRequestBody: FineTuningRequestBody): Request[Either[OpenAIException, FineTuningResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.FineTuning)
+      .body(fineTuningRequestBody)
+      .response(asJson_parseErrors[FineTuningResponse])
+
+  /** List your organization's fine-tuning jobs
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list]]
+    */
+  def listFineTuningJobs(
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListFineTuningResponse]] = {
+    val uri = openAIUris.FineTuning
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListFineTuningResponse])
+  }
+
   /** Gets info about the fine-tune job.
     *
     * [[https://platform.openai.com/docs/api-reference/embeddings/create]]
@@ -1036,6 +1068,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Files: Uri = uri"$baseUri/files"
   val Models: Uri = uri"$baseUri/models"
   val Moderations: Uri = uri"$baseUri/moderations"
+  val FineTuning: Uri = uri"$baseUri/fine_tuning/jobs"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
   val VariationsImage: Uri = imageBase.addPath("variations")

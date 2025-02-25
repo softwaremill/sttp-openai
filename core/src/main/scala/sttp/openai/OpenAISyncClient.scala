@@ -16,6 +16,8 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
+import sttp.openai.requests.finetuning
+import sttp.openai.requests.finetuning.{FineTuningRequestBody, FineTuningResponse, ListFineTuningResponse}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -347,6 +349,25 @@ class OpenAISyncClient private (
     */
   def createTranscription(transcriptionConfig: TranscriptionConfig): AudioResponse =
     sendOrThrow(openAI.createTranscription(transcriptionConfig))
+
+  /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
+    *
+    * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/create]]
+    *
+    * @param fineTuningRequestBody
+    *   Request body that will be used to create a fine-tuning job.
+    */
+  def createFineTuningJob(fineTuningRequestBody: FineTuningRequestBody): FineTuningResponse =
+    sendOrThrow(openAI.createFineTuningJob(fineTuningRequestBody))
+
+  /** List your organization's fine-tuning jobs
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list]]
+    */
+  def listFineTuningJobs(queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty): ListFineTuningResponse =
+    sendOrThrow(openAI.listFineTuningJobs(queryParameters))
 
   /** Gets info about the fine-tune job.
     *

@@ -4,6 +4,45 @@ import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIExcepti
 import sttp.openai.json.SnakePickle
 import ujson.Str
 
+/** @param id
+  *   The object identifier, which can be referenced in the API endpoints.
+  * @param createdAt
+  *   The Unix timestamp (in seconds) for when the fine-tuning job was created.
+  * @param error
+  *   For fine-tuning jobs that have failed, this will contain more information on the cause of the failure.
+  * @param fineTunedModel
+  *   The name of the fine-tuned model that is being created. The value will be null if the fine-tuning job is still running.
+  * @param finishedAt
+  *   The Unix timestamp (in seconds) for when the fine-tuning job was finished. The value will be null if the fine-tuning job is still
+  *   running.
+  * @param hyperparameters
+  *   The hyperparameters used for the fine-tuning job. This value will only be returned when running supervised jobs.
+  * @param model
+  *   The base model that is being fine-tuned.
+  * @param `object`
+  *   The object type, which is always "fine_tuning.job".
+  * @param organizationId
+  *   The organization that owns the fine-tuning job.
+  * @param resultFiles
+  *   The compiled results file ID(s) for the fine-tuning job. You can retrieve the results with the Files API.
+  * @param status
+  *   The current status of the fine-tuning job, which can be either validating_files, queued, running, succeeded, failed, or cancelled.
+  * @param trainedTokens
+  *   The total number of billable tokens processed by this fine-tuning job. The value will be null if the fine-tuning job is still running.
+  * @param trainingFile
+  *   The file ID used for training. You can retrieve the training data with the Files API.
+  * @param validationFile
+  *   The file ID used for validation. You can retrieve the validation results with the Files API.
+  * @param integrations
+  *   A list of integrations to enable for this fine-tuning job.
+  * @param seed
+  *   The seed used for the fine-tuning job.
+  * @param estimatedFinish
+  *   The Unix timestamp (in seconds) for when the fine-tuning job is estimated to finish. The value will be null if the fine-tuning job is
+  *   not running.
+  * @param method
+  *   The method used for fine-tuning.
+  */
 case class FineTuningResponse(
     id: String,
     createdAt: Int,
@@ -53,12 +92,11 @@ object Status {
 
   implicit val statusRW: SnakePickle.Reader[Status] = SnakePickle
     .reader[ujson.Value]
-    .map[Status](
-      jsonValue =>
-        SnakePickle.read[ujson.Value](jsonValue) match {
-          case Str(value) => byStatusValue.getOrElse(value, CustomStatus(value))
-          case e          => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
-        }
+    .map[Status](jsonValue =>
+      SnakePickle.read[ujson.Value](jsonValue) match {
+        case Str(value) => byStatusValue.getOrElse(value, CustomStatus(value))
+        case e          => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
+      }
     )
 
   case object ValidatingFiles extends Status("validating_files")
@@ -79,4 +117,14 @@ object Status {
 
   private val byStatusValue = values.map(status => status.value -> status).toMap
 
+}
+
+case class ListFineTuningResponse(
+    `object`: String = "list",
+    data: Seq[FineTuningResponse],
+    hasMore: Boolean
+)
+
+object ListFineTuningResponse {
+  implicit val listFineTuningResponseR: SnakePickle.Reader[ListFineTuningResponse] = SnakePickle.macroR[ListFineTuningResponse]
 }
