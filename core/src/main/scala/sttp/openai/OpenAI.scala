@@ -82,7 +82,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param completionBody
     *   Create completion request body.
     * @deprecated
-    *   This is marked as Legacy in OpenAI API and might be removed in the future. Please use createChatCompletion instead.
+    *   This is marked as Legacy in OpenAI API and might be removed in the future. Please use [[createChatCompletion]] instead.
     */
   def createCompletion(completionBody: CompletionsBody): Request[Either[OpenAIException, CompletionsResponse]] =
     openAIAuthRequest
