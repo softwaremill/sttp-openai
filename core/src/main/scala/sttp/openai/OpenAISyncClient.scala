@@ -16,6 +16,8 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
+import sttp.openai.requests.finetuning
+import sttp.openai.requests.finetuning._
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -347,6 +349,71 @@ class OpenAISyncClient private (
     */
   def createTranscription(transcriptionConfig: TranscriptionConfig): AudioResponse =
     sendOrThrow(openAI.createTranscription(transcriptionConfig))
+
+  /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
+    *
+    * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/create]]
+    *
+    * @param fineTuningRequestBody
+    *   Request body that will be used to create a fine-tuning job.
+    */
+  def createFineTuningJob(fineTuningRequestBody: FineTuningJobRequestBody): FineTuningJobResponse =
+    sendOrThrow(openAI.createFineTuningJob(fineTuningRequestBody))
+
+  /** List your organization's fine-tuning jobs
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list]]
+    */
+  def listFineTuningJobs(queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty): ListFineTuningJobResponse =
+    sendOrThrow(openAI.listFineTuningJobs(queryParameters))
+
+  /** Get status updates for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-events]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobEvents(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): ListFineTuningJobEventResponse =
+    sendOrThrow(openAI.listFineTuningJobEvents(fineTuningJobId, queryParameters))
+
+  /** List checkpoints for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-checkpoints]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobCheckpoints(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): ListFineTuningJobCheckpointResponse =
+    sendOrThrow(openAI.listFineTuningJobCheckpoints(fineTuningJobId, queryParameters))
+
+  /** Get info about a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/retrieve]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job.
+    */
+  def retrieveFineTuningJob(fineTuningJobId: String): FineTuningJobResponse =
+    sendOrThrow(openAI.retrieveFineTuningJob(fineTuningJobId))
+
+  /** Immediately cancel a fine-tune job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/cancel]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to cancel.
+    */
+  def cancelFineTuningJob(fineTuningJobId: String): FineTuningJobResponse =
+    sendOrThrow(openAI.cancelFineTuningJob(fineTuningJobId))
 
   /** Gets info about the fine-tune job.
     *

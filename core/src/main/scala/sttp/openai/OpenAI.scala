@@ -24,6 +24,8 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
+import sttp.openai.requests.finetuning
+import sttp.openai.requests.finetuning._
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -82,7 +84,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param completionBody
     *   Create completion request body.
     * @deprecated
-    *   This is marked as Legacy in OpenAI API and might be removed in the future. Please use createChatCompletion instead.
+    *   This is marked as Legacy in OpenAI API and might be removed in the future. Please use [[createChatCompletion]] instead.
     */
   def createCompletion(completionBody: CompletionsBody): Request[Either[OpenAIException, CompletionsResponse]] =
     openAIAuthRequest
@@ -540,6 +542,100 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
         ).flatten
       }
       .response(asJson_parseErrors[AudioResponse])
+
+  /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
+    *
+    * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/create]]
+    *
+    * @param fineTuningRequestBody
+    *   Request body that will be used to create a fine-tuning job.
+    */
+  def createFineTuningJob(fineTuningRequestBody: FineTuningJobRequestBody): Request[Either[OpenAIException, FineTuningJobResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.FineTuningJobs)
+      .body(fineTuningRequestBody)
+      .response(asJson_parseErrors[FineTuningJobResponse])
+
+  /** List your organization's fine-tuning jobs
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list]]
+    */
+  def listFineTuningJobs(
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListFineTuningJobResponse]] = {
+    val uri = openAIUris.FineTuningJobs
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListFineTuningJobResponse])
+  }
+
+  /** Get status updates for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-events]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobEvents(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListFineTuningJobEventResponse]] = {
+    val uri = openAIUris
+      .fineTuningJobEvents(fineTuningJobId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListFineTuningJobEventResponse])
+  }
+
+  /** List checkpoints for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-checkpoints]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobCheckpoints(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListFineTuningJobCheckpointResponse]] = {
+    val uri = openAIUris
+      .fineTuningJobCheckpoints(fineTuningJobId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListFineTuningJobCheckpointResponse])
+  }
+
+  /** Get info about a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/retrieve]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job.
+    */
+  def retrieveFineTuningJob(fineTuningJobId: String): Request[Either[OpenAIException, FineTuningJobResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.fineTuningJob(fineTuningJobId))
+      .response(asJson_parseErrors[FineTuningJobResponse])
+
+  /** Immediately cancel a fine-tune job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/cancel]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to cancel.
+    */
+  def cancelFineTuningJob(fineTuningJobId: String): Request[Either[OpenAIException, FineTuningJobResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelFineTuningJob(fineTuningJobId))
+      .response(asJson_parseErrors[FineTuningJobResponse])
 
   /** Gets info about the fine-tune job.
     *
@@ -1036,6 +1132,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Files: Uri = uri"$baseUri/files"
   val Models: Uri = uri"$baseUri/models"
   val Moderations: Uri = uri"$baseUri/moderations"
+  val FineTuningJobs: Uri = uri"$baseUri/fine_tuning/jobs"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
   val VariationsImage: Uri = imageBase.addPath("variations")
@@ -1044,6 +1141,11 @@ private class OpenAIUris(val baseUri: Uri) {
   val Threads: Uri = uri"$baseUri/threads"
   val ThreadsRuns: Uri = uri"$baseUri/threads/runs"
   val VectorStores: Uri = uri"$baseUri/vector_stores"
+
+  def fineTuningJob(fineTuningJobId: String): Uri = FineTuningJobs.addPath(fineTuningJobId)
+  def fineTuningJobEvents(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("events")
+  def fineTuningJobCheckpoints(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("checkpoints")
+  def cancelFineTuningJob(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("cancel")
 
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")
