@@ -128,3 +128,43 @@ case class ListFineTuningJobResponse(
 object ListFineTuningJobResponse {
   implicit val listFineTuningResponseR: SnakePickle.Reader[ListFineTuningJobResponse] = SnakePickle.macroR[ListFineTuningJobResponse]
 }
+
+/** @param `object`
+  *   The object type, which is always "fine_tuning.job.event".
+  * @param id
+  *   The object identifier.
+  * @param createdAt
+  *   The Unix timestamp (in seconds) for when the fine-tuning job was created.
+  * @param level
+  *   The log level of the event.
+  * @param message
+  *   The message of the event.
+  * @param `type`
+  *   The type of event.
+  * @param data
+  *   The data associated with the event.
+  */
+case class FineTuningJobEventResponse(
+    `object`: String,
+    id: String,
+    createdAt: Int,
+    level: String,
+    message: String,
+    `type`: String,
+    data: Map[String, ujson.Value]
+)
+
+object FineTuningJobEventResponse {
+  implicit val fineTuningJobEventResponseR: SnakePickle.Reader[FineTuningJobEventResponse] = SnakePickle.macroR[FineTuningJobEventResponse]
+}
+
+case class ListFineTuningJobEventResponse(
+    `object`: String = "list",
+    data: Seq[FineTuningJobEventResponse],
+    hasMore: Boolean
+)
+
+object ListFineTuningJobEventResponse {
+  implicit val listFineTuningJobEventResponseR: SnakePickle.Reader[ListFineTuningJobEventResponse] =
+    SnakePickle.macroR[ListFineTuningJobEventResponse]
+}

@@ -554,7 +554,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     */
   def createFineTuningJob(fineTuningRequestBody: FineTuningJobRequestBody): Request[Either[OpenAIException, FineTuningJobResponse]] =
     openAIAuthRequest
-      .post(openAIUris.FineTuning)
+      .post(openAIUris.FineTuningJobs)
       .body(fineTuningRequestBody)
       .response(asJson_parseErrors[FineTuningJobResponse])
 
@@ -565,12 +565,29 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def listFineTuningJobs(
       queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
   ): Request[Either[OpenAIException, ListFineTuningJobResponse]] = {
-    val uri = openAIUris.FineTuning
+    val uri = openAIUris.FineTuningJobs
       .withParams(queryParameters.toMap)
 
     openAIAuthRequest
       .get(uri)
       .response(asJson_parseErrors[ListFineTuningJobResponse])
+  }
+
+  /** Get status updates for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-events]]
+    */
+  def listFineTuningJobEvents(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListFineTuningJobEventResponse]] = {
+    val uri = openAIUris
+      .fineTuningJobEvents(fineTuningJobId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListFineTuningJobEventResponse])
   }
 
   /** Gets info about the fine-tune job.
@@ -1068,7 +1085,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Files: Uri = uri"$baseUri/files"
   val Models: Uri = uri"$baseUri/models"
   val Moderations: Uri = uri"$baseUri/moderations"
-  val FineTuning: Uri = uri"$baseUri/fine_tuning/jobs"
+  val FineTuningJobs: Uri = uri"$baseUri/fine_tuning/jobs"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
   val VariationsImage: Uri = imageBase.addPath("variations")
@@ -1077,6 +1094,9 @@ private class OpenAIUris(val baseUri: Uri) {
   val Threads: Uri = uri"$baseUri/threads"
   val ThreadsRuns: Uri = uri"$baseUri/threads/runs"
   val VectorStores: Uri = uri"$baseUri/vector_stores"
+
+  def fineTuningJob(fineTuningJobId: String): Uri = FineTuningJobs.addPath(fineTuningJobId)
+  def fineTuningJobEvents(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("events")
 
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")

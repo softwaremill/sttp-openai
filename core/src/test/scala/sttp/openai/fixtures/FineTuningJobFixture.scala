@@ -112,6 +112,43 @@ object FineTuningJobFixture {
                                            |  "hasMore": false
                                            |}""".stripMargin
 
+  val jsonListFineTuningJobEventsResponse: String = """{
+                                                      |  "object": "list",
+                                                      |  "data": [
+                                                      |    {
+                                                      |      "object": "fine_tuning.job.event",
+                                                      |      "id": "ft-event-ddTJfwuMVpfLXseO0Am0Gqjm",
+                                                      |      "created_at": 1721764800,
+                                                      |      "level": "info",
+                                                      |      "message": "Fine tuning job successfully completed",
+                                                      |      "data": null,
+                                                      |      "type": "message"
+                                                      |    },
+                                                      |    {
+                                                      |      "object": "fine_tuning.job.event",
+                                                      |      "id": "ft-event-tyiGuB72evQncpH87xe505Sv",
+                                                      |      "created_at": 1721764800,
+                                                      |      "level": "info",
+                                                      |      "message": "New fine-tuned model created: ft:gpt-4o-mini:openai::7p4lURel",
+                                                      |      "data": {},
+                                                      |      "type": "message"
+                                                      |    },
+                                                      |    {
+                                                      |      "object": "fine_tuning.job.event",
+                                                      |      "id": "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+                                                      |      "created_at": 1721764800,
+                                                      |      "level": "error",
+                                                      |      "message": "Fine-tuning job failed.",
+                                                      |      "data": {
+                                                      |        "job_id": "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+                                                      |        "error": "Insufficient training data."
+                                                      |      },
+                                                      |      "type": "message"
+                                                      |    }
+                                                      |  ],
+                                                      |  "has_more": true
+                                                      |}""".stripMargin
+
   val fineTuningJobResponse: FineTuningJobResponse = FineTuningJobResponse(
     id = "ft-id",
     createdAt = 1000,

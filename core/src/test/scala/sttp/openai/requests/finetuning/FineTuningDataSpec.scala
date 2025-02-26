@@ -6,6 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.FineTuningJobFixture
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.finetuning.FineTuningModel.GPT35Turbo0125
+import ujson.Str
 
 class FineTuningDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -87,6 +88,49 @@ class FineTuningDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     // when
     val deserializedJsonResponse: Either[Exception, ListFineTuningJobResponse] =
       SttpUpickleApiExtension.deserializeJsonSnake[ListFineTuningJobResponse].apply(jsonResponse)
+
+    // then
+    deserializedJsonResponse.value shouldBe expectedResponse
+  }
+
+  "Given list fine tuning job events response as Json" should "be properly deserialized to case class" in {
+    // given
+    val jsonResponse = FineTuningJobFixture.jsonListFineTuningJobEventsResponse
+    val expectedResponse: ListFineTuningJobEventResponse = ListFineTuningJobEventResponse(
+      data = Seq(
+        FineTuningJobEventResponse(
+          `object` = "fine_tuning.job.event",
+          id = "ft-event-ddTJfwuMVpfLXseO0Am0Gqjm",
+          createdAt = 1721764800,
+          level = "info",
+          message = "Fine tuning job successfully completed",
+          data = null,
+          `type` = "message"
+        ),
+        FineTuningJobEventResponse(
+          `object` = "fine_tuning.job.event",
+          id = "ft-event-tyiGuB72evQncpH87xe505Sv",
+          createdAt = 1721764800,
+          level = "info",
+          message = "New fine-tuned model created: ft:gpt-4o-mini:openai::7p4lURel",
+          data = Map(),
+          `type` = "message"
+        ),
+        FineTuningJobEventResponse(
+          `object` = "fine_tuning.job.event",
+          id = "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+          createdAt = 1721764800,
+          level = "error",
+          message = "Fine-tuning job failed.",
+          data = Map("job_id" -> Str("ft-AF1WoRqd3aJAHsqc9NY7iL8F"), "error" -> Str("Insufficient training data.")),
+          `type` = "message"
+        )
+      ),
+      hasMore = true
+    )
+    // when
+    val deserializedJsonResponse: Either[Exception, ListFineTuningJobEventResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[ListFineTuningJobEventResponse].apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
