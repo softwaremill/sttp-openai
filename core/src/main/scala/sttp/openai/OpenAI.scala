@@ -576,6 +576,9 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   /** Get status updates for a fine-tuning job.
     *
     * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-events]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
     */
   def listFineTuningJobEvents(
       fineTuningJobId: String,
@@ -588,6 +591,26 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .get(uri)
       .response(asJson_parseErrors[ListFineTuningJobEventResponse])
+  }
+
+  /** List checkpoints for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-checkpoints]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobCheckpoints(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListFineTuningJobCheckpointResponse]] = {
+    val uri = openAIUris
+      .fineTuningJobCheckpoints(fineTuningJobId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListFineTuningJobCheckpointResponse])
   }
 
   /** Gets info about the fine-tune job.
@@ -1097,6 +1120,7 @@ private class OpenAIUris(val baseUri: Uri) {
 
   def fineTuningJob(fineTuningJobId: String): Uri = FineTuningJobs.addPath(fineTuningJobId)
   def fineTuningJobEvents(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("events")
+  def fineTuningJobCheckpoints(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("checkpoints")
 
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")

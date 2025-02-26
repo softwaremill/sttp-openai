@@ -149,6 +149,32 @@ object FineTuningJobFixture {
                                                       |  "has_more": true
                                                       |}""".stripMargin
 
+  val jsonListFineTuningJobCheckpointsResponse: String = """{
+                                                      |  "object": "list",
+                                                      |  "data": [
+                                                      |    {
+                                                      |      "object": "fine_tuning.job.checkpoint",
+                                                      |      "id": "ftckpt_zc4Q7MP6XxulcVzj4MZdwsAB",
+                                                      |      "created_at": 1721764867,
+                                                      |      "fine_tuned_model_checkpoint": "ft:gpt-4o-mini-2024-07-18:my-org:custom-suffix:96olL566:ckpt-step-2000",
+                                                      |      "metrics": {
+                                                      |        "full_valid_loss": 0.134,
+                                                      |        "full_valid_mean_token_accuracy": 0.874,
+                                                      |        "step": 0.123,
+                                                      |        "train_loss": 0.346,
+                                                      |        "train_mean_token_accuracy": 0.736,
+                                                      |        "valid_loss": 0.654,
+                                                      |        "valid_mean_token_accuracy": 0.738
+                                                      |      },
+                                                      |      "fine_tuning_job_id": "ftjob-abc123",
+                                                      |      "step_number": 2000
+                                                      |    }
+                                                      |  ],
+                                                      |  "first_id": "ftckpt_zc4Q7MP6XxulcVzj4MZdwsAB",
+                                                      |  "last_id": "ftckpt_enQCFmOTGj3syEpYVhBRLTSy",
+                                                      |  "has_more": true
+                                                      |}""".stripMargin
+
   val fineTuningJobResponse: FineTuningJobResponse = FineTuningJobResponse(
     id = "ft-id",
     createdAt = 1000,

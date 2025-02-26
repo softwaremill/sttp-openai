@@ -4,7 +4,9 @@ import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIExcepti
 import sttp.openai.json.SnakePickle
 import ujson.Str
 
-/** @param id
+/** The fine_tuning.job object represents a fine-tuning job that has been created through the API.
+  *
+  * @param id
   *   The object identifier, which can be referenced in the API endpoints.
   * @param createdAt
   *   The Unix timestamp (in seconds) for when the fine-tuning job was created.
@@ -129,7 +131,9 @@ object ListFineTuningJobResponse {
   implicit val listFineTuningResponseR: SnakePickle.Reader[ListFineTuningJobResponse] = SnakePickle.macroR[ListFineTuningJobResponse]
 }
 
-/** @param `object`
+/** Fine-tuning job event object
+  *
+  * @param `object`
   *   The object type, which is always "fine_tuning.job.event".
   * @param id
   *   The object identifier.
@@ -167,4 +171,63 @@ case class ListFineTuningJobEventResponse(
 object ListFineTuningJobEventResponse {
   implicit val listFineTuningJobEventResponseR: SnakePickle.Reader[ListFineTuningJobEventResponse] =
     SnakePickle.macroR[ListFineTuningJobEventResponse]
+}
+
+/** The fine_tuning.job.checkpoint object represents a model checkpoint for a fine-tuning job that is ready to use.
+  *
+  * @param id
+  *   The checkpoint identifier, which can be referenced in the API endpoints.
+  * @param createdAt
+  *   The Unix timestamp (in seconds) for when the checkpoint was created.
+  * @param fineTunedModelCheckpoint
+  *   The name of the fine-tuned checkpoint model that is created.
+  * @param stepNumber
+  *   The step number that the checkpoint was created at.
+  * @param metrics
+  *   Metrics at the step number during the fine-tuning job.
+  * @param fineTuningJobId
+  *   The name of the fine-tuning job that this checkpoint was created from.
+  * @param `object`
+  *   The object type, which is always "fine_tuning.job.checkpoint".
+  */
+case class FineTuningJobCheckpointResponse(
+    id: String,
+    createdAt: Int,
+    fineTunedModelCheckpoint: String,
+    stepNumber: Int,
+    metrics: Metrics,
+    fineTuningJobId: String,
+    `object`: String = "fine_tuning.job.checkpoint"
+)
+
+object FineTuningJobCheckpointResponse {
+  implicit val fineTuningJobCheckpointResponseR: SnakePickle.Reader[FineTuningJobCheckpointResponse] =
+    SnakePickle.macroR[FineTuningJobCheckpointResponse]
+}
+
+case class ListFineTuningJobCheckpointResponse(
+    `object`: String = "list",
+    data: Seq[FineTuningJobCheckpointResponse],
+    firstId: String,
+    lastId: String,
+    hasMore: Boolean
+)
+
+object ListFineTuningJobCheckpointResponse {
+  implicit val listFineTuningJobCheckpointResponseR: SnakePickle.Reader[ListFineTuningJobCheckpointResponse] =
+    SnakePickle.macroR[ListFineTuningJobCheckpointResponse]
+}
+
+case class Metrics(
+    step: Float,
+    trainLoss: Float,
+    trainMeanTokenAccuracy: Float,
+    validLoss: Float,
+    validMeanTokenAccuracy: Float,
+    fullValidLoss: Float,
+    fullValidMeanTokenAccuracy: Float
+)
+
+object Metrics {
+  implicit val metricsR: SnakePickle.Reader[Metrics] = SnakePickle.macroR[Metrics]
 }

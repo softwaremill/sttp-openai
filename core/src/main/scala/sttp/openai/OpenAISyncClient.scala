@@ -17,12 +17,7 @@ import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
 import sttp.openai.requests.finetuning
-import sttp.openai.requests.finetuning.{
-  FineTuningJobRequestBody,
-  FineTuningJobResponse,
-  ListFineTuningJobEventResponse,
-  ListFineTuningJobResponse
-}
+import sttp.openai.requests.finetuning._
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -377,12 +372,28 @@ class OpenAISyncClient private (
   /** Get status updates for a fine-tuning job.
     *
     * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-events]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
     */
   def listFineTuningJobEvents(
       fineTuningJobId: String,
       queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
   ): ListFineTuningJobEventResponse =
     sendOrThrow(openAI.listFineTuningJobEvents(fineTuningJobId, queryParameters))
+
+  /** List checkpoints for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-checkpoints]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobCheckpoints(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): ListFineTuningJobCheckpointResponse =
+    sendOrThrow(openAI.listFineTuningJobCheckpoints(fineTuningJobId, queryParameters))
 
   /** Gets info about the fine-tune job.
     *
