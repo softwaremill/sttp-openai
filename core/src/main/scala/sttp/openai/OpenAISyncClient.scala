@@ -17,7 +17,7 @@ import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
 import sttp.openai.requests.finetuning
-import sttp.openai.requests.finetuning.{FineTuningRequestBody, FineTuningResponse, ListFineTuningResponse}
+import sttp.openai.requests.finetuning.{FineTuningJobRequestBody, FineTuningJobResponse, ListFineTuningJobResponse}
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
@@ -359,14 +359,14 @@ class OpenAISyncClient private (
     * @param fineTuningRequestBody
     *   Request body that will be used to create a fine-tuning job.
     */
-  def createFineTuningJob(fineTuningRequestBody: FineTuningRequestBody): FineTuningResponse =
+  def createFineTuningJob(fineTuningRequestBody: FineTuningJobRequestBody): FineTuningJobResponse =
     sendOrThrow(openAI.createFineTuningJob(fineTuningRequestBody))
 
   /** List your organization's fine-tuning jobs
     *
     * [[https://platform.openai.com/docs/api-reference/fine-tuning/list]]
     */
-  def listFineTuningJobs(queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty): ListFineTuningResponse =
+  def listFineTuningJobs(queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty): ListFineTuningJobResponse =
     sendOrThrow(openAI.listFineTuningJobs(queryParameters))
 
   /** Gets info about the fine-tune job.

@@ -28,7 +28,7 @@ import ujson.Str
   * @param method
   *   The method used for fine-tuning.
   */
-case class FineTuningRequestBody(
+case class FineTuningJobRequestBody(
     model: FineTuningModel,
     trainingFile: String,
     suffix: Option[String] = None,
@@ -37,8 +37,8 @@ case class FineTuningRequestBody(
     seed: Option[Int] = None,
     method: Option[Method] = None
 )
-object FineTuningRequestBody {
-  implicit val fineTuningRequestBodyWriter: SnakePickle.Writer[FineTuningRequestBody] = SnakePickle.macroW[FineTuningRequestBody]
+object FineTuningJobRequestBody {
+  implicit val fineTuningRequestBodyWriter: SnakePickle.Writer[FineTuningJobRequestBody] = SnakePickle.macroW[FineTuningJobRequestBody]
 }
 
 sealed abstract class FineTuningModel(val value: String)

@@ -552,11 +552,11 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param fineTuningRequestBody
     *   Request body that will be used to create a fine-tuning job.
     */
-  def createFineTuningJob(fineTuningRequestBody: FineTuningRequestBody): Request[Either[OpenAIException, FineTuningResponse]] =
+  def createFineTuningJob(fineTuningRequestBody: FineTuningJobRequestBody): Request[Either[OpenAIException, FineTuningJobResponse]] =
     openAIAuthRequest
       .post(openAIUris.FineTuning)
       .body(fineTuningRequestBody)
-      .response(asJson_parseErrors[FineTuningResponse])
+      .response(asJson_parseErrors[FineTuningJobResponse])
 
   /** List your organization's fine-tuning jobs
     *
@@ -564,13 +564,13 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     */
   def listFineTuningJobs(
       queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
-  ): Request[Either[OpenAIException, ListFineTuningResponse]] = {
+  ): Request[Either[OpenAIException, ListFineTuningJobResponse]] = {
     val uri = openAIUris.FineTuning
       .withParams(queryParameters.toMap)
 
     openAIAuthRequest
       .get(uri)
-      .response(asJson_parseErrors[ListFineTuningResponse])
+      .response(asJson_parseErrors[ListFineTuningJobResponse])
   }
 
   /** Gets info about the fine-tune job.

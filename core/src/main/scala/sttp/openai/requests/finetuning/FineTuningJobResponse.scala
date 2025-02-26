@@ -43,7 +43,7 @@ import ujson.Str
   * @param method
   *   The method used for fine-tuning.
   */
-case class FineTuningResponse(
+case class FineTuningJobResponse(
     id: String,
     createdAt: Int,
     error: Option[Error] = None,
@@ -64,8 +64,8 @@ case class FineTuningResponse(
     method: Method
 )
 
-object FineTuningResponse {
-  implicit val fineTuningResponseDataReader: SnakePickle.Reader[FineTuningResponse] = SnakePickle.macroR[FineTuningResponse]
+object FineTuningJobResponse {
+  implicit val fineTuningResponseDataReader: SnakePickle.Reader[FineTuningJobResponse] = SnakePickle.macroR[FineTuningJobResponse]
 }
 
 /** @param code
@@ -119,12 +119,12 @@ object Status {
 
 }
 
-case class ListFineTuningResponse(
+case class ListFineTuningJobResponse(
     `object`: String = "list",
-    data: Seq[FineTuningResponse],
+    data: Seq[FineTuningJobResponse],
     hasMore: Boolean
 )
 
-object ListFineTuningResponse {
-  implicit val listFineTuningResponseR: SnakePickle.Reader[ListFineTuningResponse] = SnakePickle.macroR[ListFineTuningResponse]
+object ListFineTuningJobResponse {
+  implicit val listFineTuningResponseR: SnakePickle.Reader[ListFineTuningJobResponse] = SnakePickle.macroR[ListFineTuningJobResponse]
 }
