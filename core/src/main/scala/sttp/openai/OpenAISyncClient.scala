@@ -395,6 +395,16 @@ class OpenAISyncClient private (
   ): ListFineTuningJobCheckpointResponse =
     sendOrThrow(openAI.listFineTuningJobCheckpoints(fineTuningJobId, queryParameters))
 
+  /** Get info about a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/retrieve]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job.
+    */
+  def retrieveFineTuningJob(fineTuningJobId: String): FineTuningJobResponse =
+    sendOrThrow(openAI.retrieveFineTuningJob(fineTuningJobId))
+
   /** Gets info about the fine-tune job.
     *
     * [[https://platform.openai.com/docs/api-reference/embeddings/create]]

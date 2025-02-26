@@ -613,6 +613,18 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .response(asJson_parseErrors[ListFineTuningJobCheckpointResponse])
   }
 
+  /** Get info about a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/retrieve]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job.
+    */
+  def retrieveFineTuningJob(fineTuningJobId: String): Request[Either[OpenAIException, FineTuningJobResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.fineTuningJob(fineTuningJobId))
+      .response(asJson_parseErrors[FineTuningJobResponse])
+
   /** Gets info about the fine-tune job.
     *
     * [[https://platform.openai.com/docs/api-reference/embeddings/create]]
