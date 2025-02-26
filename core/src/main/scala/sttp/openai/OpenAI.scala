@@ -625,6 +625,18 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .get(openAIUris.fineTuningJob(fineTuningJobId))
       .response(asJson_parseErrors[FineTuningJobResponse])
 
+  /** Immediately cancel a fine-tune job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/cancel]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to cancel.
+    */
+  def cancelFineTuningJob(fineTuningJobId: String): Request[Either[OpenAIException, FineTuningJobResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelFineTuningJob(fineTuningJobId))
+      .response(asJson_parseErrors[FineTuningJobResponse])
+
   /** Gets info about the fine-tune job.
     *
     * [[https://platform.openai.com/docs/api-reference/embeddings/create]]
@@ -1133,6 +1145,7 @@ private class OpenAIUris(val baseUri: Uri) {
   def fineTuningJob(fineTuningJobId: String): Uri = FineTuningJobs.addPath(fineTuningJobId)
   def fineTuningJobEvents(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("events")
   def fineTuningJobCheckpoints(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("checkpoints")
+  def cancelFineTuningJob(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("cancel")
 
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")

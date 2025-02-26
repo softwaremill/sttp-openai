@@ -405,6 +405,16 @@ class OpenAISyncClient private (
   def retrieveFineTuningJob(fineTuningJobId: String): FineTuningJobResponse =
     sendOrThrow(openAI.retrieveFineTuningJob(fineTuningJobId))
 
+  /** Immediately cancel a fine-tune job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/cancel]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to cancel.
+    */
+  def cancelFineTuningJob(fineTuningJobId: String): FineTuningJobResponse =
+    sendOrThrow(openAI.cancelFineTuningJob(fineTuningJobId))
+
   /** Gets info about the fine-tune job.
     *
     * [[https://platform.openai.com/docs/api-reference/embeddings/create]]
