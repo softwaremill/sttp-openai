@@ -463,7 +463,8 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
           Some(multipart("model", model.value)),
           prompt.map(multipart("prompt", _)),
           responseFormat.map(format => multipart("response_format", format)),
-          temperature.map(multipart("temperature", _))
+          temperature.map(multipart("temperature", _)),
+          language.map(multipart("language", _))
         ).flatten
       }
       .response(asJson_parseErrors[AudioResponse])

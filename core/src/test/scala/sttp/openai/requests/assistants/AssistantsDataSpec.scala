@@ -20,7 +20,10 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       instructions = Some("You are a personal math tutor. When asked a question, write and run Python code to answer the question."),
       name = Some("Math Tutor"),
       tools = Seq(CodeInterpreterTool),
-      model = "gpt-4"
+      model = "gpt-4",
+      reasoningEffort = Some(ReasoningEffort.Low),
+      temperature = Some(1.0f),
+      topP = Some(1.0f)
     )
 
     val jsonRequest: ujson.Value = ujson.read(fixtures.AssistantsFixture.jsonCreateAssistantRequest)
@@ -213,7 +216,10 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       ),
       tools = Seq(FileSearchTool),
       model = Some("gpt-4"),
-      toolResources = Some(ToolResources(None, Some(FileSearchToolResource(Some(Seq("vs_1", "vs_3"))))))
+      toolResources = Some(ToolResources(None, Some(FileSearchToolResource(Some(Seq("vs_1", "vs_3")))))),
+      reasoningEffort = Some(ReasoningEffort.Low),
+      temperature = Some(1.0f),
+      topP = Some(1.0f)
     )
 
     val jsonRequest: ujson.Value = ujson.read(fixtures.AssistantsFixture.jsonModifyAssistantRequest)
