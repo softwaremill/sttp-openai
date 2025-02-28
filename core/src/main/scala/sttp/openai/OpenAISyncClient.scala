@@ -29,7 +29,7 @@ import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{CreateRun, CreateThreadAndRun, ToolOutput}
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
@@ -517,6 +517,22 @@ class OpenAISyncClient private (
     */
   def modifyMessage(threadId: String, messageId: String, metadata: Map[String, String]): MessageData =
     sendOrThrow(openAI.modifyMessage(threadId, messageId, metadata))
+
+  /** Deletes a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/deleteMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this message belongs.
+    *
+    * @param messageId
+    *   The ID of the message to delete.
+    *
+    * @return
+    *   Deletion status
+    */
+  def deleteMessage(threadId: String, messageId: String): DeleteMessageResponse =
+    sendOrThrow(openAI.deleteMessage(threadId, messageId))
 
   /** Create an assistant with a model and instructions.
     *

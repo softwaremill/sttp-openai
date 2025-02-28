@@ -25,7 +25,6 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
-import sttp.openai.requests.{batch, finetuning}
 import sttp.openai.requests.finetuning._
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
@@ -38,7 +37,7 @@ import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody._
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
@@ -49,6 +48,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   ListVectorStoreFilesResponse,
   VectorStoreFile
 }
+import sttp.openai.requests.{batch, finetuning}
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
@@ -768,6 +768,24 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.threadMessage(threadId, messageId))
       .body(metadata)
       .response(asJson_parseErrors[MessageData])
+
+  /** Deletes a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/deleteMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this message belongs.
+    *
+    * @param messageId
+    *   The ID of the message to delete.
+    *
+    * @return
+    *   Deletion status
+    */
+  def deleteMessage(threadId: String, messageId: String): Request[Either[OpenAIException, DeleteMessageResponse]] =
+    betaOpenAIAuthRequest
+      .delete(openAIUris.threadMessage(threadId, messageId))
+      .response(asJson_parseErrors[DeleteMessageResponse])
 
   /** Create an assistant with a model and instructions.
     *
