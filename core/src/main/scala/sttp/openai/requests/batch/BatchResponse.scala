@@ -117,3 +117,15 @@ case class RequestCounts(
 object RequestCounts {
   implicit val requestCountsR: SnakePickle.Reader[RequestCounts] = SnakePickle.macroR[RequestCounts]
 }
+
+case class ListBatchResponse(
+    `object`: String = "list",
+    data: Seq[BatchResponse],
+    firstId: String,
+    lastId: String,
+    hasMore: Boolean
+)
+
+object ListBatchResponse {
+  implicit val listBatchResponseR: SnakePickle.Reader[ListBatchResponse] = SnakePickle.macroR[ListBatchResponse]
+}

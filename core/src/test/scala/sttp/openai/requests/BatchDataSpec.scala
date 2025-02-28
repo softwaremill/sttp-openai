@@ -5,7 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.BatchFixture
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
-import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse, RequestCounts}
+import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse, ListBatchResponse}
 
 class BatchDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -27,30 +27,27 @@ class BatchDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given create batch response as Json" should "be properly deserialized to case class" in {
     // given
     val jsonResponse = BatchFixture.jsonCreateBatchResponse
-    val expectedResponse: BatchResponse = BatchResponse(
-      id = "batch_abc123",
-      endpoint = "/v1/completions",
-      errors = None,
-      inputFileId = "file-abc123",
-      completionWindow = "24h",
-      status = "completed",
-      outputFileId = Some("file-cvaTdG"),
-      errorFileId = Some("file-HOWS94"),
-      createdAt = 1711471533,
-      inProgressAt = Some(1711471538),
-      expiresAt = Some(1711557933),
-      finalizingAt = Some(1711493133),
-      completedAt = Some(1711493163),
-      failedAt = None,
-      expiredAt = None,
-      cancellingAt = None,
-      cancelledAt = None,
-      requestCounts = Some(RequestCounts(total = 100, completed = 95, failed = 5)),
-      metadata = Some(Map("customer_id" -> "user_123456789", "batch_description" -> "Nightly eval job"))
-    )
+    val expectedResponse: BatchResponse = BatchFixture.batchResponse
     // when
     val deserializedJsonResponse: Either[Exception, BatchResponse] =
       SttpUpickleApiExtension.deserializeJsonSnake[BatchResponse].apply(jsonResponse)
+    // then
+    deserializedJsonResponse.value shouldBe expectedResponse
+  }
+
+  "Given list batch response as Json" should "be properly deserialized to case class" in {
+    // given
+    val jsonResponse = BatchFixture.jsonListBatchResponse
+    val expectedResponse: ListBatchResponse = ListBatchResponse(
+      data = Seq(BatchFixture.batchResponse),
+      hasMore = true,
+      firstId = "ftckpt_zc4Q7MP6XxulcVzj4MZdwsAB",
+      lastId = "ftckpt_enQCFmOTGj3syEpYVhBRLTSy"
+    )
+    // when
+    val deserializedJsonResponse: Either[Exception, ListBatchResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[ListBatchResponse].apply(jsonResponse)
+
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }

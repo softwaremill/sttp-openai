@@ -9,7 +9,7 @@ import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.RecognitionModel
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
-import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse}
+import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse, ListBatchResponse}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -17,7 +17,6 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
-import sttp.openai.requests.finetuning
 import sttp.openai.requests.finetuning._
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
@@ -41,6 +40,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   ListVectorStoreFilesResponse,
   VectorStoreFile
 }
+import sttp.openai.requests.{batch, finetuning}
 
 import java.io.File
 
@@ -835,6 +835,16 @@ class OpenAISyncClient private (
     */
   def cancelBatch(batchId: String): BatchResponse =
     sendOrThrow(openAI.cancelBatch(batchId))
+
+  /** List your organization's batches.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/list]]
+    *
+    * @return
+    *   A list of paginated Batch objects.
+    */
+  def listBatches(queryParameters: batch.QueryParameters = batch.QueryParameters.empty): ListBatchResponse =
+    sendOrThrow(openAI.listBatches(queryParameters))
 
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()
