@@ -2,7 +2,7 @@ package sttp.openai.fixtures
 
 object BatchFixture {
 
-  val jsonCreateBatchRequest = """{
+  val jsonCreateBatchRequest: String = """{
                                  |  "input_file_id": "file-id",
                                  |  "endpoint": "/v1/chat/completions",
                                  |  "completion_window": "24h",
@@ -12,7 +12,7 @@ object BatchFixture {
                                  |  }
                                  |}""".stripMargin
 
-  val jsonCreateBatchResponse = """{
+  val jsonCreateBatchResponse: String = """{
                                   |  "id": "batch_abc123",
                                   |  "object": "batch",
                                   |  "endpoint": "/v1/completions",
