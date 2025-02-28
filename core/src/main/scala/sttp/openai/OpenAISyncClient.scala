@@ -9,6 +9,7 @@ import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.RecognitionModel
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
+import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -797,6 +798,16 @@ class OpenAISyncClient private (
     */
   def deleteVectorStoreFile(vectorStoreId: String, fileId: String): DeleteVectorStoreFileResponse =
     sendOrThrow(openAI.deleteVectorStoreFile(vectorStoreId, fileId))
+
+  /** Creates and executes a batch from an uploaded file of requests
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/create]]
+    *
+    * @param createBatchRequest
+    *   Request body that will be used to create a batch.
+    */
+  def createBatch(createBatchRequest: BatchRequestBody): BatchResponse =
+    sendOrThrow(openAI.createBatch(createBatchRequest))
 
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()

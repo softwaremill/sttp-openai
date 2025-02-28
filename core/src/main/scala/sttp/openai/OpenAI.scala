@@ -17,6 +17,7 @@ import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.RecognitionModel
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
+import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -1114,6 +1115,19 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .delete(openAIUris.vectorStoreFile(vectorStoreId, fileId))
       .response(asJson_parseErrors[DeleteVectorStoreFileResponse])
 
+  /** Creates and executes a batch from an uploaded file of requests
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/create]]
+    *
+    * @param createBatchRequest
+    *   Request body that will be used to create a batch.
+    */
+  def createBatch(createBatchRequest: BatchRequestBody): Request[Either[OpenAIException, BatchResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.Batches)
+      .body(createBatchRequest)
+      .response(asJson_parseErrors[BatchResponse])
+
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 
@@ -1134,6 +1148,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Models: Uri = uri"$baseUri/models"
   val Moderations: Uri = uri"$baseUri/moderations"
   val FineTuningJobs: Uri = uri"$baseUri/fine_tuning/jobs"
+  val Batches: Uri = uri"$baseUri/batches"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
   val VariationsImage: Uri = imageBase.addPath("variations")
