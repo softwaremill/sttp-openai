@@ -111,7 +111,34 @@ object ChatFixture {
       |      "name": "function"
       |    }
       |  },
-      |  "user": "testUser"
+      |  "user": "testUser",
+      |  "store": true,
+      |  "reasoning_effort": "low",
+      |  "metadata": {
+      |    "key": "value"
+      |  },
+      |  "logprobs": true,
+      |  "top_logprobs": 1,
+      |  "max_completion_tokens": 10,
+      |  "modalities": ["text", "audio"],
+      |  "service_tier": "advanced",
+      |  "parallel_tool_calls": true,
+      |  "stream_options": {
+      |    "include_usage": true
+      |  },
+      |  "prediction": {
+      |    "type": "content",
+      |    "content": [
+      |      {
+      |        "type": "code",
+      |        "text": "simple text"
+      |      }
+      |    ]
+      |  },
+      |  "audio": {
+      |    "voice": "ash",
+      |    "format": "mp3"
+      |  }
       |}""".stripMargin
 
   val jsonResponse: String =

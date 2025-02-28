@@ -4,17 +4,18 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.SnakePickle
-import sttp.openai.json.SttpUpickleApiExtension
+import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.completions.Stop.SingleStop
 import sttp.openai.requests.completions.Usage
+import sttp.openai.requests.completions.chat.ChatRequestBody.Format.Mp3
+import sttp.openai.requests.completions.chat.ChatRequestBody.Voice.Ash
 import sttp.openai.utils.ChatCompletionFixtures._
 
 class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given chat completions response as Json" should "be properly deserialized to case class" in {
-    import ChatRequestResponseData._
     import ChatRequestResponseData.ChatResponse._
+    import ChatRequestResponseData._
 
     // given
     val jsonResponse = fixtures.ChatFixture.jsonResponse
@@ -72,7 +73,20 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       responseFormat = Some(ResponseFormat.JsonObject),
       toolChoice = Some(ToolChoice.ToolFunction("function")),
       stop = Some(SingleStop("\n")),
-      user = Some("testUser")
+      user = Some("testUser"),
+      store = Some(true),
+      reasoningEffort = Some(ReasoningEffort.Low),
+      metadata = Some(Map("key" -> "value")),
+      logprobs = Some(true),
+      topLogprobs = Some(1),
+      maxCompletionTokens = Some(10),
+      modalities = Some(Seq("text", "audio")),
+      serviceTier = Some("advanced"),
+      parallelToolCalls = Some(true),
+      streamOptions = Some(StreamOptions(includeUsage = Some(true))),
+      prediction =
+        Some(Prediction(`type` = "content", content = MultipartContent(value = Seq(ContentPart(`type` = "code", text = "simple text"))))),
+      audio = Some(Audio(voice = Ash, format = Mp3))
     )
 
     val jsonRequest: ujson.Value = ujson.read(fixtures.ChatFixture.jsonRequest)
