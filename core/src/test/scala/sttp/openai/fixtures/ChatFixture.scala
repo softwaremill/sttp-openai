@@ -176,9 +176,40 @@ object ChatFixture {
       |        ]
       |      },
       |      "finish_reason": "stop",
-      |      "index": 0
+      |      "index": 0,
+      |      "logprobs": {
+      |        "content": [
+      |          {
+      |            "token": "Hello",
+      |            "logprob": -0.1,
+      |            "bytes": [2, 3, 4],
+      |            "top_logprobs": [
+      |              {
+      |                "token": "Hello",
+      |                "logprob": -0.2,
+      |                "bytes": [4, 5, 6]
+      |              }
+      |            ]
+      |          }
+      |        ],
+      |        "refusal": [
+      |          {
+      |            "token": "Hello",
+      |            "logprob": -0.1,
+      |            "bytes": [2, 3, 4],
+      |            "top_logprobs": [
+      |              {
+      |                "token": "Hello",
+      |                "logprob": -0.2,
+      |                "bytes": [4, 5, 6]
+      |              }
+      |            ]
+      |          }
+      |        ]
+      |      }
       |    }
-      |  ]
+      |  ],
+      |  "service_tier": "advanced"
       |}
       |""".stripMargin
 

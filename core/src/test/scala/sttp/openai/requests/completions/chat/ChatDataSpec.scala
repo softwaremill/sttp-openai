@@ -35,7 +35,31 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val choices: Choices = Choices(
       message = message,
       finishReason = "stop",
-      index = 0
+      index = 0,
+      logprobs = Some(
+        Logprobs(
+          content = Some(
+            Seq(
+              LogprobData(
+                token = "Hello",
+                logprob = -0.1f,
+                bytes = Some(Seq(2, 3, 4)),
+                topLogprobs = Seq(TopLogprobs(token = "Hello", logprob = -0.2f, bytes = Some(Seq(4, 5, 6))))
+              )
+            )
+          ),
+          refusal = Some(
+            Seq(
+              LogprobData(
+                token = "Hello",
+                logprob = -0.1f,
+                bytes = Some(Seq(2, 3, 4)),
+                topLogprobs = Seq(TopLogprobs(token = "Hello", logprob = -0.2f, bytes = Some(Seq(4, 5, 6))))
+              )
+            )
+          )
+        )
+      )
     )
 
     val expectedResponse: ChatResponse = ChatResponse(
@@ -45,7 +69,8 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       model = "gpt-3.5-turbo-0301",
       usage = usage,
       choices = Seq(choices),
-      systemFingerprint = Some("systemFingerprint")
+      systemFingerprint = Some("systemFingerprint"),
+      serviceTier = Some("advanced")
     )
 
     // when
