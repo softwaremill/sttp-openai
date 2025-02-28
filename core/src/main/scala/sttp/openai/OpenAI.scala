@@ -1121,11 +1121,42 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     *
     * @param createBatchRequest
     *   Request body that will be used to create a batch.
+    * @return
+    *   The created Batch object.
     */
   def createBatch(createBatchRequest: BatchRequestBody): Request[Either[OpenAIException, BatchResponse]] =
     openAIAuthRequest
       .post(openAIUris.Batches)
       .body(createBatchRequest)
+      .response(asJson_parseErrors[BatchResponse])
+
+  /** Retrieves a batch.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/retreive]]
+    *
+    * @param batchId
+    *   The ID of the batch to retrieve.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def retrieveBatch(batchId: String): Request[Either[OpenAIException, BatchResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.batch(batchId))
+      .response(asJson_parseErrors[BatchResponse])
+
+  /** Cancels an in-progress batch. The batch will be in status cancelling for up to 10 minutes, before changing to cancelled, where it will
+    * have partial results (if any) available in the output file.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/cancel]]
+    *
+    * @param batchId
+    *   The ID of the batch to cancel.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def cancelBatch(batchId: String): Request[Either[OpenAIException, BatchResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelBatch(batchId))
       .response(asJson_parseErrors[BatchResponse])
 
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
@@ -1162,6 +1193,9 @@ private class OpenAIUris(val baseUri: Uri) {
   def fineTuningJobEvents(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("events")
   def fineTuningJobCheckpoints(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("checkpoints")
   def cancelFineTuningJob(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("cancel")
+
+  def batch(batchId: String): Uri = Batches.addPath(batchId)
+  def cancelBatch(batchId: String): Uri = batch(batchId).addPath("cancel")
 
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")

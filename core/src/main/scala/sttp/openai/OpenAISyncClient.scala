@@ -805,9 +805,36 @@ class OpenAISyncClient private (
     *
     * @param createBatchRequest
     *   Request body that will be used to create a batch.
+    * @return
+    *   The created Batch object.
     */
   def createBatch(createBatchRequest: BatchRequestBody): BatchResponse =
     sendOrThrow(openAI.createBatch(createBatchRequest))
+
+  /** Retrieves a batch.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/retreive]]
+    *
+    * @param batchId
+    *   The ID of the batch to retrieve.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def retrieveBatch(batchId: String): BatchResponse =
+    sendOrThrow(openAI.retrieveBatch(batchId))
+
+  /** Cancels an in-progress batch. The batch will be in status cancelling for up to 10 minutes, before changing to cancelled, where it will
+    * have partial results (if any) available in the output file.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/cancel]]
+    *
+    * @param batchId
+    *   The ID of the batch to cancel.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def cancelBatch(batchId: String): BatchResponse =
+    sendOrThrow(openAI.cancelBatch(batchId))
 
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()
