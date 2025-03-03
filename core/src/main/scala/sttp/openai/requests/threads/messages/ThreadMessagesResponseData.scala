@@ -65,6 +65,14 @@ object ThreadMessagesResponseData {
   object ListMessagesResponse {
     implicit val listMessagesResponseR: SnakePickle.Reader[ListMessagesResponse] = SnakePickle.macroR[ListMessagesResponse]
   }
+  case class DeleteMessageResponse(
+      `object`: String = "thread.message.deleted",
+      id: String,
+      deleted: Boolean
+  )
+  object DeleteMessageResponse {
+    implicit val deleteMessageResponseR: SnakePickle.Reader[DeleteMessageResponse] = SnakePickle.macroR[DeleteMessageResponse]
+  }
 
   sealed trait Annotation
 

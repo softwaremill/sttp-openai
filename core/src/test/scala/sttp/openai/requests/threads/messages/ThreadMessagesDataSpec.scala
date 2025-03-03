@@ -7,7 +7,7 @@ import sttp.openai.fixtures
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.completions.chat.message.Attachment
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.Content.{TextContent, TextContentValue}
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
 
 class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -183,6 +183,22 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
 
     // when
     val givenResponse: Either[Exception, MessageData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+
+    // then
+    givenResponse.value shouldBe expectedResponse
+  }
+
+  "Given delete message response as Json" should "be properly deserialized to case class" in {
+    import DeleteMessageResponse._
+    // given
+    val jsonResponse = fixtures.ThreadMessagesFixture.jsonDeleteMessageResponse
+    val expectedResponse: DeleteMessageResponse = DeleteMessageResponse(
+      id = "msg_abc123",
+      deleted = true
+    )
+
+    // when
+    val givenResponse: Either[Exception, DeleteMessageResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

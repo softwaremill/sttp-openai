@@ -17,6 +17,7 @@ import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.RecognitionModel
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
+import sttp.openai.requests.batch.{QueryParameters => _, _}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -24,7 +25,6 @@ import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatRespons
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
-import sttp.openai.requests.finetuning
 import sttp.openai.requests.finetuning._
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
@@ -37,7 +37,7 @@ import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody._
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
@@ -48,6 +48,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   ListVectorStoreFilesResponse,
   VectorStoreFile
 }
+import sttp.openai.requests.{batch, finetuning}
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
@@ -463,7 +464,8 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
           Some(multipart("model", model.value)),
           prompt.map(multipart("prompt", _)),
           responseFormat.map(format => multipart("response_format", format)),
-          temperature.map(multipart("temperature", _))
+          temperature.map(multipart("temperature", _)),
+          language.map(multipart("language", _))
         ).flatten
       }
       .response(asJson_parseErrors[AudioResponse])
@@ -766,6 +768,24 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.threadMessage(threadId, messageId))
       .body(metadata)
       .response(asJson_parseErrors[MessageData])
+
+  /** Deletes a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/deleteMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this message belongs.
+    *
+    * @param messageId
+    *   The ID of the message to delete.
+    *
+    * @return
+    *   Deletion status
+    */
+  def deleteMessage(threadId: String, messageId: String): Request[Either[OpenAIException, DeleteMessageResponse]] =
+    betaOpenAIAuthRequest
+      .delete(openAIUris.threadMessage(threadId, messageId))
+      .response(asJson_parseErrors[DeleteMessageResponse])
 
   /** Create an assistant with a model and instructions.
     *
@@ -1113,6 +1133,68 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .delete(openAIUris.vectorStoreFile(vectorStoreId, fileId))
       .response(asJson_parseErrors[DeleteVectorStoreFileResponse])
 
+  /** Creates and executes a batch from an uploaded file of requests
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/create]]
+    *
+    * @param createBatchRequest
+    *   Request body that will be used to create a batch.
+    * @return
+    *   The created Batch object.
+    */
+  def createBatch(createBatchRequest: BatchRequestBody): Request[Either[OpenAIException, BatchResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.Batches)
+      .body(createBatchRequest)
+      .response(asJson_parseErrors[BatchResponse])
+
+  /** Retrieves a batch.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/retreive]]
+    *
+    * @param batchId
+    *   The ID of the batch to retrieve.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def retrieveBatch(batchId: String): Request[Either[OpenAIException, BatchResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.batch(batchId))
+      .response(asJson_parseErrors[BatchResponse])
+
+  /** Cancels an in-progress batch. The batch will be in status cancelling for up to 10 minutes, before changing to cancelled, where it will
+    * have partial results (if any) available in the output file.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/cancel]]
+    *
+    * @param batchId
+    *   The ID of the batch to cancel.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def cancelBatch(batchId: String): Request[Either[OpenAIException, BatchResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelBatch(batchId))
+      .response(asJson_parseErrors[BatchResponse])
+
+  /** List your organization's batches.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/list]]
+    *
+    * @return
+    *   A list of paginated Batch objects.
+    */
+  def listBatches(
+      queryParameters: batch.QueryParameters = batch.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListBatchResponse]] = {
+    val uri = openAIUris.Batches
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListBatchResponse])
+  }
+
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 
@@ -1133,6 +1215,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Models: Uri = uri"$baseUri/models"
   val Moderations: Uri = uri"$baseUri/moderations"
   val FineTuningJobs: Uri = uri"$baseUri/fine_tuning/jobs"
+  val Batches: Uri = uri"$baseUri/batches"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
   val VariationsImage: Uri = imageBase.addPath("variations")
@@ -1146,6 +1229,9 @@ private class OpenAIUris(val baseUri: Uri) {
   def fineTuningJobEvents(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("events")
   def fineTuningJobCheckpoints(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("checkpoints")
   def cancelFineTuningJob(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("cancel")
+
+  def batch(batchId: String): Uri = Batches.addPath(batchId)
+  def cancelBatch(batchId: String): Uri = batch(batchId).addPath("cancel")
 
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")

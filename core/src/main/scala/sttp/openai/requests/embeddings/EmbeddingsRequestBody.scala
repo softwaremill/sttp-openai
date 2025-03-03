@@ -12,8 +12,10 @@ object EmbeddingsRequestBody {
     *   Input text to get embeddings for, encoded as a string or array of tokens.
     * @param user
     *   A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
+    * @param dimensions
+    *   The number of dimensions for the embeddings. Only supported in text-embedding-3 and later models.
     */
-  case class EmbeddingsBody(model: EmbeddingsModel, input: EmbeddingsInput, user: Option[String] = None)
+  case class EmbeddingsBody(model: EmbeddingsModel, input: EmbeddingsInput, user: Option[String] = None, dimensions: Option[Int] = None)
 
   object EmbeddingsBody {
     implicit val embeddingsBodyWriter: SnakePickle.Writer[EmbeddingsBody] = SnakePickle.macroW

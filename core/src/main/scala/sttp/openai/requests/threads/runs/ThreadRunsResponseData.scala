@@ -1,7 +1,6 @@
 package sttp.openai.requests.threads.runs
 
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.completions.Usage
 import sttp.openai.requests.completions.chat.message.{Tool, ToolResources}
 
 object ThreadRunsResponseData {
@@ -441,5 +440,18 @@ object ThreadRunsResponseData {
   )
   object ListRunStepsResponse {
     implicit val listRunStepsResponseR: SnakePickle.Reader[ListRunStepsResponse] = SnakePickle.macroR[ListRunStepsResponse]
+  }
+
+  /** @param promptTokens
+    *   Number of tokens in the prompt.
+    * @param completionTokens
+    *   Number of tokens in the generated completion.
+    * @param totalTokens
+    *   Total number of tokens used in the request (prompt + completion).
+    */
+  case class Usage(promptTokens: Int, completionTokens: Int, totalTokens: Int)
+
+  object Usage {
+    implicit val choicesR: SnakePickle.Reader[Usage] = SnakePickle.macroR[Usage]
   }
 }

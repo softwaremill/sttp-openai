@@ -138,4 +138,11 @@ object ThreadMessagesFixture {
       |  }
       |}
       |""".stripMargin
+
+  val jsonDeleteMessageResponse: String =
+    """{
+       |  "id": "msg_abc123",
+       |  "object": "thread.message.deleted",
+       |  "deleted": true
+       |}""".stripMargin
 }

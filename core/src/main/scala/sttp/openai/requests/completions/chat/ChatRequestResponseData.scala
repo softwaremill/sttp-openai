@@ -18,16 +18,108 @@ object ChatRequestResponseData {
     implicit val messageRW: SnakePickle.Reader[Message] = SnakePickle.macroR[Message]
   }
 
+  /** Represents a choice in the chat completion.
+    *
+    * @param message
+    *   The message associated with this choice.
+    * @param finishReason
+    *   The reason the model stopped generating tokens. This will be stop if the model hit a natural stop point or a provided stop sequence,
+    *   length if the maximum number of tokens specified in the request was reached, content_filter if content was omitted due to a flag
+    *   from our content filters, tool_calls if the model called a tool, or function_call (deprecated) if the model called a function.
+    * @param index
+    *   The index of this choice.
+    * @param logprobs
+    *   Log probability information for the choice.
+    */
   case class Choices(
       message: Message,
       finishReason: String,
-      index: Int
+      index: Int,
+      logprobs: Option[Logprobs] = None
   )
 
   object Choices {
     implicit val choicesR: SnakePickle.Reader[Choices] = SnakePickle.macroR[Choices]
   }
 
+  /** @param content
+    *   A list of message content tokens with log probability information.
+    * @param refusal
+    *   A list of message refusal tokens with log probability information.
+    */
+  case class Logprobs(
+      content: Option[Seq[LogprobData]] = None,
+      refusal: Option[Seq[LogprobData]] = None
+  )
+
+  object Logprobs {
+    implicit val logprobsR: SnakePickle.Reader[Logprobs] = SnakePickle.macroR[Logprobs]
+  }
+
+  /** @param token
+    *   The token.
+    * @param logprob
+    *   The log probability of this token, if it is within the top 20 most likely tokens. Otherwise, the value -9999.0 is used to signify
+    *   that the token is very unlikely.
+    * @param bytes
+    *   A list of integers representing the UTF-8 bytes representation of the token. Useful in instances where characters are represented by
+    *   multiple tokens and their byte representations must be combined to generate the correct text representation. Can be null if there is
+    *   no bytes representation for the token.
+    * @param topLogprobs
+    *   List of the most likely tokens and their log probability, at this token position. In rare cases, there may be fewer than the number
+    *   of requested top_logprobs returned.
+    */
+  case class LogprobData(
+      token: String,
+      logprob: Float,
+      bytes: Option[Seq[Int]] = None,
+      topLogprobs: Seq[TopLogprobs]
+  )
+
+  object LogprobData {
+    implicit val contentR: SnakePickle.Reader[LogprobData] = SnakePickle.macroR[LogprobData]
+  }
+
+  /** @param token
+    *   The token.
+    * @param logprob
+    *   The log probability of this token, if it is within the top 20 most likely tokens. Otherwise, the value -9999.0 is used to signify
+    *   that the token is very unlikely.
+    * @param bytes
+    *   A list of integers representing the UTF-8 bytes representation of the token. Useful in instances where characters are represented by
+    *   multiple tokens and their byte representations must be combined to generate the correct text representation. Can be null if there is
+    *   no bytes representation for the token.
+    */
+  case class TopLogprobs(
+      token: String,
+      logprob: Float,
+      bytes: Option[Seq[Int]] = None
+  )
+
+  object TopLogprobs {
+    implicit val topLogprobsR: SnakePickle.Reader[TopLogprobs] = SnakePickle.macroR[TopLogprobs]
+  }
+
+  /** Represents the response of a chat completion.
+    *
+    * @param id
+    *   A unique identifier for the chat completion.
+    * @param choices
+    *   A list of chat completion choices. Can be more than one if n is greater than 1.
+    * @param created
+    *   The Unix timestamp (in seconds) of when the chat completion was created.
+    * @param model
+    *   The model used for the chat completion.
+    * @param `object`
+    *   The object type, which is always chat.completion.
+    * @param usage
+    *   Usage statistics for the completion request.
+    * @param systemFingerprint
+    *   This fingerprint represents the backend configuration that the model runs with. Can be used in conjunction with the seed request
+    *   parameter to understand when backend changes have been made that might impact determinism.
+    * @param serviceTier
+    *   The service tier used for processing the request.
+    */
   case class ChatResponse(
       id: String,
       choices: Seq[Choices],
@@ -35,7 +127,8 @@ object ChatRequestResponseData {
       model: String,
       `object`: String,
       usage: Usage,
-      systemFingerprint: Option[String] = None
+      systemFingerprint: Option[String] = None,
+      serviceTier: Option[String] = None
   )
 
   object ChatResponse {
