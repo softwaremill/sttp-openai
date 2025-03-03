@@ -1243,6 +1243,20 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .response(asJson_parseErrors[ListAdminApiKeyResponse])
   }
 
+  /** Delete an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/delete]]
+    *
+    * @param keyId
+    *   Key id used to delete an admin API key.
+    * @return
+    *   A confirmation object indicating the key was deleted.
+    */
+  def deleteAdminApiKey(keyId: String): Request[Either[OpenAIException, DeleteAdminApiKeyResponse]] =
+    openAIAuthRequest
+      .delete(openAIUris.adminApiKey(keyId))
+      .response(asJson_parseErrors[DeleteAdminApiKeyResponse])
+
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 

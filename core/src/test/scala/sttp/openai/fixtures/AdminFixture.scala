@@ -36,6 +36,13 @@ object AdminFixture {
       |  "has_more": false
       |}""".stripMargin
 
+  val jsonDeleteResponse: String =
+    """{
+      |  "id": "key_abc",
+      |  "object": "organization.admin_api_key.deleted",
+      |  "deleted": true
+      |}""".stripMargin
+
   val adminApiKeyResponse: AdminApiKeyResponse = AdminApiKeyResponse(
     id = "key_xyz",
     name = "New Admin Key",

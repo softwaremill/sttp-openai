@@ -40,3 +40,13 @@ case class ListAdminApiKeyResponse(
 object ListAdminApiKeyResponse {
   implicit val listAdminApiKeyResponseR: SnakePickle.Reader[ListAdminApiKeyResponse] = SnakePickle.macroR[ListAdminApiKeyResponse]
 }
+
+case class DeleteAdminApiKeyResponse(
+    id: String,
+    `object`: String = "organization.admin_api_key.deleted",
+    deleted: Boolean
+)
+
+object DeleteAdminApiKeyResponse {
+  implicit val deleteAdminApiKeyResponseR: SnakePickle.Reader[DeleteAdminApiKeyResponse] = SnakePickle.macroR[DeleteAdminApiKeyResponse]
+}

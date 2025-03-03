@@ -897,6 +897,18 @@ class OpenAISyncClient private (
   def listAdminApiKeys(queryParameters: admin.QueryParameters = admin.QueryParameters.empty): ListAdminApiKeyResponse =
     sendOrThrow(openAI.listAdminApiKeys(queryParameters))
 
+  /** Delete an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/delete]]
+    *
+    * @param keyId
+    *   Key id used to delete an admin API key.
+    * @return
+    *   A confirmation object indicating the key was deleted.
+    */
+  def deleteAdminApiKey(keyId: String): DeleteAdminApiKeyResponse =
+    sendOrThrow(openAI.deleteAdminApiKey(keyId))
+
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()
 

@@ -46,4 +46,18 @@ class AdminApiKeyDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     deserializedJsonResponse.value shouldBe expectedResponse
   }
 
+  "Given delete admin api key response as Json" should "be properly deserialized to case class" in {
+    // given
+    val jsonResponse = AdminFixture.jsonDeleteResponse
+    val expectedResponse: DeleteAdminApiKeyResponse = DeleteAdminApiKeyResponse(
+      id = "key_abc",
+      deleted = true
+    )
+    // when
+    val deserializedJsonResponse: Either[Exception, DeleteAdminApiKeyResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[DeleteAdminApiKeyResponse].apply(jsonResponse)
+    // then
+    deserializedJsonResponse.value shouldBe expectedResponse
+  }
+
 }
