@@ -17,7 +17,17 @@ object CompletionsFixture {
                      |  "usage": {
                      |    "prompt_tokens": 5,
                      |    "completion_tokens": 8,
-                     |    "total_tokens": 13
+                     |    "total_tokens": 13,
+                     |    "prompt_tokens_details": {
+                     |      "cached_tokens": 1,
+                     |      "audio_tokens": 2
+                     |    },
+                     |    "completion_tokens_details": {
+                     |      "reasoning_tokens": 4,
+                     |      "accepted_prediction_tokens": 3,
+                     |      "rejected_prediction_tokens": 2,
+                     |      "audio_tokens": 1
+                     |    }
                      |  }
                      |}""".stripMargin
 
@@ -43,7 +53,17 @@ object CompletionsFixture {
                     |  "usage":{
                     |    "prompt_tokens":11,
                     |    "completion_tokens":14,
-                    |    "total_tokens":25
+                    |    "total_tokens":25,
+                    |    "prompt_tokens_details": {
+                    |      "cached_tokens": 1,
+                    |      "audio_tokens": 2
+                    |    },
+                    |    "completion_tokens_details": {
+                    |      "reasoning_tokens": 4,
+                    |      "accepted_prediction_tokens": 3,
+                    |      "rejected_prediction_tokens": 2,
+                    |      "audio_tokens": 1
+                    |    }
                     |  }
                     |}
                     |

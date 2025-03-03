@@ -151,7 +151,17 @@ object ChatFixture {
       |  "usage": {
       |    "prompt_tokens": 10,
       |    "completion_tokens": 10,
-      |    "total_tokens": 20
+      |    "total_tokens": 20,
+      |    "prompt_tokens_details": {
+      |      "cached_tokens": 1,
+      |      "audio_tokens": 2
+      |    },
+      |    "completion_tokens_details": {
+      |      "reasoning_tokens": 4,
+      |      "accepted_prediction_tokens": 3,
+      |      "rejected_prediction_tokens": 2,
+      |      "audio_tokens": 1
+      |    }
       |  },
       |  "choices": [
       |    {

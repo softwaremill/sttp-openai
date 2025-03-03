@@ -6,9 +6,9 @@ import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
 import sttp.openai.requests.completions.Stop.SingleStop
-import sttp.openai.requests.completions.Usage
 import sttp.openai.requests.completions.chat.ChatRequestBody.Format.Mp3
 import sttp.openai.requests.completions.chat.ChatRequestBody.Voice.Ash
+import sttp.openai.requests.completions.{CompletionTokensDetails, PromptTokensDetails, Usage}
 import sttp.openai.utils.ChatCompletionFixtures._
 
 class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
@@ -23,7 +23,14 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val usage: Usage = Usage(
       promptTokens = 10,
       completionTokens = 10,
-      totalTokens = 20
+      totalTokens = 20,
+      completionTokensDetails = CompletionTokensDetails(
+        acceptedPredictionTokens = 3,
+        audioTokens = 1,
+        reasoningTokens = 4,
+        rejectedPredictionTokens = 2
+      ),
+      promptTokensDetails = PromptTokensDetails(audioTokens = 2, cachedTokens = 1)
     )
 
     val message: Message = Message(

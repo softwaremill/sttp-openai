@@ -31,7 +31,14 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       usage = Usage(
         promptTokens = 5,
         completionTokens = 8,
-        totalTokens = 13
+        totalTokens = 13,
+        completionTokensDetails = CompletionTokensDetails(
+          acceptedPredictionTokens = 3,
+          audioTokens = 1,
+          reasoningTokens = 4,
+          rejectedPredictionTokens = 2
+        ),
+        promptTokensDetails = PromptTokensDetails(audioTokens = 2, cachedTokens = 1)
       )
     )
 
@@ -97,7 +104,14 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       usage = Usage(
         promptTokens = 11,
         completionTokens = 14,
-        totalTokens = 25
+        totalTokens = 25,
+        completionTokensDetails = CompletionTokensDetails(
+          acceptedPredictionTokens = 3,
+          audioTokens = 1,
+          reasoningTokens = 4,
+          rejectedPredictionTokens = 2
+        ),
+        promptTokensDetails = PromptTokensDetails(audioTokens = 2, cachedTokens = 1)
       )
     )
 
