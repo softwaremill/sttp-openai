@@ -35,7 +35,7 @@ class AdminApiKeyDataSpec extends AnyFlatSpec with Matchers with EitherValues {
         createdAt = 1711471533,
         role = "owner"
       ),
-      value = "sk-admin-1234abcd"
+      value = Some("sk-admin-1234abcd")
     )
     // when
     val deserializedJsonResponse: Either[Exception, AdminApiKeyResponse] =

@@ -3,6 +3,7 @@ package sttp.openai
 import sttp.client4.{DefaultSyncBackend, Request, SyncBackend}
 import sttp.model.Uri
 import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai.requests.admin.{AdminApiKeyRequestBody, AdminApiKeyResponse}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
@@ -861,6 +862,18 @@ class OpenAISyncClient private (
     */
   def listBatches(queryParameters: batch.QueryParameters = batch.QueryParameters.empty): ListBatchResponse =
     sendOrThrow(openAI.listBatches(queryParameters))
+
+  /** Create an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/create]]
+    *
+    * @param createAdminApiKeyRequest
+    *   Request body that will be used to create an admin API key.
+    * @return
+    *   The created admin API key object.
+    */
+  def createAdminApiKey(createAdminApiKeyRequest: AdminApiKeyRequestBody): AdminApiKeyResponse =
+    sendOrThrow(openAI.createAdminApiKey(createAdminApiKeyRequest))
 
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()

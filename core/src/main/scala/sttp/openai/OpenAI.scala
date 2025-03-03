@@ -11,6 +11,7 @@ import sttp.openai.json.SttpUpickleApiExtension.{
   asStringEither,
   upickleBodySerializer
 }
+import sttp.openai.requests.admin.{AdminApiKeyRequestBody, AdminApiKeyResponse}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
@@ -1195,6 +1196,21 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .response(asJson_parseErrors[ListBatchResponse])
   }
 
+  /** Create an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/create]]
+    *
+    * @param createAdminApiKeyRequest
+    *   Request body that will be used to create an admin API key.
+    * @return
+    *   The created admin API key object.
+    */
+  def createAdminApiKey(createAdminApiKeyRequest: AdminApiKeyRequestBody): Request[Either[OpenAIException, AdminApiKeyResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.AdminApiKeys)
+      .body(createAdminApiKeyRequest)
+      .response(asJson_parseErrors[AdminApiKeyResponse])
+
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 
@@ -1216,6 +1232,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Moderations: Uri = uri"$baseUri/moderations"
   val FineTuningJobs: Uri = uri"$baseUri/fine_tuning/jobs"
   val Batches: Uri = uri"$baseUri/batches"
+  val AdminApiKeys: Uri = uri"$baseUri/organization/admin_api_keys"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
   val VariationsImage: Uri = imageBase.addPath("variations")

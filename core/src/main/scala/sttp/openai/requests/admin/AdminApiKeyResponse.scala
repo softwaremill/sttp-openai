@@ -9,11 +9,12 @@ case class AdminApiKeyResponse(
     redactedValue: String,
     createdAt: Int,
     owner: Owner,
-    value: String
+    value: Option[String]
 )
 
 object AdminApiKeyResponse {
-  implicit val adminApiKeyResponseR: SnakePickle.Reader[AdminApiKeyResponse] = SnakePickle.macroR[AdminApiKeyResponse]}
+  implicit val adminApiKeyResponseR: SnakePickle.Reader[AdminApiKeyResponse] = SnakePickle.macroR[AdminApiKeyResponse]
+}
 
 case class Owner(
     `type`: String,
