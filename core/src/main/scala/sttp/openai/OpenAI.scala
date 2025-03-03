@@ -11,6 +11,7 @@ import sttp.openai.json.SttpUpickleApiExtension.{
   asStringEither,
   upickleBodySerializer
 }
+import sttp.openai.requests.admin.{QueryParameters => _, _}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
@@ -48,7 +49,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   ListVectorStoreFilesResponse,
   VectorStoreFile
 }
-import sttp.openai.requests.{batch, finetuning}
+import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
@@ -1195,6 +1196,67 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .response(asJson_parseErrors[ListBatchResponse])
   }
 
+  /** Create an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/create]]
+    *
+    * @param createAdminApiKeyRequest
+    *   Request body that will be used to create an admin API key.
+    * @return
+    *   The created admin API key object.
+    */
+  def createAdminApiKey(createAdminApiKeyRequest: AdminApiKeyRequestBody): Request[Either[OpenAIException, AdminApiKeyResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.AdminApiKeys)
+      .body(createAdminApiKeyRequest)
+      .response(asJson_parseErrors[AdminApiKeyResponse])
+
+  /** Retrieve a single organization API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/listget]]
+    *
+    * @param keyId
+    *   Key id used to retrieve an admin API key.
+    * @return
+    *   The requested admin API key object.
+    */
+  def retrieveAdminApiKey(keyId: String): Request[Either[OpenAIException, AdminApiKeyResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.adminApiKey(keyId))
+      .response(asJson_parseErrors[AdminApiKeyResponse])
+
+  /** List organization API keys
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/list]]
+    *
+    * @return
+    *   A list of admin API key objects.
+    */
+  def listAdminApiKeys(
+      queryParameters: admin.QueryParameters = admin.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListAdminApiKeyResponse]] = {
+    val uri = openAIUris.AdminApiKeys
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListAdminApiKeyResponse])
+  }
+
+  /** Delete an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/delete]]
+    *
+    * @param keyId
+    *   Key id used to delete an admin API key.
+    * @return
+    *   A confirmation object indicating the key was deleted.
+    */
+  def deleteAdminApiKey(keyId: String): Request[Either[OpenAIException, DeleteAdminApiKeyResponse]] =
+    openAIAuthRequest
+      .delete(openAIUris.adminApiKey(keyId))
+      .response(asJson_parseErrors[DeleteAdminApiKeyResponse])
+
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 
@@ -1216,6 +1278,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Moderations: Uri = uri"$baseUri/moderations"
   val FineTuningJobs: Uri = uri"$baseUri/fine_tuning/jobs"
   val Batches: Uri = uri"$baseUri/batches"
+  val AdminApiKeys: Uri = uri"$baseUri/organization/admin_api_keys"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
   val VariationsImage: Uri = imageBase.addPath("variations")
@@ -1232,6 +1295,8 @@ private class OpenAIUris(val baseUri: Uri) {
 
   def batch(batchId: String): Uri = Batches.addPath(batchId)
   def cancelBatch(batchId: String): Uri = batch(batchId).addPath("cancel")
+
+  def adminApiKey(adminApiKeyId: String): Uri = AdminApiKeys.addPath(adminApiKeyId)
 
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")

@@ -3,6 +3,7 @@ package sttp.openai
 import sttp.client4.{DefaultSyncBackend, Request, SyncBackend}
 import sttp.model.Uri
 import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai.requests.admin.{QueryParameters => _, _}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
@@ -40,7 +41,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   ListVectorStoreFilesResponse,
   VectorStoreFile
 }
-import sttp.openai.requests.{batch, finetuning}
+import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.File
 
@@ -861,6 +862,52 @@ class OpenAISyncClient private (
     */
   def listBatches(queryParameters: batch.QueryParameters = batch.QueryParameters.empty): ListBatchResponse =
     sendOrThrow(openAI.listBatches(queryParameters))
+
+  /** Create an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/create]]
+    *
+    * @param createAdminApiKeyRequest
+    *   Request body that will be used to create an admin API key.
+    * @return
+    *   The created admin API key object.
+    */
+  def createAdminApiKey(createAdminApiKeyRequest: AdminApiKeyRequestBody): AdminApiKeyResponse =
+    sendOrThrow(openAI.createAdminApiKey(createAdminApiKeyRequest))
+
+  /** Retrieve a single organization API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/listget]]
+    *
+    * @param keyId
+    *   Key id used to retrieve an admin API key.
+    * @return
+    *   The requested admin API key object.
+    */
+  def retrieveAdminApiKey(keyId: String): AdminApiKeyResponse =
+    sendOrThrow(openAI.retrieveAdminApiKey(keyId))
+
+  /** List organization API keys
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/list]]
+    *
+    * @return
+    *   A list of admin API key objects.
+    */
+  def listAdminApiKeys(queryParameters: admin.QueryParameters = admin.QueryParameters.empty): ListAdminApiKeyResponse =
+    sendOrThrow(openAI.listAdminApiKeys(queryParameters))
+
+  /** Delete an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/delete]]
+    *
+    * @param keyId
+    *   Key id used to delete an admin API key.
+    * @return
+    *   A confirmation object indicating the key was deleted.
+    */
+  def deleteAdminApiKey(keyId: String): DeleteAdminApiKeyResponse =
+    sendOrThrow(openAI.deleteAdminApiKey(keyId))
 
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()
