@@ -28,3 +28,15 @@ case class Owner(
 object Owner {
   implicit val ownerR: SnakePickle.Reader[Owner] = SnakePickle.macroR[Owner]
 }
+
+case class ListAdminApiKeyResponse(
+    `object`: String = "list",
+    data: Seq[AdminApiKeyResponse],
+    hasMore: Boolean,
+    firstId: String,
+    lastId: String
+)
+
+object ListAdminApiKeyResponse {
+  implicit val listAdminApiKeyResponseR: SnakePickle.Reader[ListAdminApiKeyResponse] = SnakePickle.macroR[ListAdminApiKeyResponse]
+}

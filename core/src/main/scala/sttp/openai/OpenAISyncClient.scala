@@ -3,7 +3,7 @@ package sttp.openai
 import sttp.client4.{DefaultSyncBackend, Request, SyncBackend}
 import sttp.model.Uri
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai.requests.admin.{AdminApiKeyRequestBody, AdminApiKeyResponse}
+import sttp.openai.requests.admin.{QueryParameters => _, _}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
@@ -41,7 +41,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   ListVectorStoreFilesResponse,
   VectorStoreFile
 }
-import sttp.openai.requests.{batch, finetuning}
+import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.File
 
@@ -884,8 +884,18 @@ class OpenAISyncClient private (
     * @return
     *   The requested admin API key object.
     */
-  def createAdminApiKey(keyId: String): AdminApiKeyResponse =
+  def retrieveAdminApiKey(keyId: String): AdminApiKeyResponse =
     sendOrThrow(openAI.retrieveAdminApiKey(keyId))
+
+  /** List organization API keys
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/list]]
+    *
+    * @return
+    *   A list of admin API key objects.
+    */
+  def listAdminApiKeys(queryParameters: admin.QueryParameters = admin.QueryParameters.empty): ListAdminApiKeyResponse =
+    sendOrThrow(openAI.listAdminApiKeys(queryParameters))
 
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()

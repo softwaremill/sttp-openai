@@ -11,7 +11,7 @@ import sttp.openai.json.SttpUpickleApiExtension.{
   asStringEither,
   upickleBodySerializer
 }
-import sttp.openai.requests.admin.{AdminApiKeyRequestBody, AdminApiKeyResponse}
+import sttp.openai.requests.admin.{QueryParameters => _, _}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
@@ -49,7 +49,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   ListVectorStoreFilesResponse,
   VectorStoreFile
 }
-import sttp.openai.requests.{batch, finetuning}
+import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
@@ -1224,6 +1224,24 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .get(openAIUris.adminApiKey(keyId))
       .response(asJson_parseErrors[AdminApiKeyResponse])
+
+  /** List organization API keys
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/list]]
+    *
+    * @return
+    *   A list of admin API key objects.
+    */
+  def listAdminApiKeys(
+      queryParameters: admin.QueryParameters = admin.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListAdminApiKeyResponse]] = {
+    val uri = openAIUris.AdminApiKeys
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListAdminApiKeyResponse])
+  }
 
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)

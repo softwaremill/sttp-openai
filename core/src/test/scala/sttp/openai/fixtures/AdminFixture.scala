@@ -1,5 +1,7 @@
 package sttp.openai.fixtures
 
+import sttp.openai.requests.admin.{AdminApiKeyResponse, Owner}
+
 object AdminFixture {
 
   val jsonRequest: String =
@@ -24,5 +26,30 @@ object AdminFixture {
       |  },
       |  "value": "sk-admin-1234abcd"
       |}""".stripMargin
+
+  val jsonListResponse: String =
+    s"""{
+      |  "object": "list",
+      |  "data": [$jsonResponse],
+      |  "first_id": "key_abc",
+      |  "last_id": "key_abc",
+      |  "has_more": false
+      |}""".stripMargin
+
+  val adminApiKeyResponse: AdminApiKeyResponse = AdminApiKeyResponse(
+    id = "key_xyz",
+    name = "New Admin Key",
+    redactedValue = "sk-admin...xyz",
+    createdAt = 1711471533,
+    owner = Owner(
+      `type` = "user",
+      `object` = "organization.user",
+      id = "user_123",
+      name = "John Doe",
+      createdAt = 1711471533,
+      role = "owner"
+    ),
+    value = Some("sk-admin-1234abcd")
+  )
 
 }

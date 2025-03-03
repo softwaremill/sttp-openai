@@ -22,24 +22,26 @@ class AdminApiKeyDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given create admin api key response as Json" should "be properly deserialized to case class" in {
     // given
     val jsonResponse = AdminFixture.jsonResponse
-    val expectedResponse: AdminApiKeyResponse = AdminApiKeyResponse(
-      id = "key_xyz",
-      name = "New Admin Key",
-      redactedValue = "sk-admin...xyz",
-      createdAt = 1711471533,
-      owner = Owner(
-        `type` = "user",
-        `object` = "organization.user",
-        id = "user_123",
-        name = "John Doe",
-        createdAt = 1711471533,
-        role = "owner"
-      ),
-      value = Some("sk-admin-1234abcd")
-    )
+    val expectedResponse: AdminApiKeyResponse = AdminFixture.adminApiKeyResponse
     // when
     val deserializedJsonResponse: Either[Exception, AdminApiKeyResponse] =
       SttpUpickleApiExtension.deserializeJsonSnake[AdminApiKeyResponse].apply(jsonResponse)
+    // then
+    deserializedJsonResponse.value shouldBe expectedResponse
+  }
+
+  "Given list admin api key response as Json" should "be properly deserialized to case class" in {
+    // given
+    val jsonResponse = AdminFixture.jsonListResponse
+    val expectedResponse: ListAdminApiKeyResponse = ListAdminApiKeyResponse(
+      data = Seq(AdminFixture.adminApiKeyResponse),
+      hasMore = false,
+      firstId = "key_abc",
+      lastId = "key_abc"
+    )
+    // when
+    val deserializedJsonResponse: Either[Exception, ListAdminApiKeyResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[ListAdminApiKeyResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }
