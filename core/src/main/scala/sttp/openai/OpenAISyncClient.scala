@@ -875,6 +875,18 @@ class OpenAISyncClient private (
   def createAdminApiKey(createAdminApiKeyRequest: AdminApiKeyRequestBody): AdminApiKeyResponse =
     sendOrThrow(openAI.createAdminApiKey(createAdminApiKeyRequest))
 
+  /** Retrieve a single organization API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/listget]]
+    *
+    * @param keyId
+    *   Key id used to retrieve an admin API key.
+    * @return
+    *   The requested admin API key object.
+    */
+  def createAdminApiKey(keyId: String): AdminApiKeyResponse =
+    sendOrThrow(openAI.retrieveAdminApiKey(keyId))
+
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()
 

@@ -1211,6 +1211,20 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .body(createAdminApiKeyRequest)
       .response(asJson_parseErrors[AdminApiKeyResponse])
 
+  /** Retrieve a single organization API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/listget]]
+    *
+    * @param keyId
+    *   Key id used to retrieve an admin API key.
+    * @return
+    *   The requested admin API key object.
+    */
+  def retrieveAdminApiKey(keyId: String): Request[Either[OpenAIException, AdminApiKeyResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.adminApiKey(keyId))
+      .response(asJson_parseErrors[AdminApiKeyResponse])
+
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 
@@ -1249,6 +1263,8 @@ private class OpenAIUris(val baseUri: Uri) {
 
   def batch(batchId: String): Uri = Batches.addPath(batchId)
   def cancelBatch(batchId: String): Uri = batch(batchId).addPath("cancel")
+
+  def adminApiKey(adminApiKeyId: String): Uri = AdminApiKeys.addPath(adminApiKeyId)
 
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")
