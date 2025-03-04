@@ -2,6 +2,13 @@ package sttp.openai.fixtures
 
 object ChatFixture {
 
+  val jsonUpdateRequest: String =
+    """{
+      | "metadata": {
+      |   "key": "value"
+      | }
+      |}""".stripMargin
+
   val jsonRequest: String =
     """{
       |  "messages": [

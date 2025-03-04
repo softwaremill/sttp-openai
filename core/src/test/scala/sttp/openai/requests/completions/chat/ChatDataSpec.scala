@@ -181,4 +181,18 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     // then
     serializedJson shouldBe jsonRequest
   }
+
+  "Given update chat completions request as case class" should "be properly serialized to Json" in {
+    import ChatRequestBody.UpdateChatCompletionRequestBody._
+
+    // given
+    val givenRequest = ChatRequestBody.UpdateChatCompletionRequestBody(
+      metadata = Map("key" -> "value")
+    )
+    val jsonRequest: ujson.Value = ujson.read(fixtures.ChatFixture.jsonUpdateRequest)
+    // when
+    val serializedJson = SnakePickle.writeJs(givenRequest)
+    // then
+    serializedJson shouldBe jsonRequest
+  }
 }

@@ -14,7 +14,7 @@ import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse, ListBatchRes
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat
-import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, ListChatResponse, ListMessageResponse}
 import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
@@ -180,6 +180,8 @@ class OpenAISyncClient private (
 
   /** Get a stored chat completion. Only chat completions that have been created with the store parameter set to true will be returned.
     *
+    * [[https://platform.openai.com/docs/api-reference/chat/get]]
+    *
     * @param completionId
     *   The ID of the chat completion to retrieve.
     *
@@ -191,6 +193,8 @@ class OpenAISyncClient private (
 
   /** Get the messages in a stored chat completion. Only chat completions that have been created with the store parameter set to true will
     * be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/getMessages]]
     *
     * @param completionId
     *   The ID of the chat completion to retrieve messages from.
@@ -206,6 +210,8 @@ class OpenAISyncClient private (
 
   /** List stored chat completions. Only chat completions that have been stored with the store parameter set to true will be returned.
     *
+    * [[https://platform.openai.com/docs/api-reference/chat/list]]
+    *
     * @return
     *   A list of chat completions matching the specified filters.
     */
@@ -213,6 +219,22 @@ class OpenAISyncClient private (
       queryParameters: chat.ListChatCompletionsQueryParameters = chat.ListChatCompletionsQueryParameters.empty
   ): ListChatResponse =
     sendOrThrow(openAI.listChatCompletions(queryParameters))
+
+  /** Modify a stored chat completion. Only chat completions that have been created with the store parameter set to true can be modified.
+    * Currently, the only supported modification is to update the metadata field.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/update]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to update.
+    * @param requestBody
+    *   Chat completion update request body.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def updateChatCompletion(completionId: String, requestBody: UpdateChatCompletionRequestBody): ChatResponse =
+    sendOrThrow(openAI.updateChatCompletion(completionId, requestBody))
 
   /** Returns a list of files that belong to the user's organization.
     *
