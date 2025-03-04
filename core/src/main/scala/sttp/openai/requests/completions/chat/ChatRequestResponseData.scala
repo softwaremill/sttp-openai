@@ -201,4 +201,15 @@ object ChatRequestResponseData {
     implicit val listChatResponseR: SnakePickle.Reader[ListChatResponse] = SnakePickle.macroR[ListChatResponse]
   }
 
+  case class DeleteChatCompletionResponse(
+      `object`: String = "chat.completion.deleted",
+      id: String,
+      deleted: Boolean
+  )
+
+  object DeleteChatCompletionResponse {
+    implicit val deleteChatCompletionResponseR: SnakePickle.Reader[DeleteChatCompletionResponse] =
+      SnakePickle.macroR[DeleteChatCompletionResponse]
+  }
+
 }

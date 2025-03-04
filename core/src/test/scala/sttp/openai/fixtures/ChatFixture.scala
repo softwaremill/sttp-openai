@@ -264,4 +264,11 @@ object ChatFixture {
       |}
       |""".stripMargin
 
+  val jsonDeleteChatCompletionResponse: String =
+    """{
+      |  "object": "chat.completion.deleted",
+      |  "id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
+      |  "deleted": true
+      |}""".stripMargin
+
 }

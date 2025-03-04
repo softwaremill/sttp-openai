@@ -14,6 +14,22 @@ import sttp.openai.utils.ChatCompletionFixtures._
 
 class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
+  "Given delete chat completion response as Json" should "be properly deserialized to case class" in {
+    import ChatRequestResponseData.DeleteChatCompletionResponse
+    import ChatRequestResponseData.DeleteChatCompletionResponse._
+
+    // given
+    val jsonResponse = fixtures.ChatFixture.jsonDeleteChatCompletionResponse
+    val expectedResponse = DeleteChatCompletionResponse(
+      id = "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
+      deleted = true
+    )
+    // when
+    val givenResponse: Either[Exception, DeleteChatCompletionResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    // then
+    givenResponse.value shouldBe expectedResponse
+  }
+
   "Given list chat response as Json" should "be properly deserialized to case class" in {
     import ChatRequestResponseData.ListChatResponse
     import ChatRequestResponseData.ListChatResponse._

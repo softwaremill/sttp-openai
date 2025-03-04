@@ -15,7 +15,12 @@ import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, ListChatResponse, ListMessageResponse}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
+  ChatResponse,
+  DeleteChatCompletionResponse,
+  ListChatResponse,
+  ListMessageResponse
+}
 import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
@@ -235,6 +240,19 @@ class OpenAISyncClient private (
     */
   def updateChatCompletion(completionId: String, requestBody: UpdateChatCompletionRequestBody): ChatResponse =
     sendOrThrow(openAI.updateChatCompletion(completionId, requestBody))
+
+  /** Delete a stored chat completion. Only chat completions that have been created with the store parameter set to true can be deleted.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/delete]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to delete.
+    *
+    * @return
+    *   A deletion confirmation object.
+    */
+  def deleteChatCompletion(completionId: String): DeleteChatCompletionResponse =
+    sendOrThrow(openAI.deleteChatCompletion(completionId))
 
   /** Returns a list of files that belong to the user's organization.
     *
