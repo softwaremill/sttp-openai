@@ -15,8 +15,8 @@ import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, ListMessageResponse}
-import sttp.openai.requests.completions.chat.{QueryParameters => _}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, ListChatResponse, ListMessageResponse}
+import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
@@ -198,8 +198,21 @@ class OpenAISyncClient private (
     * @return
     *   A list of messages for the specified chat completion.
     */
-  def getChatMessages(completionId: String, queryParameters: chat.QueryParameters = chat.QueryParameters.empty): ListMessageResponse =
+  def getChatMessages(
+      completionId: String,
+      queryParameters: chat.ListMessagesQueryParameters = chat.ListMessagesQueryParameters.empty
+  ): ListMessageResponse =
     sendOrThrow(openAI.getChatMessages(completionId, queryParameters))
+
+  /** List stored chat completions. Only chat completions that have been stored with the store parameter set to true will be returned.
+    *
+    * @return
+    *   A list of chat completions matching the specified filters.
+    */
+  def listChatCompletions(
+      queryParameters: chat.ListChatCompletionsQueryParameters = chat.ListChatCompletionsQueryParameters.empty
+  ): ListChatResponse =
+    sendOrThrow(openAI.listChatCompletions(queryParameters))
 
   /** Returns a list of files that belong to the user's organization.
     *

@@ -247,4 +247,14 @@ object ChatFixture {
       |}
       |""".stripMargin
 
+  val jsonListChatResponse: String =
+    """{
+      |  "object": "list",
+      |  "data": [],
+      |  "first_id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
+      |  "last_id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
+      |  "has_more": false
+      |}
+      |""".stripMargin
+
 }

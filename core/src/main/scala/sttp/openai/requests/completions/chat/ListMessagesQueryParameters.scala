@@ -7,7 +7,7 @@ package sttp.openai.requests.completions.chat
   * @param limit
   *   Number of fine-tuning jobs to retrieve. Defaults to 20.
   */
-case class QueryParameters(
+case class ListMessagesQueryParameters(
     after: Option[String] = None,
     order: Option[String] = None,
     limit: Option[Int] = None
@@ -21,6 +21,6 @@ case class QueryParameters(
   }
 }
 
-object QueryParameters {
-  val empty: QueryParameters = QueryParameters(None, None, None)
+object ListMessagesQueryParameters {
+  val empty: ListMessagesQueryParameters = ListMessagesQueryParameters(None, None, None)
 }

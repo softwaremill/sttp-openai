@@ -176,4 +176,29 @@ object ChatRequestResponseData {
     implicit val chatResponseR: SnakePickle.Reader[ChatResponse] = SnakePickle.macroR[ChatResponse]
   }
 
+  /** An object representing a list of chat completions.
+    *
+    * @param `object`
+    *   The type of this object. It is always set to "list".
+    * @param data
+    *   An array of chat completion objects.
+    * @param firstId
+    *   The identifier of the first chat completion in the data array.
+    * @param lastId
+    *   The identifier of the last chat completion in the data array.
+    * @param hasMore
+    *   Indicates whether there are more chat completions available.
+    */
+  case class ListChatResponse(
+      `object`: String = "list",
+      data: Seq[ChatResponse],
+      firstId: String,
+      lastId: String,
+      hasMore: Boolean
+  )
+
+  object ListChatResponse {
+    implicit val listChatResponseR: SnakePickle.Reader[ListChatResponse] = SnakePickle.macroR[ListChatResponse]
+  }
+
 }

@@ -23,8 +23,8 @@ import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, ListMessageResponse}
-import sttp.openai.requests.completions.chat.{QueryParameters => _}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, ListChatResponse, ListMessageResponse}
+import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
@@ -308,7 +308,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     */
   def getChatMessages(
       completionId: String,
-      queryParameters: chat.QueryParameters = chat.QueryParameters.empty
+      queryParameters: chat.ListMessagesQueryParameters = chat.ListMessagesQueryParameters.empty
   ): Request[Either[OpenAIException, ListMessageResponse]] = {
     val uri = openAIUris
       .chatMessages(completionId)
@@ -317,6 +317,22 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .get(uri)
       .response(asJson_parseErrors[ListMessageResponse])
+  }
+
+  /** List stored chat completions. Only chat completions that have been stored with the store parameter set to true will be returned.
+    *
+    * @return
+    *   A list of chat completions matching the specified filters.
+    */
+  def listChatCompletions(
+      queryParameters: chat.ListChatCompletionsQueryParameters = chat.ListChatCompletionsQueryParameters.empty
+  ): Request[Either[OpenAIException, ListChatResponse]] = {
+    val uri = openAIUris.ChatCompletions
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListChatResponse])
   }
 
   /** Returns a list of files that belong to the user's organization.
