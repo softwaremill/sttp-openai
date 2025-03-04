@@ -13,8 +13,10 @@ import sttp.openai.requests.audio.translations.TranslationConfig
 import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse, ListBatchResponse}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
+import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, ListMessageResponse}
+import sttp.openai.requests.completions.chat.{QueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
@@ -175,6 +177,29 @@ class OpenAISyncClient private (
     */
   def createChatCompletion(chatBody: ChatBody): ChatResponse =
     sendOrThrow(openAI.createChatCompletion(chatBody))
+
+  /** Get a stored chat completion. Only chat completions that have been created with the store parameter set to true will be returned.
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def getChatCompletion(completionId: String): ChatResponse =
+    sendOrThrow(openAI.getChatCompletion(completionId))
+
+  /** Get the messages in a stored chat completion. Only chat completions that have been created with the store parameter set to true will
+    * be returned.
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve messages from.
+    *
+    * @return
+    *   A list of messages for the specified chat completion.
+    */
+  def getChatMessages(completionId: String, queryParameters: chat.QueryParameters = chat.QueryParameters.empty): ListMessageResponse =
+    sendOrThrow(openAI.getChatMessages(completionId, queryParameters))
 
   /** Returns a list of files that belong to the user's organization.
     *

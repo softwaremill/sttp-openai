@@ -21,8 +21,10 @@ import sttp.openai.requests.audio.translations.TranslationConfig
 import sttp.openai.requests.batch.{QueryParameters => _, _}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
+import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, ListMessageResponse}
+import sttp.openai.requests.completions.chat.{QueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
@@ -281,6 +283,41 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.ChatCompletions)
       .body(ChatBody.withStreaming(chatBody))
       .response(asInputStreamUnsafe_parseErrors)
+
+  /** Get a stored chat completion. Only chat completions that have been created with the store parameter set to true will be returned.
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def getChatCompletion(completionId: String): Request[Either[OpenAIException, ChatResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.chatCompletion(completionId))
+      .response(asJson_parseErrors[ChatResponse])
+
+  /** Get the messages in a stored chat completion. Only chat completions that have been created with the store parameter set to true will
+    * be returned.
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve messages from.
+    *
+    * @return
+    *   A list of messages for the specified chat completion.
+    */
+  def getChatMessages(
+      completionId: String,
+      queryParameters: chat.QueryParameters = chat.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListMessageResponse]] = {
+    val uri = openAIUris
+      .chatMessages(completionId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListMessageResponse])
+  }
 
   /** Returns a list of files that belong to the user's organization.
     *
@@ -1287,6 +1324,9 @@ private class OpenAIUris(val baseUri: Uri) {
   val Threads: Uri = uri"$baseUri/threads"
   val ThreadsRuns: Uri = uri"$baseUri/threads/runs"
   val VectorStores: Uri = uri"$baseUri/vector_stores"
+
+  def chatCompletion(completionId: String): Uri = ChatCompletions.addPath(completionId)
+  def chatMessages(completionId: String): Uri = chatCompletion(completionId).addPath("messages")
 
   def fineTuningJob(fineTuningJobId: String): Uri = FineTuningJobs.addPath(fineTuningJobId)
   def fineTuningJobEvents(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("events")

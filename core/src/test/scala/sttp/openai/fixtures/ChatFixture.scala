@@ -183,7 +183,8 @@ object ChatFixture {
       |             "name": "Fish"
       |           }
       |         }
-      |        ]
+      |        ],
+      |        "id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR"
       |      },
       |      "finish_reason": "stop",
       |      "index": 0,
@@ -220,6 +221,29 @@ object ChatFixture {
       |    }
       |  ],
       |  "service_tier": "advanced"
+      |}
+      |""".stripMargin
+
+  val jsonListMessageResponse: String =
+    """{
+      |  "object": "list",
+      |  "data": [
+      |    {
+      |      "role": "assistant",
+      |      "content": "Hi there! How can I assist you today?",
+      |      "tool_calls": [],
+      |      "id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR",
+      |      "audio": {
+      |        "id": "audio_id",
+      |        "expires_at": 1681725687,
+      |        "data": "base64encoded",
+      |        "transcript": "transcript"
+      |      }
+      |    }
+      |  ],
+      |  "first_id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR",
+      |  "last_id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR",
+      |  "has_more": true
       |}
       |""".stripMargin
 
