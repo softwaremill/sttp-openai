@@ -13,8 +13,15 @@ import sttp.openai.requests.audio.translations.TranslationConfig
 import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse, ListBatchResponse}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.chat
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
+  ChatResponse,
+  DeleteChatCompletionResponse,
+  ListChatResponse,
+  ListMessageResponse
+}
+import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
@@ -175,6 +182,77 @@ class OpenAISyncClient private (
     */
   def createChatCompletion(chatBody: ChatBody): ChatResponse =
     sendOrThrow(openAI.createChatCompletion(chatBody))
+
+  /** Get a stored chat completion. Only chat completions that have been created with the store parameter set to true will be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/get]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def getChatCompletion(completionId: String): ChatResponse =
+    sendOrThrow(openAI.getChatCompletion(completionId))
+
+  /** Get the messages in a stored chat completion. Only chat completions that have been created with the store parameter set to true will
+    * be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/getMessages]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve messages from.
+    *
+    * @return
+    *   A list of messages for the specified chat completion.
+    */
+  def getChatMessages(
+      completionId: String,
+      queryParameters: chat.ListMessagesQueryParameters = chat.ListMessagesQueryParameters.empty
+  ): ListMessageResponse =
+    sendOrThrow(openAI.getChatMessages(completionId, queryParameters))
+
+  /** List stored chat completions. Only chat completions that have been stored with the store parameter set to true will be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/list]]
+    *
+    * @return
+    *   A list of chat completions matching the specified filters.
+    */
+  def listChatCompletions(
+      queryParameters: chat.ListChatCompletionsQueryParameters = chat.ListChatCompletionsQueryParameters.empty
+  ): ListChatResponse =
+    sendOrThrow(openAI.listChatCompletions(queryParameters))
+
+  /** Modify a stored chat completion. Only chat completions that have been created with the store parameter set to true can be modified.
+    * Currently, the only supported modification is to update the metadata field.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/update]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to update.
+    * @param requestBody
+    *   Chat completion update request body.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def updateChatCompletion(completionId: String, requestBody: UpdateChatCompletionRequestBody): ChatResponse =
+    sendOrThrow(openAI.updateChatCompletion(completionId, requestBody))
+
+  /** Delete a stored chat completion. Only chat completions that have been created with the store parameter set to true can be deleted.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/delete]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to delete.
+    *
+    * @return
+    *   A deletion confirmation object.
+    */
+  def deleteChatCompletion(completionId: String): DeleteChatCompletionResponse =
+    sendOrThrow(openAI.deleteChatCompletion(completionId))
 
   /** Returns a list of files that belong to the user's organization.
     *

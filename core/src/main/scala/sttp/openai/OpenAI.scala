@@ -21,8 +21,15 @@ import sttp.openai.requests.audio.translations.TranslationConfig
 import sttp.openai.requests.batch.{QueryParameters => _, _}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
+import sttp.openai.requests.completions.chat
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
+  ChatResponse,
+  DeleteChatCompletionResponse,
+  ListChatResponse,
+  ListMessageResponse
+}
+import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
@@ -281,6 +288,100 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.ChatCompletions)
       .body(ChatBody.withStreaming(chatBody))
       .response(asInputStreamUnsafe_parseErrors)
+
+  /** Get a stored chat completion. Only chat completions that have been created with the store parameter set to true will be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/get]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def getChatCompletion(completionId: String): Request[Either[OpenAIException, ChatResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.chatCompletion(completionId))
+      .response(asJson_parseErrors[ChatResponse])
+
+  /** Get the messages in a stored chat completion. Only chat completions that have been created with the store parameter set to true will
+    * be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/getMessages]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve messages from.
+    *
+    * @return
+    *   A list of messages for the specified chat completion.
+    */
+  def getChatMessages(
+      completionId: String,
+      queryParameters: chat.ListMessagesQueryParameters = chat.ListMessagesQueryParameters.empty
+  ): Request[Either[OpenAIException, ListMessageResponse]] = {
+    val uri = openAIUris
+      .chatMessages(completionId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListMessageResponse])
+  }
+
+  /** List stored chat completions. Only chat completions that have been stored with the store parameter set to true will be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/list]]
+    *
+    * @return
+    *   A list of chat completions matching the specified filters.
+    */
+  def listChatCompletions(
+      queryParameters: chat.ListChatCompletionsQueryParameters = chat.ListChatCompletionsQueryParameters.empty
+  ): Request[Either[OpenAIException, ListChatResponse]] = {
+    val uri = openAIUris.ChatCompletions
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListChatResponse])
+  }
+
+  /** Modify a stored chat completion. Only chat completions that have been created with the store parameter set to true can be modified.
+    * Currently, the only supported modification is to update the metadata field.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/update]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to update.
+    * @param requestBody
+    *   Chat completion update request body.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def updateChatCompletion(
+      completionId: String,
+      requestBody: UpdateChatCompletionRequestBody
+  ): Request[Either[OpenAIException, ChatResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.chatCompletion(completionId))
+      .body(requestBody)
+      .response(asJson_parseErrors[ChatResponse])
+
+  /** Delete a stored chat completion. Only chat completions that have been created with the store parameter set to true can be deleted.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/delete]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to delete.
+    *
+    * @return
+    *   A deletion confirmation object.
+    */
+  def deleteChatCompletion(completionId: String): Request[Either[OpenAIException, DeleteChatCompletionResponse]] =
+    openAIAuthRequest
+      .delete(openAIUris.chatCompletion(completionId))
+      .response(asJson_parseErrors[DeleteChatCompletionResponse])
 
   /** Returns a list of files that belong to the user's organization.
     *
@@ -1287,6 +1388,9 @@ private class OpenAIUris(val baseUri: Uri) {
   val Threads: Uri = uri"$baseUri/threads"
   val ThreadsRuns: Uri = uri"$baseUri/threads/runs"
   val VectorStores: Uri = uri"$baseUri/vector_stores"
+
+  def chatCompletion(completionId: String): Uri = ChatCompletions.addPath(completionId)
+  def chatMessages(completionId: String): Uri = chatCompletion(completionId).addPath("messages")
 
   def fineTuningJob(fineTuningJobId: String): Uri = FineTuningJobs.addPath(fineTuningJobId)
   def fineTuningJobEvents(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("events")
