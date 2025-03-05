@@ -48,6 +48,7 @@ import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMes
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody._
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
+import sttp.openai.requests.upload.{CompleteUploadRequestBody, UploadPartResponse, UploadRequestBody, UploadResponse}
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
@@ -646,6 +647,95 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
         ).flatten
       }
       .response(asJson_parseErrors[AudioResponse])
+
+  /** Creates an intermediate Upload object that you can add Parts to. Currently, an Upload can accept at most 8 GB in total and expires
+    * after an hour after you create it.
+    *
+    * Once you complete the Upload, we will create a File object that contains all the parts you uploaded. This File is usable in the rest
+    * of our platform as a regular File object.
+    *
+    * For certain purposes, the correct mime_type must be specified. Please refer to documentation for the supported MIME types for your use
+    * case:
+    *
+    * null.
+    *
+    * For guidance on the proper filename extensions for each purpose, please follow the documentation on creating a File.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/create]]
+    *
+    * @param uploadRequestBody
+    *   Request body that will be used to create an upload.
+    *
+    * @return
+    *   The Upload object with status pending.
+    */
+  def createUpload(uploadRequestBody: UploadRequestBody): Request[Either[OpenAIException, UploadResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.Uploads)
+      .body(uploadRequestBody)
+      .response(asJson_parseErrors[UploadResponse])
+
+  /** Adds a Part to an Upload object. A Part represents a chunk of bytes from the file you are trying to upload.
+    *
+    * Each Part can be at most 64 MB, and you can add Parts until you hit the Upload maximum of 8 GB.
+    *
+    * It is possible to add multiple Parts in parallel. You can decide the intended order of the Parts when you complete the Upload.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/add-part]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    * @param data
+    *   The chunk of bytes for this Part.
+    *
+    * @return
+    *   The upload Part object.
+    */
+  def addUploadPart(uploadId: String, data: File): Request[Either[OpenAIException, UploadPartResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.uploadParts(uploadId))
+      .multipartBody(multipartFile("data", data))
+      .response(asJson_parseErrors[UploadPartResponse])
+
+  /** Completes the Upload.
+    *
+    * Within the returned Upload object, there is a nested File object that is ready to use in the rest of the platform.
+    *
+    * You can specify the order of the Parts by passing in an ordered list of the Part IDs.
+    *
+    * The number of bytes uploaded upon completion must match the number of bytes initially specified when creating the Upload object. No
+    * Parts may be added after an Upload is completed.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/complete]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    * @param requestBody
+    *   Request body that will be used to complete an upload.
+    *
+    * @return
+    *   The Upload object with status completed with an additional file property containing the created usable File object.
+    */
+  def completeUpload(uploadId: String, requestBody: CompleteUploadRequestBody): Request[Either[OpenAIException, UploadResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.completeUpload(uploadId))
+      .body(requestBody)
+      .response(asJson_parseErrors[UploadResponse])
+
+  /** Cancels the Upload. No Parts may be added after an Upload is cancelled.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/cancel]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    *
+    * @return
+    *   The Upload object with status cancelled.
+    */
+  def cancelUpload(uploadId: String): Request[Either[OpenAIException, UploadResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelUpload(uploadId))
+      .response(asJson_parseErrors[UploadResponse])
 
   /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
     *
@@ -1379,6 +1469,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Moderations: Uri = uri"$baseUri/moderations"
   val FineTuningJobs: Uri = uri"$baseUri/fine_tuning/jobs"
   val Batches: Uri = uri"$baseUri/batches"
+  val Uploads: Uri = uri"$baseUri/uploads"
   val AdminApiKeys: Uri = uri"$baseUri/organization/admin_api_keys"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
@@ -1388,6 +1479,11 @@ private class OpenAIUris(val baseUri: Uri) {
   val Threads: Uri = uri"$baseUri/threads"
   val ThreadsRuns: Uri = uri"$baseUri/threads/runs"
   val VectorStores: Uri = uri"$baseUri/vector_stores"
+
+  def upload(uploadId: String): Uri = Uploads.addPath(uploadId)
+  def uploadParts(uploadId: String): Uri = upload(uploadId).addPath("parts")
+  def completeUpload(uploadId: String): Uri = upload(uploadId).addPath("complete")
+  def cancelUpload(uploadId: String): Uri = upload(uploadId).addPath("cancel")
 
   def chatCompletion(completionId: String): Uri = ChatCompletions.addPath(completionId)
   def chatMessages(completionId: String): Uri = chatCompletion(completionId).addPath("messages")
