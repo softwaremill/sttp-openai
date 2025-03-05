@@ -496,6 +496,19 @@ class OpenAISyncClient private (
   def completeUpload(uploadId: String, requestBody: CompleteUploadRequestBody): UploadResponse =
     sendOrThrow(openAI.completeUpload(uploadId, requestBody))
 
+  /** Cancels the Upload. No Parts may be added after an Upload is cancelled.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/cancel]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    *
+    * @return
+    *   The Upload object with status cancelled.
+    */
+  def cancelUpload(uploadId: String): UploadResponse =
+    sendOrThrow(openAI.cancelUpload(uploadId))
+
   /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
     *
     * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.

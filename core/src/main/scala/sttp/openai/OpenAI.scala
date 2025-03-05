@@ -722,6 +722,21 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .body(requestBody)
       .response(asJson_parseErrors[UploadResponse])
 
+  /** Cancels the Upload. No Parts may be added after an Upload is cancelled.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/cancel]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    *
+    * @return
+    *   The Upload object with status cancelled.
+    */
+  def cancelUpload(uploadId: String): Request[Either[OpenAIException, UploadResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelUpload(uploadId))
+      .response(asJson_parseErrors[UploadResponse])
+
   /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
     *
     * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
@@ -1468,6 +1483,7 @@ private class OpenAIUris(val baseUri: Uri) {
   def upload(uploadId: String): Uri = Uploads.addPath(uploadId)
   def uploadParts(uploadId: String): Uri = upload(uploadId).addPath("parts")
   def completeUpload(uploadId: String): Uri = upload(uploadId).addPath("complete")
+  def cancelUpload(uploadId: String): Uri = upload(uploadId).addPath("cancel")
 
   def chatCompletion(completionId: String): Uri = ChatCompletions.addPath(completionId)
   def chatMessages(completionId: String): Uri = chatCompletion(completionId).addPath("messages")
