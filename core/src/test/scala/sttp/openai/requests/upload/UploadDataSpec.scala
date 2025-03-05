@@ -50,4 +50,19 @@ class UploadDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     deserializedJsonResponse.value shouldBe expectedResponse
   }
 
+  "Given upload part response as Json" should "be properly deserialized to case class" in {
+    // given
+    val jsonResponse = UploadFixture.jsonUploadPartResponse
+    val expectedResponse: UploadPartResponse = UploadPartResponse(
+      id = "part_def456",
+      createdAt = 1719186911,
+      uploadId = "upload_abc123"
+    )
+    // when
+    val deserializedJsonResponse: Either[Exception, UploadPartResponse] =
+      SttpUpickleApiExtension.deserializeJsonSnake[UploadPartResponse].apply(jsonResponse)
+    // then
+    deserializedJsonResponse.value shouldBe expectedResponse
+  }
+
 }

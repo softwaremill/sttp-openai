@@ -30,4 +30,12 @@ object UploadFixture {
       |  }
       |}""".stripMargin
 
+  val jsonUploadPartResponse: String =
+    """{
+       |    "id": "part_def456",
+       |    "object": "upload.part",
+       |    "created_at": 1719186911,
+       |    "upload_id": "upload_abc123"
+       |}""".stripMargin
+
 }

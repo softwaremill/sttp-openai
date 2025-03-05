@@ -26,12 +26,12 @@ import sttp.openai.json.SnakePickle
 case class UploadResponse(
     id: String,
     `object`: String = "upload",
-    bytes: Long,
-    createdAt: Long,
+    bytes: Int,
+    createdAt: Int,
     filename: String,
     purpose: String,
     status: String,
-    expiresAt: Long,
+    expiresAt: Int,
     file: File
 )
 
@@ -42,12 +42,34 @@ object UploadResponse {
 case class File(
     id: String,
     `object`: String,
-    bytes: Long,
-    createdAt: Long,
+    bytes: Int,
+    createdAt: Int,
     filename: String,
     purpose: String
 )
 
 object File {
   implicit val fileR: SnakePickle.Reader[File] = SnakePickle.macroR[File]
+}
+
+/** Represents the response for an upload part.
+  *
+  * @param id
+  *   The upload Part unique identifier, which can be referenced in API endpoints.
+  * @param createdAt
+  *   The Unix timestamp (in seconds) for when the Part was created.
+  * @param uploadId
+  *   The ID of the Upload object that this Part was added to.
+  * @param `object`
+  *   The object type, which is always upload.part.
+  */
+case class UploadPartResponse(
+    id: String,
+    createdAt: Int,
+    uploadId: String,
+    `object`: String = "upload.part"
+)
+
+object UploadPartResponse {
+  implicit val uploadPartResponseR: SnakePickle.Reader[UploadPartResponse] = SnakePickle.macroR[UploadPartResponse]
 }

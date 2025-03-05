@@ -48,7 +48,7 @@ import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMes
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody._
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
-import sttp.openai.requests.upload.{UploadRequestBody, UploadResponse}
+import sttp.openai.requests.upload.{UploadPartResponse, UploadRequestBody, UploadResponse}
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
@@ -674,6 +674,28 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.Uploads)
       .body(uploadRequestBody)
       .response(asJson_parseErrors[UploadResponse])
+
+  /** Adds a Part to an Upload object. A Part represents a chunk of bytes from the file you are trying to upload.
+    *
+    * Each Part can be at most 64 MB, and you can add Parts until you hit the Upload maximum of 8 GB.
+    *
+    * It is possible to add multiple Parts in parallel. You can decide the intended order of the Parts when you complete the Upload.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/add-part]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    * @param data
+    *   The chunk of bytes for this Part.
+    *
+    * @return
+    *   The upload Part object.
+    */
+  def addUploadPart(uploadId: String, data: File): Request[Either[OpenAIException, UploadPartResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.uploadParts(uploadId))
+      .multipartBody(multipartFile("data", data))
+      .response(asJson_parseErrors[UploadPartResponse])
 
   /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
     *
@@ -1417,6 +1439,9 @@ private class OpenAIUris(val baseUri: Uri) {
   val Threads: Uri = uri"$baseUri/threads"
   val ThreadsRuns: Uri = uri"$baseUri/threads/runs"
   val VectorStores: Uri = uri"$baseUri/vector_stores"
+
+  def upload(uploadId: String): Uri = Uploads.addPath(uploadId)
+  def uploadParts(uploadId: String): Uri = upload(uploadId).addPath("parts")
 
   def chatCompletion(completionId: String): Uri = ChatCompletions.addPath(completionId)
   def chatMessages(completionId: String): Uri = chatCompletion(completionId).addPath("messages")
