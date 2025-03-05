@@ -40,6 +40,7 @@ import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMes
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{CreateRun, CreateThreadAndRun, ToolOutput}
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
+import sttp.openai.requests.upload.{UploadRequestBody, UploadResponse}
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
@@ -429,6 +430,30 @@ class OpenAISyncClient private (
     */
   def createTranscription(transcriptionConfig: TranscriptionConfig): AudioResponse =
     sendOrThrow(openAI.createTranscription(transcriptionConfig))
+
+  /** Creates an intermediate Upload object that you can add Parts to. Currently, an Upload can accept at most 8 GB in total and expires
+    * after an hour after you create it.
+    *
+    * Once you complete the Upload, we will create a File object that contains all the parts you uploaded. This File is usable in the rest
+    * of our platform as a regular File object.
+    *
+    * For certain purposes, the correct mime_type must be specified. Please refer to documentation for the supported MIME types for your use
+    * case:
+    *
+    * null.
+    *
+    * For guidance on the proper filename extensions for each purpose, please follow the documentation on creating a File.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/create]]
+    *
+    * @param uploadRequestBody
+    *   Request body that will be used to create an upload.
+    *
+    * @return
+    *   The Upload object with status pending.
+    */
+  def createUpload(uploadRequestBody: UploadRequestBody): UploadResponse =
+    sendOrThrow(openAI.createUpload(uploadRequestBody))
 
   /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
     *
