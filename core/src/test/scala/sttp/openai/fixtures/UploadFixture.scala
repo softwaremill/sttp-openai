@@ -10,6 +10,12 @@ object UploadFixture {
       |  "mime_type": "file/mime-type"
       |}""".stripMargin
 
+  val jsonCompleteUpload: String =
+    """{
+      |  "part_ids": ["part_abc123", "part_def456"],
+      |  "md5": "md5-checksum"
+      |}""".stripMargin
+
   val jsonUpdateResponse: String =
     """{
       |  "id": "upload_abc123",

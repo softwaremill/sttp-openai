@@ -40,7 +40,7 @@ import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMes
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{CreateRun, CreateThreadAndRun, ToolOutput}
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
-import sttp.openai.requests.upload.{UploadPartResponse, UploadRequestBody, UploadResponse}
+import sttp.openai.requests.upload.{CompleteUploadRequestBody, UploadPartResponse, UploadRequestBody, UploadResponse}
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
@@ -473,6 +473,28 @@ class OpenAISyncClient private (
     */
   def addUploadPart(uploadId: String, data: File): UploadPartResponse =
     sendOrThrow(openAI.addUploadPart(uploadId, data))
+
+  /** Completes the Upload.
+    *
+    * Within the returned Upload object, there is a nested File object that is ready to use in the rest of the platform.
+    *
+    * You can specify the order of the Parts by passing in an ordered list of the Part IDs.
+    *
+    * The number of bytes uploaded upon completion must match the number of bytes initially specified when creating the Upload object. No
+    * Parts may be added after an Upload is completed.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/complete]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    * @param requestBody
+    *   Request body that will be used to complete an upload.
+    *
+    * @return
+    *   The Upload object with status completed with an additional file property containing the created usable File object.
+    */
+  def completeUpload(uploadId: String, requestBody: CompleteUploadRequestBody): UploadResponse =
+    sendOrThrow(openAI.completeUpload(uploadId, requestBody))
 
   /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
     *

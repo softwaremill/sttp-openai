@@ -32,7 +32,7 @@ case class UploadResponse(
     purpose: String,
     status: String,
     expiresAt: Int,
-    file: File
+    file: Option[File]
 )
 
 object UploadResponse {

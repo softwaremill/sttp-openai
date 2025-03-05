@@ -23,6 +23,19 @@ class UploadDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     serializedJson shouldBe jsonRequest
   }
 
+  "Given complete upload request body as case class" should "be properly serialized to Json" in {
+    // given
+    val givenRequest = CompleteUploadRequestBody(
+      partIds = Seq("part_abc123", "part_def456"),
+      md5 = Some("md5-checksum")
+    )
+    val jsonRequest: ujson.Value = ujson.read(UploadFixture.jsonCompleteUpload)
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+    // then
+    serializedJson shouldBe jsonRequest
+  }
+
   "Given upload response as Json" should "be properly deserialized to case class" in {
     // given
     val jsonResponse = UploadFixture.jsonUpdateResponse
@@ -34,13 +47,15 @@ class UploadDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       purpose = "fine-tune",
       status = "completed",
       expiresAt = 1719127296,
-      file = File(
-        id = "file-xyz321",
-        bytes = 1147483648,
-        createdAt = 1719186911,
-        filename = "training_examples.jsonl",
-        purpose = "fine-tune",
-        `object` = "file"
+      file = Some(
+        File(
+          id = "file-xyz321",
+          bytes = 1147483648,
+          createdAt = 1719186911,
+          filename = "training_examples.jsonl",
+          purpose = "fine-tune",
+          `object` = "file"
+        )
       )
     )
     // when

@@ -25,3 +25,17 @@ case class UploadRequestBody(
 object UploadRequestBody {
   implicit val uploadRequestBodyW: SnakePickle.Writer[UploadRequestBody] = SnakePickle.macroW[UploadRequestBody]
 }
+
+/** @param partIds
+  *   The ordered list of Part IDs.
+  * @param md5
+  *   The optional md5 checksum for the file contents to verify if the bytes uploaded matches what you expect.
+  */
+case class CompleteUploadRequestBody(
+    partIds: Seq[String],
+    md5: Option[String]
+)
+
+object CompleteUploadRequestBody {
+  implicit val completeUploadRequestBodyW: SnakePickle.Writer[CompleteUploadRequestBody] = SnakePickle.macroW[CompleteUploadRequestBody]
+}
