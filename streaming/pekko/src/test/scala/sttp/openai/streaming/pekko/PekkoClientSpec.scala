@@ -1,5 +1,6 @@
 package sttp.openai.streaming.pekko
 
+import org.apache.pekko.NotUsed
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.util.ByteString
@@ -13,14 +14,34 @@ import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
+import sttp.openai.requests.audio.speech.{SpeechRequestBody, Voice}
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
 import sttp.openai.utils.JsonUtils.compactJson
-import org.apache.pekko.NotUsed
 
 class PekkoClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
   implicit val system: ActorSystem = ActorSystem()
+
+  "Creating speech" should "return byte stream" in {
+    // given
+    val expectedResponse = "audio content"
+    val pekkoBackendStub = PekkoHttpBackend.stub.whenAnyRequest.thenRespond(RawStream(Source(ByteString(expectedResponse))))
+    val client = new OpenAI(authToken = "test-token")
+    val givenRequest = SpeechRequestBody(
+      model = "tts-1",
+      input = "Hello, my name is John.",
+      voice = Voice.Alloy
+    )
+    // when
+    val response = client
+      .createSpeech(givenRequest)
+      .send(pekkoBackendStub)
+      .map(_.body.value)
+      .flatMap(_.runWith(Sink.seq))
+    // then
+    response.map(_ shouldBe expectedResponse.getBytes.toSeq)
+  }
 
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
