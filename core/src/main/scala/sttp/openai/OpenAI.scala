@@ -33,7 +33,7 @@ import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
 import sttp.openai.requests.images.variations.ImageVariationsConfig
-import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
 import sttp.openai.requests.threads.QueryParameters
@@ -81,6 +81,21 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .get(openAIUris.model(modelId))
       .response(asJson_parseErrors[ModelData])
+
+  /** Delete a fine-tuned model. You must have the Owner role in your organization to delete a model.
+    *
+    * [[https://platform.openai.com/docs/api-reference/models/delete]]
+    *
+    * @param modelId
+    *   The model to delete
+    *
+    * @return
+    *   Deletion status.
+    */
+  def deleteModel(modelId: String): Request[Either[OpenAIException, DeletedModelData]] =
+    openAIAuthRequest
+      .delete(openAIUris.model(modelId))
+      .response(asJson_parseErrors[DeletedModelData])
 
   /** Creates a completion for the provided prompt and parameters given in request body.
     *

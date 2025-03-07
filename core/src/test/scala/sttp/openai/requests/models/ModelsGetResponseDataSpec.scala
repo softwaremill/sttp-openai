@@ -4,11 +4,31 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
+import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.models.ModelsResponseData.ModelsResponse._
-import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelPermission, ModelsResponse}
+import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelPermission, ModelsResponse}
 import sttp.openai.utils.JsonUtils
 
 class ModelsGetResponseDataSpec extends AnyFlatSpec with Matchers with EitherValues {
+
+  "Given deleted model response as Json" should "be properly deserialized to case class" in {
+    import ModelsResponseData.DeletedModelData._
+    // given
+    val response: String = """{
+                             |  "id": "ft:gpt-4o-mini:acemeco:suffix:abc123",
+                             |  "object": "model",
+                             |  "deleted": true
+                             |}""".stripMargin
+    val expectedResponse: DeletedModelData = DeletedModelData(
+      id = "ft:gpt-4o-mini:acemeco:suffix:abc123",
+      `object` = "model",
+      deleted = true
+    )
+    // when
+    val givenResponse: Either[Exception, DeletedModelData] = SttpUpickleApiExtension.deserializeJsonSnake[DeletedModelData].apply(response)
+    // then
+    givenResponse.value shouldBe expectedResponse
+  }
 
   "Given models response as Json" should "be properly deserialized to case class" in {
 
