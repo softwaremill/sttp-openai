@@ -13,8 +13,22 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 
 import java.io.InputStream
 import ox.flow.Flow
+import sttp.openai.requests.audio.speech.SpeechRequestBody
 
 extension (client: OpenAI)
+  /** Generates audio from the input text.
+    *
+    * [[https://platform.openai.com/docs/api-reference/audio/createSpeech]]
+    *
+    * @param requestBody
+    *   Request body that will be used to create a speech.
+    *
+    * @return
+    *   The audio file content.
+    */
+  def createSpeech(requestBody: SpeechRequestBody): Request[Either[OpenAIException, InputStream]] =
+    client.createSpeechAsInputStream(requestBody)
+
   /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody.
     *
     * The request will complete and the connection close only once the returned [[Flow]] is fully consumed.

@@ -30,7 +30,7 @@ import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
 import sttp.openai.requests.images.variations.ImageVariationsConfig
-import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
 import sttp.openai.requests.threads.QueryParameters
@@ -79,6 +79,19 @@ class OpenAISyncClient private (
     */
   def retrieveModel(modelId: String): ModelData =
     sendOrThrow(openAI.retrieveModel(modelId))
+
+  /** Delete a fine-tuned model. You must have the Owner role in your organization to delete a model.
+    *
+    * [[https://platform.openai.com/docs/api-reference/models/delete]]
+    *
+    * @param modelId
+    *   The model to delete
+    *
+    * @return
+    *   Deletion status.
+    */
+  def deleteModel(modelId: String): DeletedModelData =
+    sendOrThrow(openAI.deleteModel(modelId))
 
   /** Creates a completion for the provided prompt and parameters given in request body.
     *

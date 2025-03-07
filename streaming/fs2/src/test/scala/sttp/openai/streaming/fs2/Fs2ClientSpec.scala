@@ -1,11 +1,11 @@
 package sttp.openai.streaming.fs2
 
+import cats.effect.IO
+import cats.effect.testing.scalatest.AsyncIOSpec
+import fs2.{text, Stream}
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AsyncFlatSpec
-import cats.effect.testing.scalatest.AsyncIOSpec
 import org.scalatest.matchers.should.Matchers
-import cats.effect.IO
-import fs2.{text, Stream}
 import sttp.client4.httpclient.fs2.HttpClientFs2Backend
 import sttp.client4.testing.RawStream
 import sttp.model.sse.ServerSentEvent
@@ -13,12 +13,35 @@ import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
+import sttp.openai.requests.audio.speech.SpeechModel.TTS1
+import sttp.openai.requests.audio.speech.{SpeechRequestBody, Voice}
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
 import sttp.openai.utils.JsonUtils.compactJson
 
 class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with EitherValues {
+  "Creating speech" should "return byte stream" in {
+    // given
+    val expectedResponse = "audio content"
+    val streamedResponse = Stream.emit(expectedResponse).through(text.utf8.encode).covary[IO]
+    val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(RawStream(streamedResponse))
+    val client = new OpenAI(authToken = "test-token")
+    val givenRequest = SpeechRequestBody(
+      model = TTS1,
+      input = "Hello, my name is John.",
+      voice = Voice.Alloy
+    )
+    // when
+    val response = client
+      .createSpeech[IO](givenRequest)
+      .send(fs2BackendStub)
+      .map(_.body.value)
+      .flatMap(_.compile.toList)
+    // then
+    response.asserting(_ shouldBe expectedResponse.getBytes.toSeq)
+  }
+
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
