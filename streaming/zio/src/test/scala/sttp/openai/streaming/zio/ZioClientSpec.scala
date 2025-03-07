@@ -9,6 +9,7 @@ import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
+import sttp.openai.requests.audio.speech.SpeechModel.TTS1
 import sttp.openai.requests.audio.speech.{SpeechRequestBody, Voice}
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
@@ -28,7 +29,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(RawStream(streamedResponse))
     val client = new OpenAI(authToken = "test-token")
     val givenRequest = SpeechRequestBody(
-      model = "tts-1",
+      model = TTS1,
       input = "Hello, my name is John.",
       voice = Voice.Alloy
     )

@@ -5,13 +5,14 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.AudioFixture
 import sttp.openai.json.SnakePickle
+import sttp.openai.requests.audio.speech.SpeechModel.TTS1
 
 class SpeechDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given create fine tuning job request as case class" should "be properly serialized to Json" in {
     // given
     val givenRequest = SpeechRequestBody(
-      model = "tts-1",
+      model = TTS1,
       input = "Hello, my name is John.",
       voice = Voice.Alloy,
       responseFormat = Some(ResponseFormat.Mp3),

@@ -18,7 +18,7 @@ import sttp.openai.json.SnakePickle
   *   The speed of the generated audio. Select a value from 0.25 to 4.0. 1.0 is the default.
   */
 case class SpeechRequestBody(
-    model: String,
+    model: SpeechModel,
     input: String,
     voice: Voice,
     responseFormat: Option[ResponseFormat] = None,
