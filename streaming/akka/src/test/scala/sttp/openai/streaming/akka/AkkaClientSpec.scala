@@ -145,10 +145,7 @@ class AkkaClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
     val response = client
       .createStreamedChatCompletion(givenRequest)
       .send(akkaBackendStub)
-//      .map(_.body.value)
-      .map { value =>
-        value.body.value
-      }
+      .map(_.body.value)
       .flatMap(_.runWith(Sink.seq))
 
     // then

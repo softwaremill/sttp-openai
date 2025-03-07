@@ -9,6 +9,7 @@ import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.json.SttpUpickleApiExtension.deserializeJsonSnake
+import sttp.openai.requests.audio.speech.SpeechRequestBody
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 
@@ -16,6 +17,21 @@ package object fs2 {
   import ChatChunkResponse.DoneEvent
 
   implicit class extension(val client: OpenAI) {
+
+    /** Generates audio from the input text.
+      *
+      * [[https://platform.openai.com/docs/api-reference/audio/createSpeech]]
+      *
+      * @param requestBody
+      *   Request body that will be used to create a speech.
+      *
+      * @return
+      *   The audio file content.
+      */
+    def createSpeech[F[_]: RaiseThrowable](
+        requestBody: SpeechRequestBody
+    ): StreamRequest[Either[OpenAIException, Stream[F, Byte]], Fs2Streams[F]] =
+      client.createSpeechAsBinaryStream(Fs2Streams[F], requestBody)
 
     /** Creates and streams a model response as chunk objects for the given chat conversation defined in chatBody. The request will complete
       * and the connection close only once the source is fully consumed.
