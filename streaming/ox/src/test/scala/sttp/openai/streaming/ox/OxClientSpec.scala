@@ -11,6 +11,7 @@ import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle.*
+import sttp.openai.requests.audio.speech.SpeechModel.TTS1
 import sttp.openai.requests.audio.speech.{SpeechRequestBody, Voice}
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
@@ -28,7 +29,7 @@ class OxClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       val stub = DefaultSyncBackend.stub.whenAnyRequest.thenRespond(streamedResponse)
       val client = new OpenAI(authToken = "test-token")
       val givenRequest = SpeechRequestBody(
-        model = "tts-1",
+        model = TTS1,
         input = "Hello, my name is John.",
         voice = Voice.Alloy
       )
