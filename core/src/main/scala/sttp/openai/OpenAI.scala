@@ -530,6 +530,22 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .body(requestBody)
       .response(asStreamUnsafe_parseErrors(s))
 
+  /** Generates audio from the input text.
+    *
+    * [[https://platform.openai.com/docs/api-reference/audio/createSpeech]]
+    *
+    * @param requestBody
+    *   Request body that will be used to create a speech.
+    *
+    * @return
+    *   The audio file content.
+    */
+  def createSpeechAsInputStream(requestBody: SpeechRequestBody): Request[Either[OpenAIException, InputStream]] =
+    openAIAuthRequest
+      .post(openAIUris.Speech)
+      .body(requestBody)
+      .response(asInputStreamUnsafe_parseErrors)
+
   /** Translates audio into English text.
     *
     * [[https://platform.openai.com/docs/api-reference/audio/create]]
