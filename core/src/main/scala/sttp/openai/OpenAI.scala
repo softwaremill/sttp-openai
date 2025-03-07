@@ -10,6 +10,7 @@ import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBod
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.RecognitionModel
+import sttp.openai.requests.audio.speech.SpeechRequestBody
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
 import sttp.openai.requests.batch.{QueryParameters => _, _}
@@ -507,6 +508,27 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .get(openAIUris.fileContent(fileId))
       .response(asStringEither)
+
+  /** Generates audio from the input text.
+    *
+    * [[https://platform.openai.com/docs/api-reference/audio/createSpeech]]
+    *
+    * @param s
+    *   The streams implementation to use.
+    * @param requestBody
+    *   Request body that will be used to create a speech.
+    *
+    * @return
+    *   The audio file content.
+    */
+  def createSpeechAsBinaryStream[S](
+      s: Streams[S],
+      requestBody: SpeechRequestBody
+  ): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
+    openAIAuthRequest
+      .post(openAIUris.Speech)
+      .body(requestBody)
+      .response(asStreamUnsafe_parseErrors(s))
 
   /** Translates audio into English text.
     *
@@ -1467,6 +1489,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val AdminApiKeys: Uri = uri"$baseUri/organization/admin_api_keys"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
+  val Speech: Uri = audioBase.addPath("speech")
   val VariationsImage: Uri = imageBase.addPath("variations")
 
   val Assistants: Uri = uri"$baseUri/assistants"
