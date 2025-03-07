@@ -4,6 +4,16 @@ import sttp.openai.json.SnakePickle
 
 object ModelsResponseData {
 
+  case class DeletedModelData(
+      id: String,
+      `object`: String,
+      deleted: Boolean
+  )
+
+  object DeletedModelData {
+    implicit val deletedModelDataR: SnakePickle.Reader[DeletedModelData] = SnakePickle.macroR[DeletedModelData]
+  }
+
   case class ModelData(
       id: String,
       `object`: String,

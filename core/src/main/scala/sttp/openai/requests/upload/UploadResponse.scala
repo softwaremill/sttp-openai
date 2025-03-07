@@ -32,14 +32,14 @@ case class UploadResponse(
     purpose: String,
     status: String,
     expiresAt: Int,
-    file: Option[File]
+    file: Option[FileMetadata]
 )
 
 object UploadResponse {
   implicit val uploadResponseR: SnakePickle.Reader[UploadResponse] = SnakePickle.macroR[UploadResponse]
 }
 
-case class File(
+case class FileMetadata(
     id: String,
     `object`: String,
     bytes: Int,
@@ -48,8 +48,8 @@ case class File(
     purpose: String
 )
 
-object File {
-  implicit val fileR: SnakePickle.Reader[File] = SnakePickle.macroR[File]
+object FileMetadata {
+  implicit val fileR: SnakePickle.Reader[FileMetadata] = SnakePickle.macroR[FileMetadata]
 }
 
 /** Represents the response for an upload part.
