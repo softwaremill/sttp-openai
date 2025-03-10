@@ -1,6 +1,5 @@
 package sttp.openai.requests.moderations
 
-import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.json.SnakePickle
 import ujson.Str
 object ModerationsRequestBody {
@@ -25,7 +24,7 @@ object ModerationsRequestBody {
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
               byModerationModelValue.getOrElse(value, CustomModerationModel(value))
-            case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
+            case e => throw new Exception(s"Could not deserialize: $e")
           }
       )
 

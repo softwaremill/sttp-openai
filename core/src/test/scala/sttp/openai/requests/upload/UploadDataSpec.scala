@@ -4,7 +4,8 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.UploadFixture
-import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.json.SnakePickle
+import sttp.openai.utils.JsonUtils
 
 class UploadDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -60,7 +61,7 @@ class UploadDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val deserializedJsonResponse: Either[Exception, UploadResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[UploadResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[UploadResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }
@@ -75,7 +76,7 @@ class UploadDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val deserializedJsonResponse: Either[Exception, UploadPartResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[UploadPartResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[UploadPartResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }

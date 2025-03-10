@@ -4,8 +4,9 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.BatchFixture
-import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse, ListBatchResponse}
+import sttp.openai.utils.JsonUtils
 
 class BatchDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -30,7 +31,7 @@ class BatchDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val expectedResponse: BatchResponse = BatchFixture.batchResponse
     // when
     val deserializedJsonResponse: Either[Exception, BatchResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[BatchResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[BatchResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }
@@ -46,7 +47,7 @@ class BatchDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val deserializedJsonResponse: Either[Exception, ListBatchResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[ListBatchResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[ListBatchResponse].apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse

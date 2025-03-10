@@ -4,7 +4,6 @@ import io.circe.syntax._
 import io.circe.{DecodingFailure, Json, JsonNumber, JsonObject}
 import sttp.apispec.Schema
 import sttp.apispec.circe._
-import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.Stop
 import sttp.openai.requests.completions.chat.message.{Message, Tool, ToolChoice}
@@ -405,7 +404,7 @@ object ChatRequestBody {
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
               byChatModelValue.getOrElse(value, CustomChatCompletionModel(value))
-            case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
+            case e => throw new Exception(s"Could not deserialize: $e")
           }
       )
 
