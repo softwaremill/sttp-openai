@@ -10,6 +10,7 @@ import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBod
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.RecognitionModel
+import sttp.openai.requests.audio.speech.SpeechRequestBody
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
 import sttp.openai.requests.batch.{QueryParameters => _, _}
@@ -32,7 +33,7 @@ import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
 import sttp.openai.requests.images.variations.ImageVariationsConfig
-import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
 import sttp.openai.requests.threads.QueryParameters
@@ -80,6 +81,21 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .get(openAIUris.model(modelId))
       .response(asJson_parseErrors[ModelData])
+
+  /** Delete a fine-tuned model. You must have the Owner role in your organization to delete a model.
+    *
+    * [[https://platform.openai.com/docs/api-reference/models/delete]]
+    *
+    * @param modelId
+    *   The model to delete
+    *
+    * @return
+    *   Deletion status.
+    */
+  def deleteModel(modelId: String): Request[Either[OpenAIException, DeletedModelData]] =
+    openAIAuthRequest
+      .delete(openAIUris.model(modelId))
+      .response(asJson_parseErrors[DeletedModelData])
 
   /** Creates a completion for the provided prompt and parameters given in request body.
     *
@@ -507,6 +523,43 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .get(openAIUris.fileContent(fileId))
       .response(asStringEither)
+
+  /** Generates audio from the input text.
+    *
+    * [[https://platform.openai.com/docs/api-reference/audio/createSpeech]]
+    *
+    * @param s
+    *   The streams implementation to use.
+    * @param requestBody
+    *   Request body that will be used to create a speech.
+    *
+    * @return
+    *   The audio file content.
+    */
+  def createSpeechAsBinaryStream[S](
+      s: Streams[S],
+      requestBody: SpeechRequestBody
+  ): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
+    openAIAuthRequest
+      .post(openAIUris.Speech)
+      .body(asJson(requestBody))
+      .response(asStreamUnsafe_parseErrors(s))
+
+  /** Generates audio from the input text.
+    *
+    * [[https://platform.openai.com/docs/api-reference/audio/createSpeech]]
+    *
+    * @param requestBody
+    *   Request body that will be used to create a speech.
+    *
+    * @return
+    *   The audio file content.
+    */
+  def createSpeechAsInputStream(requestBody: SpeechRequestBody): Request[Either[OpenAIException, InputStream]] =
+    openAIAuthRequest
+      .post(openAIUris.Speech)
+      .body(asJson(requestBody))
+      .response(asInputStreamUnsafe_parseErrors)
 
   /** Translates audio into English text.
     *
@@ -1467,6 +1520,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val AdminApiKeys: Uri = uri"$baseUri/organization/admin_api_keys"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
+  val Speech: Uri = audioBase.addPath("speech")
   val VariationsImage: Uri = imageBase.addPath("variations")
 
   val Assistants: Uri = uri"$baseUri/assistants"

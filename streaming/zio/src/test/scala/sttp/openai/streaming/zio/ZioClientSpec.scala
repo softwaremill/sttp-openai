@@ -9,6 +9,8 @@ import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle._
+import sttp.openai.requests.audio.speech.SpeechModel.TTS1
+import sttp.openai.requests.audio.speech.{SpeechRequestBody, Voice}
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
@@ -19,6 +21,28 @@ import zio.stream._
 
 class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
   private val runtime: Runtime[Any] = Runtime.default
+
+  "Creating speech" should "return byte stream" in {
+    // given
+    val expectedResponse = "audio content"
+    val streamedResponse = ZStream(expectedResponse).via(ZPipeline.utf8Encode)
+    val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(ResponseStub.adjust(streamedResponse))
+    val client = new OpenAI(authToken = "test-token")
+    val givenRequest = SpeechRequestBody(
+      model = TTS1,
+      input = "Hello, my name is John.",
+      voice = Voice.Alloy
+    )
+    // when
+    val responseEffect = client
+      .createSpeech(givenRequest)
+      .send(zioBackendStub)
+      .map(_.body.value)
+      .flatMap(_.runCollect)
+    val response = unsafeRun(responseEffect)
+    // then
+    response.toList shouldBe expectedResponse.getBytes.toSeq
+  }
 
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {

@@ -49,7 +49,7 @@ class UploadDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       status = "completed",
       expiresAt = 1719127296,
       file = Some(
-        File(
+        FileMetadata(
           id = "file-xyz321",
           bytes = 1147483648,
           createdAt = 1719186911,
