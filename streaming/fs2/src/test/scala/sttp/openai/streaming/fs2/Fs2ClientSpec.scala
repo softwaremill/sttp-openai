@@ -25,7 +25,7 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
     // given
     val expectedResponse = "audio content"
     val streamedResponse = Stream.emit(expectedResponse).through(text.utf8.encode).covary[IO]
-    val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(RawStream(streamedResponse))
+    val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(ResponseStub.adjust(streamedResponse))
     val client = new OpenAI(authToken = "test-token")
     val givenRequest = SpeechRequestBody(
       model = TTS1,

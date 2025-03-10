@@ -26,7 +26,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     // given
     val expectedResponse = "audio content"
     val streamedResponse = ZStream(expectedResponse).via(ZPipeline.utf8Encode)
-    val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(RawStream(streamedResponse))
+    val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(ResponseStub.adjust(streamedResponse))
     val client = new OpenAI(authToken = "test-token")
     val givenRequest = SpeechRequestBody(
       model = TTS1,

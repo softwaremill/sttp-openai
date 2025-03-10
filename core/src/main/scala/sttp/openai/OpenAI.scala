@@ -542,7 +542,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   ): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
     openAIAuthRequest
       .post(openAIUris.Speech)
-      .body(requestBody)
+      .body(asJson(requestBody))
       .response(asStreamUnsafe_parseErrors(s))
 
   /** Generates audio from the input text.
@@ -558,7 +558,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createSpeechAsInputStream(requestBody: SpeechRequestBody): Request[Either[OpenAIException, InputStream]] =
     openAIAuthRequest
       .post(openAIUris.Speech)
-      .body(requestBody)
+      .body(asJson(requestBody))
       .response(asInputStreamUnsafe_parseErrors)
 
   /** Translates audio into English text.

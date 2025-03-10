@@ -27,7 +27,7 @@ class PekkoClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
   "Creating speech" should "return byte stream" in {
     // given
     val expectedResponse = "audio content"
-    val pekkoBackendStub = PekkoHttpBackend.stub.whenAnyRequest.thenRespond(RawStream(Source(ByteString(expectedResponse))))
+    val pekkoBackendStub = PekkoHttpBackend.stub.whenAnyRequest.thenRespond(ResponseStub.adjust(Source(ByteString(expectedResponse))))
     val client = new OpenAI(authToken = "test-token")
     val givenRequest = SpeechRequestBody(
       model = TTS1,

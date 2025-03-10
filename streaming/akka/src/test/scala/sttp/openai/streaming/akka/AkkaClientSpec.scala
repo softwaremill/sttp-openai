@@ -27,7 +27,7 @@ class AkkaClientSpec extends AsyncFlatSpec with Matchers with EitherValues {
   "Creating speech" should "return byte stream" in {
     // given
     val expectedResponse = "audio content"
-    val akkaBackendStub = AkkaHttpBackend.stub.whenAnyRequest.thenRespond(RawStream(Source(ByteString(expectedResponse))))
+    val akkaBackendStub = AkkaHttpBackend.stub.whenAnyRequest.thenRespond(ResponseStub.adjust(Source(ByteString(expectedResponse))))
     val client = new OpenAI(authToken = "test-token")
     val givenRequest = SpeechRequestBody(
       model = TTS1,
