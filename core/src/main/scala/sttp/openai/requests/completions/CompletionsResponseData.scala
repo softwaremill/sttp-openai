@@ -7,8 +7,8 @@ object CompletionsResponseData {
   case class Choices(
       text: String,
       index: Int,
-      logprobs: Option[String],
-      finishReason: String
+      finishReason: String,
+      logprobs: Option[String] = None
   )
   object Choices {
     implicit val choicesR: SnakePickle.Reader[Choices] = SnakePickle.macroR[Choices]
