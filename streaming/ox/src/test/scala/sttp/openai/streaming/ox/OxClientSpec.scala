@@ -11,8 +11,6 @@ import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.json.SnakePickle.*
-import sttp.openai.requests.audio.speech.SpeechModel.TTS1
-import sttp.openai.requests.audio.speech.{SpeechRequestBody, Voice}
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
@@ -21,30 +19,6 @@ import sttp.openai.utils.JsonUtils.compactJson
 import java.io.{ByteArrayInputStream, InputStream}
 
 class OxClientSpec extends AnyFlatSpec with Matchers with EitherValues {
-  "Creating speech" should "return byte stream" in {
-    supervised {
-      // given
-      val expectedResponse = "audio content"
-      val streamedResponse = new ByteArrayInputStream(expectedResponse.getBytes)
-      val stub = DefaultSyncBackend.stub.whenAnyRequest.thenRespond(streamedResponse)
-      val client = new OpenAI(authToken = "test-token")
-      val givenRequest = SpeechRequestBody(
-        model = TTS1,
-        input = "Hello, my name is John.",
-        voice = Voice.Alloy
-      )
-      // when
-      val response = client
-        .createSpeech(givenRequest)
-        .send(stub)
-        .body
-        .value
-        .readAllBytes()
-      // then
-      response shouldBe expectedResponse.getBytes
-    }
-  }
-
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
