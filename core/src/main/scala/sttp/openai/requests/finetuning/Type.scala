@@ -1,6 +1,5 @@
 package sttp.openai.requests.finetuning
 
-import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.json.SnakePickle
 import ujson.Str
 
@@ -16,9 +15,9 @@ object Type {
           case Str(value) =>
             byTypeValue.get(value) match {
               case Some(t) => t
-              case None    => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $value"))
+              case None    => throw new Exception(s"Could not deserialize: $value")
             }
-          case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
+          case e => throw new Exception(s"Could not deserialize: $e")
         }
     )
 }

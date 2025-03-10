@@ -6,11 +6,10 @@ import org.scalatest.matchers.should.Matchers
 import sttp.client4.IsOption._
 import sttp.openai.fixtures
 import sttp.openai.json.SnakePickle
-import sttp.openai.json.SttpUpickleApiExtension
-import sttp.openai.requests.completions.chat.message.Tool.CodeInterpreterTool
-import sttp.openai.requests.completions.chat.message.Tool.FileSearchTool
+import sttp.openai.requests.completions.chat.message.Tool.{CodeInterpreterTool, FileSearchTool}
 import sttp.openai.requests.completions.chat.message.ToolResource.FileSearchToolResource
 import sttp.openai.requests.completions.chat.message.ToolResources
+import sttp.openai.utils.JsonUtils
 
 class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -57,7 +56,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, AssistantData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, AssistantData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     val json = givenResponse.value
@@ -116,7 +115,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, ListAssistantsResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, ListAssistantsResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -174,7 +173,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, ListAssistantsResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, ListAssistantsResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -202,7 +201,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, AssistantData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, AssistantData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -253,7 +252,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, AssistantData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, AssistantData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -272,7 +271,7 @@ class AssistantsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, DeleteAssistantResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, DeleteAssistantResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

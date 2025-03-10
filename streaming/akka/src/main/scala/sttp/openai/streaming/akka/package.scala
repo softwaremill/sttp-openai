@@ -4,13 +4,14 @@ import _root_.akka.stream.scaladsl.{Flow, Source}
 import _root_.akka.util.ByteString
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client4.StreamRequest
+import sttp.client4.akkahttp.AkkaHttpServerSentEvents
+import sttp.model.ResponseMetadata
 import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.json.SttpUpickleApiExtension.deserializeJsonSnake
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.client4.akkahttp.AkkaHttpServerSentEvents
 
 package object akka {
   import ChatChunkResponse.DoneEvent
@@ -27,25 +28,28 @@ package object akka {
       */
     def createStreamedChatCompletion(
         chatBody: ChatBody
-    ): StreamRequest[Either[OpenAIException, Source[ChatChunkResponse, Any]], AkkaStreams] =
-      client
+    ): StreamRequest[Either[OpenAIException, Source[ChatChunkResponse, Any]], AkkaStreams] = {
+      val request = client
         .createChatCompletionAsBinaryStream(AkkaStreams, chatBody)
-        .mapResponse(mapEventToResponse)
+
+      request.response(request.response.mapWithMetadata(mapEventToResponse))
+    }
   }
 
   private def mapEventToResponse(
-      response: Either[OpenAIException, Source[ByteString, Any]]
+      response: Either[OpenAIException, Source[ByteString, Any]],
+      metadata: ResponseMetadata
   ): Either[OpenAIException, Source[ChatChunkResponse, Any]] =
     response.map(
       _.via(AkkaHttpServerSentEvents.parse)
-        .via(deserializeEvent)
+        .via(deserializeEvent(metadata))
     )
 
-  private def deserializeEvent: Flow[ServerSentEvent, ChatChunkResponse, Any] =
+  private def deserializeEvent(metadata: ResponseMetadata): Flow[ServerSentEvent, ChatChunkResponse, Any] =
     Flow[ServerSentEvent]
       .takeWhile(_ != DoneEvent)
       .collect { case ServerSentEvent(Some(data), _, _, _) =>
-        deserializeJsonSnake[ChatChunkResponse].apply(data) match {
+        deserializeJsonSnake[ChatChunkResponse].apply(data, metadata) match {
           case Left(exception) => throw exception
           case Right(value)    => value
         }

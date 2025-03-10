@@ -4,7 +4,7 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.client4.httpclient.zio.HttpClientZioBackend
-import sttp.client4.testing.RawStream
+import sttp.client4.testing.ResponseStub
 import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.fixtures.ErrorFixture
@@ -23,7 +23,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
-      val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespondWithCode(statusCode, ErrorFixture.errorResponse)
+      val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespondAdjust(ErrorFixture.errorResponse, statusCode)
       val client = new OpenAI("test-token")
 
       val givenRequest = ChatBody(
@@ -42,7 +42,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       // then
       caught.getClass shouldBe expectedError.getClass
       caught.message shouldBe expectedError.message
-      caught.cause shouldBe expectedError.cause
+      caught.cause.getClass shouldBe expectedError.cause.getClass
       caught.code shouldBe expectedError.code
       caught.param shouldBe expectedError.param
       caught.`type` shouldBe expectedError.`type`
@@ -57,7 +57,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       .succeed(invalidEvent.toString)
       .via(ZPipeline.utf8Encode)
 
-    val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(RawStream(streamedResponse))
+    val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(ResponseStub.adjust(streamedResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
@@ -113,7 +113,7 @@ class ZioClientSpec extends AnyFlatSpec with Matchers with EitherValues {
   }
 
   private def assertStreamedCompletion(givenResponse: Stream[Throwable, Byte], expectedResponse: Seq[ChatChunkResponse]) = {
-    val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(RawStream(givenResponse))
+    val zioBackendStub = HttpClientZioBackend.stub.whenAnyRequest.thenRespond(ResponseStub.adjust(givenResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(

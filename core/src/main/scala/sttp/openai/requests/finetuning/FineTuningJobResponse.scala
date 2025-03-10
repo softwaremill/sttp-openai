@@ -1,6 +1,5 @@
 package sttp.openai.requests.finetuning
 
-import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.json.SnakePickle
 import ujson.Str
 
@@ -97,7 +96,7 @@ object Status {
     .map[Status](jsonValue =>
       SnakePickle.read[ujson.Value](jsonValue) match {
         case Str(value) => byStatusValue.getOrElse(value, CustomStatus(value))
-        case e          => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
+        case e          => throw new Exception(s"Could not deserialize: $e")
       }
     )
 

@@ -4,9 +4,9 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationModel
 import sttp.openai.requests.moderations.ModerationsResponseData._
+import sttp.openai.utils.JsonUtils
 
 class ModerationsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given create moderation response as Json" should "be properly deserialized to case class" in {
@@ -41,7 +41,7 @@ class ModerationsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val givenResponse: Either[Exception, ModerationData] =
-      SttpUpickleApiExtension.deserializeJsonSnake[ModerationData].apply(createModerationResponse)
+      JsonUtils.deserializeJsonSnake[ModerationData].apply(createModerationResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -51,7 +51,7 @@ class ModerationsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val createModerationResponse = fixtures.ModerationsFixture.jsonCreateModerationResponseUnknownModel
     // when
     val givenResponse: Either[Exception, ModerationData] =
-      SttpUpickleApiExtension.deserializeJsonSnake[ModerationData].apply(createModerationResponse)
+      JsonUtils.deserializeJsonSnake[ModerationData].apply(createModerationResponse)
 
     // then
     givenResponse.value.model shouldBe ModerationModel.CustomModerationModel("text-moderation-007")

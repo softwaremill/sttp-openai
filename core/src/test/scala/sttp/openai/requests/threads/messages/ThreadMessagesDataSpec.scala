@@ -4,10 +4,11 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.message.Attachment
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.Content.{TextContent, TextContentValue}
 import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
+import sttp.openai.utils.JsonUtils
 
 class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -55,7 +56,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
     )
 
     // when
-    val givenResponse: Either[Exception, MessageData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, MessageData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -115,7 +116,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
     )
 
     // when
-    val givenResponse: Either[Exception, ListMessagesResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, ListMessagesResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -147,7 +148,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
     )
 
     // when
-    val givenResponse: Either[Exception, MessageData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, MessageData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -182,7 +183,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
     )
 
     // when
-    val givenResponse: Either[Exception, MessageData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, MessageData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -198,7 +199,7 @@ class ThreadMessagesDataSpec extends AnyFlatSpec with Matchers with EitherValues
     )
 
     // when
-    val givenResponse: Either[Exception, DeleteMessageResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, DeleteMessageResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

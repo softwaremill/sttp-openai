@@ -1,16 +1,17 @@
 package sttp.openai.streaming
 
+import _root_.zio.ZIO
+import _root_.zio.stream._
+import sttp.capabilities.zio.ZioStreams
 import sttp.client4.StreamRequest
+import sttp.client4.impl.zio.ZioServerSentEvents
+import sttp.model.ResponseMetadata
 import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.json.SttpUpickleApiExtension.deserializeJsonSnake
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import _root_.zio.stream._
-import _root_.zio.ZIO
-import sttp.capabilities.zio.ZioStreams
-import sttp.client4.impl.zio.ZioServerSentEvents
 
 package object zio {
   import ChatChunkResponse.DoneEvent
@@ -27,23 +28,25 @@ package object zio {
       */
     def createStreamedChatCompletion(
         chatBody: ChatBody
-    ): StreamRequest[Either[OpenAIException, Stream[Throwable, ChatChunkResponse]], ZioStreams] =
-      client
+    ): StreamRequest[Either[OpenAIException, Stream[Throwable, ChatChunkResponse]], ZioStreams] = {
+      val request = client
         .createChatCompletionAsBinaryStream(ZioStreams, chatBody)
-        .mapResponse(mapEventToResponse)
+      request.response(request.response.mapWithMetadata(mapEventToResponse))
+    }
   }
 
   private def mapEventToResponse(
-      response: Either[OpenAIException, Stream[Throwable, Byte]]
+      response: Either[OpenAIException, Stream[Throwable, Byte]],
+      metadata: ResponseMetadata
   ): Either[OpenAIException, Stream[Throwable, ChatChunkResponse]] =
     response.map(
       _.viaFunction(ZioServerSentEvents.parse)
-        .viaFunction(deserializeEvent)
+        .viaFunction(deserializeEvent(metadata))
     )
 
-  private def deserializeEvent: ZioStreams.Pipe[ServerSentEvent, ChatChunkResponse] =
+  private def deserializeEvent(metadata: ResponseMetadata): ZioStreams.Pipe[ServerSentEvent, ChatChunkResponse] =
     _.takeWhile(_ != DoneEvent)
       .collectZIO { case ServerSentEvent(Some(data), _, _, _) =>
-        ZIO.fromEither(deserializeJsonSnake[ChatChunkResponse].apply(data))
+        ZIO.fromEither(deserializeJsonSnake[ChatChunkResponse].apply(data, metadata))
       }
 }

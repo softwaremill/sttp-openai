@@ -1,6 +1,7 @@
 package sttp.openai.fixtures
 
-import sttp.client4._
+import sttp.client4.ResponseException.UnexpectedStatusCode
+import sttp.client4.testing.ResponseStub
 import sttp.model.StatusCode
 import sttp.model.StatusCode._
 import sttp.openai.OpenAIExceptions.OpenAIException
@@ -23,39 +24,93 @@ object ErrorFixture {
   val testData: Seq[(StatusCode, OpenAIException)] = List(
     (
       TooManyRequests,
-      new RateLimitException(Some(message), Some(errorType), None, Some(code), HttpError(errorResponse, TooManyRequests))
+      new RateLimitException(
+        Some(message),
+        Some(errorType),
+        None,
+        Some(code),
+        UnexpectedStatusCode(errorResponse, ResponseStub.adjust(errorResponse, TooManyRequests))
+      )
     ),
     (
       BadRequest,
-      new InvalidRequestException(Some(message), Some(errorType), None, Some(code), HttpError(errorResponse, BadRequest))
+      new InvalidRequestException(
+        Some(message),
+        Some(errorType),
+        None,
+        Some(code),
+        UnexpectedStatusCode(errorResponse, ResponseStub.adjust(errorResponse, BadRequest))
+      )
     ),
     (
       NotFound,
-      new InvalidRequestException(Some(message), Some(errorType), None, Some(code), HttpError(errorResponse, NotFound))
+      new InvalidRequestException(
+        Some(message),
+        Some(errorType),
+        None,
+        Some(code),
+        UnexpectedStatusCode(errorResponse, ResponseStub.adjust(errorResponse, NotFound))
+      )
     ),
     (
       UnsupportedMediaType,
-      new InvalidRequestException(Some(message), Some(errorType), None, Some(code), HttpError(errorResponse, UnsupportedMediaType))
+      new InvalidRequestException(
+        Some(message),
+        Some(errorType),
+        None,
+        Some(code),
+        UnexpectedStatusCode(errorResponse, ResponseStub.adjust(errorResponse, UnsupportedMediaType))
+      )
     ),
     (
       Unauthorized,
-      new AuthenticationException(Some(message), Some(errorType), None, Some(code), HttpError(errorResponse, Unauthorized))
+      new AuthenticationException(
+        Some(message),
+        Some(errorType),
+        None,
+        Some(code),
+        UnexpectedStatusCode(errorResponse, ResponseStub.adjust(errorResponse, Unauthorized))
+      )
     ),
     (
       Forbidden,
-      new PermissionException(Some(message), Some(errorType), None, Some(code), HttpError(errorResponse, Forbidden))
+      new PermissionException(
+        Some(message),
+        Some(errorType),
+        None,
+        Some(code),
+        UnexpectedStatusCode(errorResponse, ResponseStub.adjust(errorResponse, Forbidden))
+      )
     ),
     (
       Conflict,
-      new TryAgain(Some(message), Some(errorType), None, Some(code), HttpError(errorResponse, Conflict))
+      new TryAgain(
+        Some(message),
+        Some(errorType),
+        None,
+        Some(code),
+        UnexpectedStatusCode(errorResponse, ResponseStub.adjust(errorResponse, Conflict))
+      )
     ),
     (
       ServiceUnavailable,
-      new ServiceUnavailableException(Some(message), Some(errorType), None, Some(code), HttpError(errorResponse, ServiceUnavailable))
+      new ServiceUnavailableException(
+        Some(message),
+        Some(errorType),
+        None,
+        Some(code),
+        UnexpectedStatusCode(errorResponse, ResponseStub.adjust(errorResponse, ServiceUnavailable))
+      )
     ),
     (
       Gone,
-      new APIException(Some(message), Some(errorType), None, Some(code), HttpError(errorResponse, Gone))
+      new APIException(
+        Some(message),
+        Some(errorType),
+        None,
+        Some(code),
+        UnexpectedStatusCode(errorResponse, ResponseStub.adjust(errorResponse, Gone))
+      )
     )
   )
 }

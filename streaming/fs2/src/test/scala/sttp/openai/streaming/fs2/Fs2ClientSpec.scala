@@ -1,13 +1,13 @@
 package sttp.openai.streaming.fs2
 
+import cats.effect.IO
+import cats.effect.testing.scalatest.AsyncIOSpec
+import fs2.{text, Stream}
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AsyncFlatSpec
-import cats.effect.testing.scalatest.AsyncIOSpec
 import org.scalatest.matchers.should.Matchers
-import cats.effect.IO
-import fs2.{text, Stream}
 import sttp.client4.httpclient.fs2.HttpClientFs2Backend
-import sttp.client4.testing.RawStream
+import sttp.client4.testing.ResponseStub
 import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
@@ -22,7 +22,7 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
-      val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespondWithCode(statusCode, ErrorFixture.errorResponse)
+      val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespondAdjust(ErrorFixture.errorResponse, statusCode)
       val client = new OpenAI("test-token")
 
       val givenRequest = ChatBody(
@@ -40,7 +40,7 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
       caught.asserting { c =>
         c.getClass shouldBe expectedError.getClass
         c.message shouldBe expectedError.message
-        c.cause shouldBe expectedError.cause
+        c.cause.getClass shouldBe expectedError.cause.getClass
         c.code shouldBe expectedError.code
         c.param shouldBe expectedError.param
         c.`type` shouldBe expectedError.`type`
@@ -57,7 +57,7 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
       .through(text.utf8.encode)
       .covary[IO]
 
-    val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(RawStream(streamedResponse))
+    val fs2BackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(ResponseStub.adjust(streamedResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
@@ -114,7 +114,7 @@ class Fs2ClientSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers with Ei
   }
 
   private def assertStreamedCompletion(givenResponse: Stream[IO, Byte], expectedResponse: Seq[ChatChunkResponse]) = {
-    val pekkoBackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(RawStream(givenResponse))
+    val pekkoBackendStub = HttpClientFs2Backend.stub[IO].whenAnyRequest.thenRespond(ResponseStub.adjust(givenResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(

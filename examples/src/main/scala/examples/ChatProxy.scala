@@ -22,7 +22,6 @@ import sttp.openai.streaming.ox.*
 import sttp.tapir.*
 import sttp.tapir.CodecFormat.*
 import sttp.tapir.server.netty.sync.{NettySyncServer, OxStreams}
-
 import ox.flow.Flow
 
 //
@@ -47,7 +46,7 @@ def chat(sttpBackend: SyncBackend, openAI: OpenAI): OxStreams.Pipe[ChatMessage, 
       incoming
         // main processing loop: receives messages from the WS and queries OpenAI with the chat's history
         .mapStateful(() => Vector.empty[Message]) { (history, nextMessage) =>
-          val nextHistory = history :+ Message.UserMessage(content = Content.TextContent(nextMessage.message))
+          val nextHistory = history.apply() :+ Message.UserMessage(content = Content.TextContent(nextMessage.message))
 
           // querying OpenAI with the entire chat history, as each request is stateless
           val chatRequestBody: ChatBody = ChatBody(
@@ -72,7 +71,7 @@ def chat(sttpBackend: SyncBackend, openAI: OpenAI): OxStreams.Pipe[ChatMessage, 
           val entireResponse = responseList.map(_.message).mkString
           val nextNextHistory = nextHistory :+ Message.AssistantMessage(content = entireResponse)
 
-          (nextNextHistory, ())
+          (() => nextNextHistory, ())
         }
         // when the outer flow is run, running the incoming flow as well; it doesn't produce any meaningful results
         // (apart from emitting responses to the outer flow), so discarding its result

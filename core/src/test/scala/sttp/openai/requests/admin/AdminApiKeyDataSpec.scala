@@ -4,7 +4,8 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.AdminFixture
-import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.json.SnakePickle
+import sttp.openai.utils.JsonUtils
 
 class AdminApiKeyDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given create admin api key request as case class" should "be properly serialized to Json" in {
@@ -25,7 +26,7 @@ class AdminApiKeyDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val expectedResponse: AdminApiKeyResponse = AdminFixture.adminApiKeyResponse
     // when
     val deserializedJsonResponse: Either[Exception, AdminApiKeyResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[AdminApiKeyResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[AdminApiKeyResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }
@@ -41,7 +42,7 @@ class AdminApiKeyDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val deserializedJsonResponse: Either[Exception, ListAdminApiKeyResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[ListAdminApiKeyResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[ListAdminApiKeyResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }
@@ -55,7 +56,7 @@ class AdminApiKeyDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val deserializedJsonResponse: Either[Exception, DeleteAdminApiKeyResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[DeleteAdminApiKeyResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[DeleteAdminApiKeyResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }

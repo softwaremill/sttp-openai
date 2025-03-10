@@ -4,8 +4,9 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.FineTuningJobFixture
-import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.finetuning.FineTuningModel.GPT35Turbo0125
+import sttp.openai.utils.JsonUtils
 import ujson.Str
 
 class FineTuningDataSpec extends AnyFlatSpec with Matchers with EitherValues {
@@ -73,7 +74,7 @@ class FineTuningDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val expectedResponse: FineTuningJobResponse = FineTuningJobFixture.fineTuningJobResponse
     // when
     val deserializedJsonResponse: Either[Exception, FineTuningJobResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[FineTuningJobResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[FineTuningJobResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }
@@ -87,7 +88,7 @@ class FineTuningDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val deserializedJsonResponse: Either[Exception, ListFineTuningJobResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[ListFineTuningJobResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[ListFineTuningJobResponse].apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
@@ -130,7 +131,7 @@ class FineTuningDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val deserializedJsonResponse: Either[Exception, ListFineTuningJobEventResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[ListFineTuningJobEventResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[ListFineTuningJobEventResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }
@@ -163,7 +164,7 @@ class FineTuningDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
     // when
     val deserializedJsonResponse: Either[Exception, ListFineTuningJobCheckpointResponse] =
-      SttpUpickleApiExtension.deserializeJsonSnake[ListFineTuningJobCheckpointResponse].apply(jsonResponse)
+      JsonUtils.deserializeJsonSnake[ListFineTuningJobCheckpointResponse].apply(jsonResponse)
     // then
     deserializedJsonResponse.value shouldBe expectedResponse
   }

@@ -4,6 +4,7 @@ import _root_.fs2.{Pipe, RaiseThrowable, Stream}
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.client4.StreamRequest
 import sttp.client4.impl.fs2.Fs2ServerSentEvents
+import sttp.model.ResponseMetadata
 import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException
@@ -26,24 +27,27 @@ package object fs2 {
       */
     def createStreamedChatCompletion[F[_]: RaiseThrowable](
         chatBody: ChatBody
-    ): StreamRequest[Either[OpenAIException, Stream[F, ChatChunkResponse]], Fs2Streams[F]] =
-      client
+    ): StreamRequest[Either[OpenAIException, Stream[F, ChatChunkResponse]], Fs2Streams[F]] = {
+      val request = client
         .createChatCompletionAsBinaryStream(Fs2Streams[F], chatBody)
-        .mapResponse(mapEventToResponse[F])
+
+      request.response(request.response.mapWithMetadata(mapEventToResponse[F]))
+    }
   }
 
   private def mapEventToResponse[F[_]: RaiseThrowable](
-      response: Either[OpenAIException, Stream[F, Byte]]
+      response: Either[OpenAIException, Stream[F, Byte]],
+      metadata: ResponseMetadata
   ): Either[OpenAIException, Stream[F, ChatChunkResponse]] =
     response.map(
       _.through(Fs2ServerSentEvents.parse)
-        .through(deserializeEvent)
+        .through(deserializeEvent(metadata))
         .rethrow
     )
 
-  private def deserializeEvent[F[_]]: Pipe[F, ServerSentEvent, Either[OpenAIException, ChatChunkResponse]] =
+  private def deserializeEvent[F[_]](metadata: ResponseMetadata): Pipe[F, ServerSentEvent, Either[Exception, ChatChunkResponse]] =
     _.takeWhile(_ != DoneEvent)
       .collect { case ServerSentEvent(Some(data), _, _, _) =>
-        deserializeJsonSnake[ChatChunkResponse].apply(data)
+        deserializeJsonSnake[ChatChunkResponse].apply(data, metadata)
       }
 }
