@@ -17,16 +17,23 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     // given
     val jsonResponse = fixtures.ChatChunkFixture.jsonResponse
 
-    val delta: Delta = Delta(
-      role = Some(Role.Assistant),
-      content = Some("  Hi"),
-      toolCalls = toolCalls
-    )
-
-    val choices: Choices = Choices(
-      delta = delta,
-      finishReason = Some("stop"),
-      index = 0
+    val choices = Seq(
+      Choices(
+        delta = Delta(
+          content = Some("...")
+        ),
+        finishReason = None,
+        index = 0
+      ),
+      Choices(
+        delta = Delta(
+          role = Some(Role.Assistant),
+          content = Some("  Hi"),
+          toolCalls = toolCalls
+        ),
+        finishReason = Some("stop"),
+        index = 1
+      )
     )
 
     val expectedResponse: ChatChunkResponse = ChatChunkResponse(
@@ -34,7 +41,7 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       `object` = "chat.completion",
       created = 1681725687,
       model = "gpt-3.5-turbo-0301",
-      choices = Seq(choices),
+      choices = choices,
       systemFingerprint = Some("systemFingerprint")
     )
 
