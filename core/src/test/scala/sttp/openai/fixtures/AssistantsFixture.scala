@@ -7,7 +7,10 @@ object AssistantsFixture {
       |  "instructions": "You are a personal math tutor. When asked a question, write and run Python code to answer the question.",
       |  "name": "Math Tutor",
       |  "tools": [{"type": "code_interpreter"}],
-      |  "model": "gpt-4"
+      |  "model": "gpt-4",
+      |  "reasoning_effort": "low",
+      |  "temperature": 1.0,
+      |  "top_p": 1.0
       |}""".stripMargin
 
   val jsonCreateAssistantResponse: String =
@@ -113,7 +116,10 @@ object AssistantsFixture {
       |     "file_search": {
       |        "vector_store_ids": ["vs_1", "vs_3"]
       |    }
-      |  }
+      |  },
+      |  "reasoning_effort": "low",
+      |  "temperature": 1.0,
+      |  "top_p": 1.0
       |}
       |""".stripMargin
 

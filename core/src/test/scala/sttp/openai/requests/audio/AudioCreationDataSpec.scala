@@ -4,7 +4,7 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.SttpUpickleApiExtension
+import sttp.openai.utils.JsonUtils
 
 class AudioCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given audio generation response as Json" should "be properly deserialized to case class" in {
@@ -19,7 +19,7 @@ class AudioCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     )
 
     // when
-    val deserializedJsonResponse = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val deserializedJsonResponse = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     deserializedJsonResponse.value shouldBe expectedResponse

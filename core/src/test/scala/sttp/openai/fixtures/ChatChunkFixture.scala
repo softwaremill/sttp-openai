@@ -119,6 +119,12 @@ object ChatChunkFixture {
       |  "system_fingerprint": "systemFingerprint",
       |  "choices": [
       |    {
+      |      "delta": { 
+      |        "content": "..." 
+      |      },
+      |      "index": 0
+      |    },
+      |    {
       |      "delta": {
       |        "role": "assistant",
       |        "content": "  Hi",
@@ -140,7 +146,7 @@ object ChatChunkFixture {
       |        ]
       |      },
       |      "finish_reason": "stop",
-      |      "index": 0
+      |      "index": 1
       |    }
       |  ]
       |}""".stripMargin

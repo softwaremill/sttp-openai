@@ -6,10 +6,10 @@ import org.scalatest.matchers.should.Matchers
 import sttp.client4.IsOption._
 import sttp.openai.fixtures
 import sttp.openai.json.SnakePickle
-import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.completions.chat.message.Attachment
 import sttp.openai.requests.completions.chat.message.Tool.{CodeInterpreterTool, FileSearchTool}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
+import sttp.openai.utils.JsonUtils
 class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given empty create thread request as case class" should "be properly serialized to Json" in {
@@ -123,7 +123,7 @@ class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, ThreadData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, ThreadData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -143,7 +143,7 @@ class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, ThreadData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, ThreadData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -162,7 +162,7 @@ class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, DeleteThreadResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, DeleteThreadResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

@@ -2,6 +2,13 @@ package sttp.openai.fixtures
 
 object ChatFixture {
 
+  val jsonUpdateRequest: String =
+    """{
+      | "metadata": {
+      |   "key": "value"
+      | }
+      |}""".stripMargin
+
   val jsonRequest: String =
     """{
       |  "messages": [
@@ -111,7 +118,34 @@ object ChatFixture {
       |      "name": "function"
       |    }
       |  },
-      |  "user": "testUser"
+      |  "user": "testUser",
+      |  "store": true,
+      |  "reasoning_effort": "low",
+      |  "metadata": {
+      |    "key": "value"
+      |  },
+      |  "logprobs": true,
+      |  "top_logprobs": 1,
+      |  "max_completion_tokens": 10,
+      |  "modalities": ["text", "audio"],
+      |  "service_tier": "advanced",
+      |  "parallel_tool_calls": true,
+      |  "stream_options": {
+      |    "include_usage": true
+      |  },
+      |  "prediction": {
+      |    "type": "content",
+      |    "content": [
+      |      {
+      |        "type": "code",
+      |        "text": "simple text"
+      |      }
+      |    ]
+      |  },
+      |  "audio": {
+      |    "voice": "ash",
+      |    "format": "mp3"
+      |  }
       |}""".stripMargin
 
   val jsonResponse: String =
@@ -124,7 +158,17 @@ object ChatFixture {
       |  "usage": {
       |    "prompt_tokens": 10,
       |    "completion_tokens": 10,
-      |    "total_tokens": 20
+      |    "total_tokens": 20,
+      |    "prompt_tokens_details": {
+      |      "cached_tokens": 1,
+      |      "audio_tokens": 2
+      |    },
+      |    "completion_tokens_details": {
+      |      "reasoning_tokens": 4,
+      |      "accepted_prediction_tokens": 3,
+      |      "rejected_prediction_tokens": 2,
+      |      "audio_tokens": 1
+      |    }
       |  },
       |  "choices": [
       |    {
@@ -146,13 +190,85 @@ object ChatFixture {
       |             "name": "Fish"
       |           }
       |         }
-      |        ]
+      |        ],
+      |        "id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR"
       |      },
       |      "finish_reason": "stop",
-      |      "index": 0
+      |      "index": 0,
+      |      "logprobs": {
+      |        "content": [
+      |          {
+      |            "token": "Hello",
+      |            "logprob": -0.1,
+      |            "bytes": [2, 3, 4],
+      |            "top_logprobs": [
+      |              {
+      |                "token": "Hello",
+      |                "logprob": -0.2,
+      |                "bytes": [4, 5, 6]
+      |              }
+      |            ]
+      |          }
+      |        ],
+      |        "refusal": [
+      |          {
+      |            "token": "Hello",
+      |            "logprob": -0.1,
+      |            "bytes": [2, 3, 4],
+      |            "top_logprobs": [
+      |              {
+      |                "token": "Hello",
+      |                "logprob": -0.2,
+      |                "bytes": [4, 5, 6]
+      |              }
+      |            ]
+      |          }
+      |        ]
+      |      }
       |    }
-      |  ]
+      |  ],
+      |  "service_tier": "advanced"
       |}
       |""".stripMargin
+
+  val jsonListMessageResponse: String =
+    """{
+      |  "object": "list",
+      |  "data": [
+      |    {
+      |      "role": "assistant",
+      |      "content": "Hi there! How can I assist you today?",
+      |      "tool_calls": [],
+      |      "id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR",
+      |      "audio": {
+      |        "id": "audio_id",
+      |        "expires_at": 1681725687,
+      |        "data": "base64encoded",
+      |        "transcript": "transcript"
+      |      }
+      |    }
+      |  ],
+      |  "first_id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR",
+      |  "last_id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR",
+      |  "has_more": true
+      |}
+      |""".stripMargin
+
+  val jsonListChatResponse: String =
+    """{
+      |  "object": "list",
+      |  "data": [],
+      |  "first_id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
+      |  "last_id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
+      |  "has_more": false
+      |}
+      |""".stripMargin
+
+  val jsonDeleteChatCompletionResponse: String =
+    """{
+      |  "object": "chat.completion.deleted",
+      |  "id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
+      |  "deleted": true
+      |}""".stripMargin
 
 }

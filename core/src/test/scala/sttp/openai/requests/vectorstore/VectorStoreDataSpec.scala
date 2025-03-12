@@ -4,16 +4,10 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures.VectorStoreFixture
-import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
-import sttp.openai.requests.vectorstore.VectorStoreResponseData.{
-  Completed,
-  DeleteVectorStoreResponse,
-  FileCounts,
-  InProgress,
-  ListVectorStoresResponse,
-  VectorStore
-}
+import sttp.openai.requests.vectorstore.VectorStoreResponseData._
+import sttp.openai.utils.JsonUtils
 
 class VectorStoreDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -85,7 +79,7 @@ class VectorStoreDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val jsonResponse = VectorStoreFixture.jsonObject
 
     // when
-    val serializedJson: Either[Exception, VectorStore] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val serializedJson: Either[Exception, VectorStore] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     serializedJson.value shouldBe givenResponse
@@ -125,7 +119,7 @@ class VectorStoreDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val jsonResponse = VectorStoreFixture.jsonList
 
     // when
-    val serializedJson: Either[Exception, ListVectorStoresResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val serializedJson: Either[Exception, ListVectorStoresResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     serializedJson.value shouldBe givenResponse
@@ -144,7 +138,7 @@ class VectorStoreDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val jsonResponse = VectorStoreFixture.jsonDelete
 
     // when
-    val serializedJson: Either[Exception, DeleteVectorStoreResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val serializedJson: Either[Exception, DeleteVectorStoreResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     serializedJson.value shouldBe givenResponse

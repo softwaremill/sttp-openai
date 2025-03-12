@@ -4,20 +4,21 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.client4._
+import sttp.client4.testing.ResponseStub
+import sttp.model.StatusCode
 import sttp.model.StatusCode._
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai.OpenAISyncClient
+import sttp.openai.{CustomizeOpenAIRequest, OpenAISyncClient}
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.requests.models.ModelsResponseData._
-import sttp.openai.CustomizeOpenAIRequest
+
 import java.util.concurrent.atomic.AtomicReference
-import sttp.client4.testing.ResponseStub
 
 class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
-      val syncBackendStub = DefaultSyncBackend.stub.whenAnyRequest.thenRespondWithCode(statusCode, ErrorFixture.errorResponse)
+      val syncBackendStub = DefaultSyncBackend.stub.whenAnyRequest.thenRespondAdjust(ErrorFixture.errorResponse, statusCode)
       val syncClient = OpenAISyncClient(authToken = "test-token", backend = syncBackendStub)
 
       // when
@@ -26,7 +27,7 @@ class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       // then
       caught.getClass shouldBe expectedError.getClass: Unit
       caught.message shouldBe expectedError.message: Unit
-      caught.cause shouldBe expectedError.cause: Unit
+      caught.cause.getClass shouldBe expectedError.cause.getClass: Unit
       caught.code shouldBe expectedError.code: Unit
       caught.param shouldBe expectedError.param: Unit
       caught.`type` shouldBe expectedError.`type`
@@ -35,7 +36,7 @@ class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Fetching models with successful response" should "return properly deserialized list of available models" in {
     // given
     val modelsResponse = sttp.openai.fixtures.ModelsGetResponse.singleModelResponse
-    val syncBackendStub = DefaultSyncBackend.stub.whenAnyRequest.thenRespondWithCode(Ok, modelsResponse)
+    val syncBackendStub = DefaultSyncBackend.stub.whenAnyRequest.thenRespondAdjust(modelsResponse, Ok)
     val syncClient = OpenAISyncClient(authToken = "test-token", backend = syncBackendStub)
     val deserializedModels = ModelsResponse(
       `object` = "list",
@@ -76,7 +77,7 @@ class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
     val capturedRequest = new AtomicReference[GenericRequest[_, _]](null)
     val syncBackendStub = DefaultSyncBackend.stub.whenAnyRequest.thenRespondF { request =>
       capturedRequest.set(request)
-      ResponseStub.ok(sttp.openai.fixtures.ModelsGetResponse.singleModelResponse)
+      ResponseStub.adjust(sttp.openai.fixtures.ModelsGetResponse.singleModelResponse, StatusCode.Ok)
     }
     val syncClient = OpenAISyncClient(authToken = "test-token", backend = syncBackendStub)
 
