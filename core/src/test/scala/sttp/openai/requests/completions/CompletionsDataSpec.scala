@@ -33,13 +33,15 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
         promptTokens = 5,
         completionTokens = 8,
         totalTokens = 13,
-        completionTokensDetails = CompletionTokensDetails(
-          acceptedPredictionTokens = 3,
-          audioTokens = 1,
-          reasoningTokens = 4,
-          rejectedPredictionTokens = 2
+        completionTokensDetails = Some(
+          CompletionTokensDetails(
+            acceptedPredictionTokens = 3,
+            audioTokens = 1,
+            reasoningTokens = 4,
+            rejectedPredictionTokens = 2
+          )
         ),
-        promptTokensDetails = PromptTokensDetails(audioTokens = 2, cachedTokens = 1)
+        promptTokensDetails = Some(PromptTokensDetails(audioTokens = 2, cachedTokens = 1))
       )
     )
 
@@ -78,7 +80,7 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, CompletionsResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, CompletionsResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -140,13 +142,15 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
         promptTokens = 11,
         completionTokens = 14,
         totalTokens = 25,
-        completionTokensDetails = CompletionTokensDetails(
-          acceptedPredictionTokens = 3,
-          audioTokens = 1,
-          reasoningTokens = 4,
-          rejectedPredictionTokens = 2
+        completionTokensDetails = Some(
+          CompletionTokensDetails(
+            acceptedPredictionTokens = 3,
+            audioTokens = 1,
+            reasoningTokens = 4,
+            rejectedPredictionTokens = 2
+          )
         ),
-        promptTokensDetails = PromptTokensDetails(audioTokens = 2, cachedTokens = 1)
+        promptTokensDetails = Some(PromptTokensDetails(audioTokens = 2, cachedTokens = 1))
       )
     )
 

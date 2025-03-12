@@ -92,13 +92,15 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       promptTokens = 10,
       completionTokens = 10,
       totalTokens = 20,
-      completionTokensDetails = CompletionTokensDetails(
-        acceptedPredictionTokens = 3,
-        audioTokens = 1,
-        reasoningTokens = 4,
-        rejectedPredictionTokens = 2
+      completionTokensDetails = Some(
+        CompletionTokensDetails(
+          acceptedPredictionTokens = 3,
+          audioTokens = 1,
+          reasoningTokens = 4,
+          rejectedPredictionTokens = 2
+        )
       ),
-      promptTokensDetails = PromptTokensDetails(audioTokens = 2, cachedTokens = 1)
+      promptTokensDetails = Some(PromptTokensDetails(audioTokens = 2, cachedTokens = 1))
     )
 
     val message: Message = Message(
