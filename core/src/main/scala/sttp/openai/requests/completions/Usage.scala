@@ -17,8 +17,8 @@ case class Usage(
     promptTokens: Int,
     completionTokens: Int,
     totalTokens: Int,
-    completionTokensDetails: CompletionTokensDetails,
-    promptTokensDetails: PromptTokensDetails
+    completionTokensDetails: Option[CompletionTokensDetails] = None,
+    promptTokensDetails: Option[PromptTokensDetails] = None
 )
 
 object Usage {
