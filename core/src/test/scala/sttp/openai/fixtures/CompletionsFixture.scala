@@ -31,13 +31,7 @@ object CompletionsFixture {
                      |  }
                      |}""".stripMargin
 
-  /**
-   * Generated from:
-   * curl http://localhost:11434/v1/completions -d '{
-   *   "model": "llama3.2",
-   *   "prompt": "Say Hello World as a haiku."
-   * }'
-   */
+  /** Generated from: curl http://localhost:11434/v1/completions -d '{ "model": "llama3.2", "prompt": "Say Hello World as a haiku." }' */
   val ollamaPromptResponse: String = """{
                      |  "id": "cmpl-712",
                      |  "object": "text_completion",
