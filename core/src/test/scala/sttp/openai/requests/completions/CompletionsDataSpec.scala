@@ -25,21 +25,57 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
         Choices(
           text = "\n\nThis is indeed a test.",
           index = 0,
-          logprobs = None,
-          finishReason = "stop"
+          finishReason = "stop",
+          logprobs = None
         )
       ),
       usage = Usage(
         promptTokens = 5,
         completionTokens = 8,
         totalTokens = 13,
-        completionTokensDetails = CompletionTokensDetails(
-          acceptedPredictionTokens = 3,
-          audioTokens = 1,
-          reasoningTokens = 4,
-          rejectedPredictionTokens = 2
+        completionTokensDetails = Some(
+          CompletionTokensDetails(
+            acceptedPredictionTokens = 3,
+            audioTokens = 1,
+            reasoningTokens = 4,
+            rejectedPredictionTokens = 2
+          )
         ),
-        promptTokensDetails = PromptTokensDetails(audioTokens = 2, cachedTokens = 1)
+        promptTokensDetails = Some(PromptTokensDetails(audioTokens = 2, cachedTokens = 1))
+      )
+    )
+
+    // when
+    val givenResponse: Either[Exception, CompletionsResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
+
+    // then
+    givenResponse.value shouldBe expectedResponse
+  }
+
+  "Given ollama completions response as Json" should "be properly deserialized to case class" in {
+    import sttp.openai.requests.completions.CompletionsResponseData._
+    import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse._
+    import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.CustomCompletionModel
+
+    // given
+    val jsonResponse = fixtures.CompletionsFixture.ollamaPromptResponse
+    val expectedResponse: CompletionsResponse = CompletionsResponse(
+      id = "cmpl-712",
+      `object` = "text_completion",
+      created = 1733664264,
+      model = CustomCompletionModel("llama3.2"),
+      choices = Seq(
+        Choices(
+          text = "Greeting coding dawn\n\"Hello, world!\" echoes bright\nProgramming's start",
+          index = 0,
+          finishReason = "stop",
+          logprobs = None
+        )
+      ),
+      usage = Usage(
+        promptTokens = 33,
+        completionTokens = 17,
+        totalTokens = 50
       )
     )
 
@@ -92,27 +128,29 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
         Choices(
           text = "\n\nThis is indeed a test",
           index = 0,
-          logprobs = None,
-          finishReason = "length"
+          finishReason = "length",
+          logprobs = None
         ),
         Choices(
           text = "\n\nYes, this is also",
           index = 1,
-          logprobs = None,
-          finishReason = "length"
+          finishReason = "length",
+          logprobs = None
         )
       ),
       usage = Usage(
         promptTokens = 11,
         completionTokens = 14,
         totalTokens = 25,
-        completionTokensDetails = CompletionTokensDetails(
-          acceptedPredictionTokens = 3,
-          audioTokens = 1,
-          reasoningTokens = 4,
-          rejectedPredictionTokens = 2
+        completionTokensDetails = Some(
+          CompletionTokensDetails(
+            acceptedPredictionTokens = 3,
+            audioTokens = 1,
+            reasoningTokens = 4,
+            rejectedPredictionTokens = 2
+          )
         ),
-        promptTokensDetails = PromptTokensDetails(audioTokens = 2, cachedTokens = 1)
+        promptTokensDetails = Some(PromptTokensDetails(audioTokens = 2, cachedTokens = 1))
       )
     )
 

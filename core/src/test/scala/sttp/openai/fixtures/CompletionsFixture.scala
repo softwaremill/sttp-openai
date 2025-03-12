@@ -31,6 +31,27 @@ object CompletionsFixture {
                      |  }
                      |}""".stripMargin
 
+  /** Generated from: curl http://localhost:11434/v1/completions -d '{ "model": "llama3.2", "prompt": "Say Hello World as a haiku." }' */
+  val ollamaPromptResponse: String = """{
+                     |  "id": "cmpl-712",
+                     |  "object": "text_completion",
+                     |  "created": 1733664264,
+                     |  "model": "llama3.2",
+                     |  "system_fingerprint": "fp_ollama",
+                     |  "choices": [
+                     |    {
+                     |      "text": "Greeting coding dawn\n\"Hello, world!\" echoes bright\nProgramming's start",
+                     |      "index": 0,
+                     |      "finish_reason": "stop"
+                     |    }
+                     |  ],
+                     |  "usage": {
+                     |    "prompt_tokens": 33,
+                     |    "completion_tokens": 17,
+                     |    "total_tokens": 50
+                     |  }
+                     |}""".stripMargin
+
   val jsonMultiplePromptResponse: String = """{
                     |  "id":"cmpl-76D8UlnqOEkhVXu29nY7UPZFDTTlP",
                     |  "object":"text_completion",
