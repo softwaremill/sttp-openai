@@ -1,6 +1,5 @@
 package sttp.openai.requests.completions
 
-import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
 import sttp.openai.json.SnakePickle
 import ujson.Str
 
@@ -78,23 +77,15 @@ object CompletionsRequestBody {
           SnakePickle.read[ujson.Value](jsonValue) match {
             case Str(value) =>
               byCompletionModelValue.getOrElse(value, CustomCompletionModel(value))
-            case e => throw DeserializationOpenAIException(new Exception(s"Could not deserialize: $e"))
+            case e => throw new Exception(s"Could not deserialize: $e")
           }
       )
 
-    case object TextDavinci003 extends CompletionModel("text-davinci-003")
-
-    case object TextDavinci002 extends CompletionModel("text-davinci-002")
-
-    case object TextCurie001 extends CompletionModel("text-curie-001")
-
-    case object TextBabbage001 extends CompletionModel("text-babbage-001")
-
-    case object TextAda001 extends CompletionModel("text-ada-001")
+    case object GPT35TurboInstruct extends CompletionModel("gpt-3.5-turbo-instruct")
 
     case class CustomCompletionModel(customCompletionModel: String) extends CompletionModel(customCompletionModel)
 
-    val values: Set[CompletionModel] = Set(TextDavinci003, TextDavinci002, TextCurie001, TextBabbage001, TextAda001)
+    val values: Set[CompletionModel] = Set(GPT35TurboInstruct)
 
     private val byCompletionModelValue = values.map(model => model.value -> model).toMap
   }

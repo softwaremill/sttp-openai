@@ -4,13 +4,14 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.images.{ResponseFormat, Size}
+import sttp.openai.utils.JsonUtils
 class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given image generation response as Json" should "be properly deserialized to case class" in {
-    import sttp.openai.requests.images.ImageResponseData._
     import sttp.openai.requests.images.ImageResponseData.ImageResponse._
+    import sttp.openai.requests.images.ImageResponseData._
 
     // given
     val jsonResponse = fixtures.ImageCreationFixture.jsonResponse
@@ -24,15 +25,15 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
       data = generatedImageData
     )
     // when
-    val givenResponse = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
   }
 
   "Given create image request as case class" should "be properly serialized to Json" in {
-    import sttp.openai.requests.images.creation.ImageCreationRequestBody._
     import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody._
+    import sttp.openai.requests.images.creation.ImageCreationRequestBody._
 
     // given
     val givenRequest: ImageCreationBody = ImageCreationBody(

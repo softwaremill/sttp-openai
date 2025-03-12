@@ -3,42 +3,44 @@ package sttp.openai
 import sttp.client4.{DefaultSyncBackend, Request, SyncBackend}
 import sttp.model.Uri
 import sttp.openai.OpenAIExceptions.OpenAIException
+import sttp.openai.requests.admin.{QueryParameters => _, _}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
 import sttp.openai.requests.audio.RecognitionModel
 import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
 import sttp.openai.requests.audio.translations.TranslationConfig
+import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse, ListBatchResponse}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
-import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
-import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
+import sttp.openai.requests.completions.chat
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
+  ChatResponse,
+  DeleteChatCompletionResponse,
+  ListChatResponse,
+  ListMessageResponse
+}
+import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData.{DeletedFileData, FileData, FilesResponse}
-import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.{
-  DeleteFineTuneModelResponse,
-  FineTuneEventsResponse,
-  FineTuneResponse,
-  GetFineTunesResponse
-}
+import sttp.openai.requests.finetuning._
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
 import sttp.openai.requests.images.variations.ImageVariationsConfig
-import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
 import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{CreateRun, CreateThreadAndRun, ToolOutput}
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
+import sttp.openai.requests.upload.{CompleteUploadRequestBody, UploadPartResponse, UploadRequestBody, UploadResponse}
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
@@ -47,6 +49,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   ListVectorStoreFilesResponse,
   VectorStoreFile
 }
+import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.File
 
@@ -76,6 +79,19 @@ class OpenAISyncClient private (
     */
   def retrieveModel(modelId: String): ModelData =
     sendOrThrow(openAI.retrieveModel(modelId))
+
+  /** Delete a fine-tuned model. You must have the Owner role in your organization to delete a model.
+    *
+    * [[https://platform.openai.com/docs/api-reference/models/delete]]
+    *
+    * @param modelId
+    *   The model to delete
+    *
+    * @return
+    *   Deletion status.
+    */
+  def deleteModel(modelId: String): DeletedModelData =
+    sendOrThrow(openAI.deleteModel(modelId))
 
   /** Creates a completion for the provided prompt and parameters given in request body.
     *
@@ -171,16 +187,6 @@ class OpenAISyncClient private (
   def imageVariations(imageVariationsConfig: ImageVariationsConfig): ImageResponse =
     sendOrThrow(openAI.imageVariations(imageVariationsConfig))
 
-  /** Creates a new edit for provided request body.
-    *
-    * [[https://platform.openai.com/docs/api-reference/edits/create]]
-    *
-    * @param editRequestBody
-    *   Edit request body.
-    */
-  def createEdit(editRequestBody: EditBody): EditResponse =
-    sendOrThrow(openAI.createEdit(editRequestBody))
-
   /** Creates a model response for the given chat conversation defined in chatBody.
     *
     * [[https://platform.openai.com/docs/api-reference/chat/create]]
@@ -190,6 +196,77 @@ class OpenAISyncClient private (
     */
   def createChatCompletion(chatBody: ChatBody): ChatResponse =
     sendOrThrow(openAI.createChatCompletion(chatBody))
+
+  /** Get a stored chat completion. Only chat completions that have been created with the store parameter set to true will be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/get]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def getChatCompletion(completionId: String): ChatResponse =
+    sendOrThrow(openAI.getChatCompletion(completionId))
+
+  /** Get the messages in a stored chat completion. Only chat completions that have been created with the store parameter set to true will
+    * be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/getMessages]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve messages from.
+    *
+    * @return
+    *   A list of messages for the specified chat completion.
+    */
+  def getChatMessages(
+      completionId: String,
+      queryParameters: chat.ListMessagesQueryParameters = chat.ListMessagesQueryParameters.empty
+  ): ListMessageResponse =
+    sendOrThrow(openAI.getChatMessages(completionId, queryParameters))
+
+  /** List stored chat completions. Only chat completions that have been stored with the store parameter set to true will be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/list]]
+    *
+    * @return
+    *   A list of chat completions matching the specified filters.
+    */
+  def listChatCompletions(
+      queryParameters: chat.ListChatCompletionsQueryParameters = chat.ListChatCompletionsQueryParameters.empty
+  ): ListChatResponse =
+    sendOrThrow(openAI.listChatCompletions(queryParameters))
+
+  /** Modify a stored chat completion. Only chat completions that have been created with the store parameter set to true can be modified.
+    * Currently, the only supported modification is to update the metadata field.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/update]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to update.
+    * @param requestBody
+    *   Chat completion update request body.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def updateChatCompletion(completionId: String, requestBody: UpdateChatCompletionRequestBody): ChatResponse =
+    sendOrThrow(openAI.updateChatCompletion(completionId, requestBody))
+
+  /** Delete a stored chat completion. Only chat completions that have been created with the store parameter set to true can be deleted.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/delete]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to delete.
+    *
+    * @return
+    *   A deletion confirmation object.
+    */
+  def deleteChatCompletion(completionId: String): DeleteChatCompletionResponse =
+    sendOrThrow(openAI.deleteChatCompletion(completionId))
 
   /** Returns a list of files that belong to the user's organization.
     *
@@ -367,32 +444,148 @@ class OpenAISyncClient private (
   def createTranscription(transcriptionConfig: TranscriptionConfig): AudioResponse =
     sendOrThrow(openAI.createTranscription(transcriptionConfig))
 
-  /** Creates a job that fine-tunes a specified model from a given dataset.
+  /** Creates an intermediate Upload object that you can add Parts to. Currently, an Upload can accept at most 8 GB in total and expires
+    * after an hour after you create it.
     *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/create]]
+    * Once you complete the Upload, we will create a File object that contains all the parts you uploaded. This File is usable in the rest
+    * of our platform as a regular File object.
     *
-    * @param fineTunesRequestBody
-    *   Request body that will be used to create a fine-tune.
+    * For certain purposes, the correct mime_type must be specified. Please refer to documentation for the supported MIME types for your use
+    * case:
+    *
+    * null.
+    *
+    * For guidance on the proper filename extensions for each purpose, please follow the documentation on creating a File.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/create]]
+    *
+    * @param uploadRequestBody
+    *   Request body that will be used to create an upload.
+    *
+    * @return
+    *   The Upload object with status pending.
     */
-  def createFineTune(fineTunesRequestBody: FineTunesRequestBody): FineTuneResponse =
-    sendOrThrow(openAI.createFineTune(fineTunesRequestBody))
+  def createUpload(uploadRequestBody: UploadRequestBody): UploadResponse =
+    sendOrThrow(openAI.createUpload(uploadRequestBody))
 
-  /** List of your organization's fine-tuning jobs.
+  /** Adds a Part to an Upload object. A Part represents a chunk of bytes from the file you are trying to upload.
     *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/list]]
+    * Each Part can be at most 64 MB, and you can add Parts until you hit the Upload maximum of 8 GB.
+    *
+    * It is possible to add multiple Parts in parallel. You can decide the intended order of the Parts when you complete the Upload.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/add-part]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    * @param data
+    *   The chunk of bytes for this Part.
+    *
+    * @return
+    *   The upload Part object.
     */
-  def getFineTunes: GetFineTunesResponse =
-    sendOrThrow(openAI.getFineTunes)
+  def addUploadPart(uploadId: String, data: File): UploadPartResponse =
+    sendOrThrow(openAI.addUploadPart(uploadId, data))
+
+  /** Completes the Upload.
+    *
+    * Within the returned Upload object, there is a nested File object that is ready to use in the rest of the platform.
+    *
+    * You can specify the order of the Parts by passing in an ordered list of the Part IDs.
+    *
+    * The number of bytes uploaded upon completion must match the number of bytes initially specified when creating the Upload object. No
+    * Parts may be added after an Upload is completed.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/complete]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    * @param requestBody
+    *   Request body that will be used to complete an upload.
+    *
+    * @return
+    *   The Upload object with status completed with an additional file property containing the created usable File object.
+    */
+  def completeUpload(uploadId: String, requestBody: CompleteUploadRequestBody): UploadResponse =
+    sendOrThrow(openAI.completeUpload(uploadId, requestBody))
+
+  /** Cancels the Upload. No Parts may be added after an Upload is cancelled.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/cancel]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    *
+    * @return
+    *   The Upload object with status cancelled.
+    */
+  def cancelUpload(uploadId: String): UploadResponse =
+    sendOrThrow(openAI.cancelUpload(uploadId))
+
+  /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
+    *
+    * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/create]]
+    *
+    * @param fineTuningRequestBody
+    *   Request body that will be used to create a fine-tuning job.
+    */
+  def createFineTuningJob(fineTuningRequestBody: FineTuningJobRequestBody): FineTuningJobResponse =
+    sendOrThrow(openAI.createFineTuningJob(fineTuningRequestBody))
+
+  /** List your organization's fine-tuning jobs
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list]]
+    */
+  def listFineTuningJobs(queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty): ListFineTuningJobResponse =
+    sendOrThrow(openAI.listFineTuningJobs(queryParameters))
+
+  /** Get status updates for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-events]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobEvents(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): ListFineTuningJobEventResponse =
+    sendOrThrow(openAI.listFineTuningJobEvents(fineTuningJobId, queryParameters))
+
+  /** List checkpoints for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-checkpoints]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobCheckpoints(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): ListFineTuningJobCheckpointResponse =
+    sendOrThrow(openAI.listFineTuningJobCheckpoints(fineTuningJobId, queryParameters))
+
+  /** Get info about a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/retrieve]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job.
+    */
+  def retrieveFineTuningJob(fineTuningJobId: String): FineTuningJobResponse =
+    sendOrThrow(openAI.retrieveFineTuningJob(fineTuningJobId))
 
   /** Immediately cancel a fine-tune job.
     *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/cancel]]
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/cancel]]
     *
-    * @param fineTuneId
-    *   The ID of the fine-tune job to cancel.
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to cancel.
     */
-  def cancelFineTune(fineTuneId: String): FineTuneResponse =
-    sendOrThrow(openAI.cancelFineTune(fineTuneId))
+  def cancelFineTuningJob(fineTuningJobId: String): FineTuningJobResponse =
+    sendOrThrow(openAI.cancelFineTuningJob(fineTuningJobId))
 
   /** Gets info about the fine-tune job.
     *
@@ -403,36 +596,6 @@ class OpenAISyncClient private (
     */
   def createEmbeddings(embeddingsBody: EmbeddingsBody): EmbeddingResponse =
     sendOrThrow(openAI.createEmbeddings(embeddingsBody))
-
-  /** Gets info about the fine-tune job.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/retrieve]]
-    *
-    * @param fineTuneId
-    *   The ID of the fine-tune job.
-    */
-  def retrieveFineTune(fineTuneId: String): FineTuneResponse =
-    sendOrThrow(openAI.retrieveFineTune(fineTuneId))
-
-  /** Delete a fine-tuned model. You must have the Owner role in your organization.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/delete-model]]
-    *
-    * @param model
-    *   The model to delete.
-    */
-  def deleteFineTuneModel(model: String): DeleteFineTuneModelResponse =
-    sendOrThrow(openAI.deleteFineTuneModel(model))
-
-  /** Get fine-grained status updates for a fine-tune job.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/events]]
-    *
-    * @param fineTuneId
-    *   The ID of the fine-tune job to get events for.
-    */
-  def getFineTuneEvents(fineTuneId: String): FineTuneEventsResponse =
-    sendOrThrow(openAI.getFineTuneEvents(fineTuneId))
 
   /** Create a thread.
     *
@@ -525,6 +688,22 @@ class OpenAISyncClient private (
     */
   def modifyMessage(threadId: String, messageId: String, metadata: Map[String, String]): MessageData =
     sendOrThrow(openAI.modifyMessage(threadId, messageId, metadata))
+
+  /** Deletes a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/deleteMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this message belongs.
+    *
+    * @param messageId
+    *   The ID of the message to delete.
+    *
+    * @return
+    *   Deletion status
+    */
+  def deleteMessage(threadId: String, messageId: String): DeleteMessageResponse =
+    sendOrThrow(openAI.deleteMessage(threadId, messageId))
 
   /** Create an assistant with a model and instructions.
     *
@@ -806,6 +985,99 @@ class OpenAISyncClient private (
     */
   def deleteVectorStoreFile(vectorStoreId: String, fileId: String): DeleteVectorStoreFileResponse =
     sendOrThrow(openAI.deleteVectorStoreFile(vectorStoreId, fileId))
+
+  /** Creates and executes a batch from an uploaded file of requests
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/create]]
+    *
+    * @param createBatchRequest
+    *   Request body that will be used to create a batch.
+    * @return
+    *   The created Batch object.
+    */
+  def createBatch(createBatchRequest: BatchRequestBody): BatchResponse =
+    sendOrThrow(openAI.createBatch(createBatchRequest))
+
+  /** Retrieves a batch.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/retreive]]
+    *
+    * @param batchId
+    *   The ID of the batch to retrieve.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def retrieveBatch(batchId: String): BatchResponse =
+    sendOrThrow(openAI.retrieveBatch(batchId))
+
+  /** Cancels an in-progress batch. The batch will be in status cancelling for up to 10 minutes, before changing to cancelled, where it will
+    * have partial results (if any) available in the output file.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/cancel]]
+    *
+    * @param batchId
+    *   The ID of the batch to cancel.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def cancelBatch(batchId: String): BatchResponse =
+    sendOrThrow(openAI.cancelBatch(batchId))
+
+  /** List your organization's batches.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/list]]
+    *
+    * @return
+    *   A list of paginated Batch objects.
+    */
+  def listBatches(queryParameters: batch.QueryParameters = batch.QueryParameters.empty): ListBatchResponse =
+    sendOrThrow(openAI.listBatches(queryParameters))
+
+  /** Create an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/create]]
+    *
+    * @param createAdminApiKeyRequest
+    *   Request body that will be used to create an admin API key.
+    * @return
+    *   The created admin API key object.
+    */
+  def createAdminApiKey(createAdminApiKeyRequest: AdminApiKeyRequestBody): AdminApiKeyResponse =
+    sendOrThrow(openAI.createAdminApiKey(createAdminApiKeyRequest))
+
+  /** Retrieve a single organization API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/listget]]
+    *
+    * @param keyId
+    *   Key id used to retrieve an admin API key.
+    * @return
+    *   The requested admin API key object.
+    */
+  def retrieveAdminApiKey(keyId: String): AdminApiKeyResponse =
+    sendOrThrow(openAI.retrieveAdminApiKey(keyId))
+
+  /** List organization API keys
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/list]]
+    *
+    * @return
+    *   A list of admin API key objects.
+    */
+  def listAdminApiKeys(queryParameters: admin.QueryParameters = admin.QueryParameters.empty): ListAdminApiKeyResponse =
+    sendOrThrow(openAI.listAdminApiKeys(queryParameters))
+
+  /** Delete an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/delete]]
+    *
+    * @param keyId
+    *   Key id used to delete an admin API key.
+    * @return
+    *   A confirmation object indicating the key was deleted.
+    */
+  def deleteAdminApiKey(keyId: String): DeleteAdminApiKeyResponse =
+    sendOrThrow(openAI.deleteAdminApiKey(keyId))
 
   /** Closes and releases resources of http client if was not provided explicitly, otherwise works no-op. */
   def close(): Unit = if (closeClient) backend.close() else ()

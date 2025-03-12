@@ -6,12 +6,12 @@ object Dependencies {
     val scalaTest = "3.2.19"
     val scalaTestCats = "1.6.0"
 
-    val sttpApispec = "0.11.3"
-    val sttpClient = "4.0.0-M19"
-    val pekkoStreams = "1.1.2"
+    val sttpApispec = "0.11.7"
+    val sttpClient = "4.0.0-RC1"
+    val pekkoStreams = "1.1.3"
     val akkaStreams = "2.6.20"
-    val tapir = "1.11.9"
-    val uPickle = "3.1.4"
+    val tapir = "1.11.17"
+    val uPickle = "4.1.0"
   }
 
   object Libraries {

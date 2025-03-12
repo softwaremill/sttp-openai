@@ -5,7 +5,7 @@ object CompletionsFixture {
                      |  "id": "cmpl-75C628xoevz3eE8zsTFDumZ5wqwmY",
                      |  "object": "text_completion",
                      |  "created": 1681472494,
-                     |  "model": "text-davinci-003",
+                     |  "model": "gpt-3.5-turbo-instruct",
                      |  "choices": [
                      |    {
                      |      "text": "\n\nThis is indeed a test.",
@@ -17,7 +17,17 @@ object CompletionsFixture {
                      |  "usage": {
                      |    "prompt_tokens": 5,
                      |    "completion_tokens": 8,
-                     |    "total_tokens": 13
+                     |    "total_tokens": 13,
+                     |    "prompt_tokens_details": {
+                     |      "cached_tokens": 1,
+                     |      "audio_tokens": 2
+                     |    },
+                     |    "completion_tokens_details": {
+                     |      "reasoning_tokens": 4,
+                     |      "accepted_prediction_tokens": 3,
+                     |      "rejected_prediction_tokens": 2,
+                     |      "audio_tokens": 1
+                     |    }
                      |  }
                      |}""".stripMargin
 
@@ -52,7 +62,7 @@ object CompletionsFixture {
                     |  "id":"cmpl-76D8UlnqOEkhVXu29nY7UPZFDTTlP",
                     |  "object":"text_completion",
                     |  "created":1681714818,
-                    |  "model":"text-davinci-003",
+                    |  "model":"gpt-3.5-turbo-instruct",
                     |  "choices":[
                     |    {
                     |      "text":"\n\nThis is indeed a test",
@@ -70,14 +80,24 @@ object CompletionsFixture {
                     |  "usage":{
                     |    "prompt_tokens":11,
                     |    "completion_tokens":14,
-                    |    "total_tokens":25
+                    |    "total_tokens":25,
+                    |    "prompt_tokens_details": {
+                    |      "cached_tokens": 1,
+                    |      "audio_tokens": 2
+                    |    },
+                    |    "completion_tokens_details": {
+                    |      "reasoning_tokens": 4,
+                    |      "accepted_prediction_tokens": 3,
+                    |      "rejected_prediction_tokens": 2,
+                    |      "audio_tokens": 1
+                    |    }
                     |  }
                     |}
                     |
                     |""".stripMargin
 
   val jsonSinglePromptRequest: String = """{
-                              |  "model": "text-davinci-003",
+                              |  "model": "gpt-3.5-turbo-instruct",
                               |  "prompt": "Say this is a test",
                               |  "max_tokens": 7,
                               |  "temperature": 0,
@@ -87,7 +107,7 @@ object CompletionsFixture {
                               |}""".stripMargin
 
   val jsonMultiplePromptRequest: String = """{
-                              |  "model": "text-davinci-003",
+                              |  "model": "gpt-3.5-turbo-instruct",
                               |  "prompt": ["Say this is a test", "Say this is also a test"],
                               |  "max_tokens": 7,
                               |  "temperature": 0,

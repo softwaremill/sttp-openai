@@ -1,58 +1,49 @@
 package sttp.openai
 
+import sttp.capabilities.Streams
 import sttp.client4._
 import sttp.model.{Header, Uri}
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai.json.SttpUpickleApiExtension.{
-  asInputStreamUnsafe_parseErrors,
-  asJson_parseErrors,
-  asStreamUnsafe_parseErrors,
-  asStringEither,
-  upickleBodySerializer
-}
+import sttp.openai.json.SttpUpickleApiExtension._
+import sttp.openai.requests.admin.{QueryParameters => _, _}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
+import sttp.openai.requests.audio.AudioResponseData.AudioResponse
+import sttp.openai.requests.audio.RecognitionModel
+import sttp.openai.requests.audio.speech.SpeechRequestBody
+import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
+import sttp.openai.requests.audio.translations.TranslationConfig
+import sttp.openai.requests.batch.{QueryParameters => _, _}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
-import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
-import sttp.openai.requests.completions.edit.EditRequestBody.EditBody
-import sttp.openai.requests.completions.edit.EditRequestResponseData.EditResponse
+import sttp.openai.requests.completions.chat
+import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
+  ChatResponse,
+  DeleteChatCompletionResponse,
+  ListChatResponse,
+  ListMessageResponse
+}
+import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
 import sttp.openai.requests.files.FilesResponseData._
-import sttp.openai.requests.finetunes.FineTunesRequestBody
-import sttp.openai.requests.finetunes.FineTunesResponseData.{
-  DeleteFineTuneModelResponse,
-  FineTuneEventsResponse,
-  FineTuneResponse,
-  GetFineTunesResponse
-}
+import sttp.openai.requests.finetuning._
 import sttp.openai.requests.images.ImageResponseData.ImageResponse
 import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody
 import sttp.openai.requests.images.edit.ImageEditsConfig
 import sttp.openai.requests.images.variations.ImageVariationsConfig
-import sttp.openai.requests.models.ModelsResponseData.{ModelData, ModelsResponse}
+import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
-import sttp.openai.requests.audio.AudioResponseData.AudioResponse
-import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
-import sttp.openai.requests.audio.translations.TranslationConfig
-import sttp.openai.requests.audio.RecognitionModel
-import sttp.capabilities.Streams
+import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
-import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{ListMessagesResponse, MessageData}
-import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.{
-  CreateRun,
-  CreateThreadAndRun,
-  ModifyRun,
-  SubmitToolOutputsToRun,
-  ToolOutput
-}
+import sttp.openai.requests.threads.messages.ThreadMessagesResponseData.{DeleteMessageResponse, ListMessagesResponse, MessageData}
+import sttp.openai.requests.threads.runs.ThreadRunsRequestBody._
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, RunData, RunStepData}
-import sttp.openai.requests.threads.QueryParameters
+import sttp.openai.requests.upload.{CompleteUploadRequestBody, UploadPartResponse, UploadRequestBody, UploadResponse}
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
@@ -61,6 +52,7 @@ import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
   ListVectorStoreFilesResponse,
   VectorStoreFile
 }
+import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
@@ -90,17 +82,34 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .get(openAIUris.model(modelId))
       .response(asJson_parseErrors[ModelData])
 
+  /** Delete a fine-tuned model. You must have the Owner role in your organization to delete a model.
+    *
+    * [[https://platform.openai.com/docs/api-reference/models/delete]]
+    *
+    * @param modelId
+    *   The model to delete
+    *
+    * @return
+    *   Deletion status.
+    */
+  def deleteModel(modelId: String): Request[Either[OpenAIException, DeletedModelData]] =
+    openAIAuthRequest
+      .delete(openAIUris.model(modelId))
+      .response(asJson_parseErrors[DeletedModelData])
+
   /** Creates a completion for the provided prompt and parameters given in request body.
     *
     * [[https://platform.openai.com/docs/api-reference/completions/create]]
     *
     * @param completionBody
     *   Create completion request body.
+    * @deprecated
+    *   This is marked as Legacy in OpenAI API and might be removed in the future. Please use [[createChatCompletion]] instead.
     */
   def createCompletion(completionBody: CompletionsBody): Request[Either[OpenAIException, CompletionsResponse]] =
     openAIAuthRequest
       .post(openAIUris.Completions)
-      .body(completionBody)
+      .body(asJson(completionBody))
       .response(asJson_parseErrors[CompletionsResponse])
 
   /** Creates an image given a prompt in request body.
@@ -113,7 +122,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createImage(imageCreationBody: ImageCreationBody): Request[Either[OpenAIException, ImageResponse]] =
     openAIAuthRequest
       .post(openAIUris.CreateImage)
-      .body(imageCreationBody)
+      .body(asJson(imageCreationBody))
       .response(asJson_parseErrors[ImageResponse])
 
   /** Creates edited or extended images given an original image and a prompt.
@@ -176,7 +185,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
           Some(multipartFile("image", image)),
           Some(multipart("prompt", prompt)),
           mask.map(multipartFile("mask", _)),
-          n.map(multipart("n", _)),
+          n.map(i => multipart("n", i.toString)),
           size.map(s => multipart("size", s.value)),
           responseFormat.map(format => multipart("response_format", format.value))
         ).flatten
@@ -237,26 +246,13 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
         import imageVariationsConfig._
         Seq(
           Some(multipartFile("image", image)),
-          n.map(multipart("n", _)),
+          n.map(i => multipart("n", i.toString)),
           size.map(s => multipart("size", s.value)),
           responseFormat.map(format => multipart("response_format", format.value)),
           user.map(multipart("user", _))
         ).flatten
       }
       .response(asJson_parseErrors[ImageResponse])
-
-  /** Creates a new edit for provided request body.
-    *
-    * [[https://platform.openai.com/docs/api-reference/edits/create]]
-    *
-    * @param editRequestBody
-    *   Edit request body.
-    */
-  def createEdit(editRequestBody: EditBody): Request[Either[OpenAIException, EditResponse]] =
-    openAIAuthRequest
-      .post(openAIUris.Edits)
-      .body(editRequestBody)
-      .response(asJson_parseErrors[EditResponse])
 
   /** Creates a model response for the given chat conversation defined in chatBody.
     *
@@ -268,7 +264,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createChatCompletion(chatBody: ChatBody): Request[Either[OpenAIException, ChatResponse]] =
     openAIAuthRequest
       .post(openAIUris.ChatCompletions)
-      .body(chatBody)
+      .body(asJson(chatBody))
       .response(asJson_parseErrors[ChatResponse])
 
   /** Creates a model response for the given chat conversation defined in chatBody.
@@ -286,7 +282,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createChatCompletionAsBinaryStream[S](s: Streams[S], chatBody: ChatBody): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
     openAIAuthRequest
       .post(openAIUris.ChatCompletions)
-      .body(ChatBody.withStreaming(chatBody))
+      .body(asJson(ChatBody.withStreaming(chatBody)))
       .response(asStreamUnsafe_parseErrors(s))
 
   /** Creates a model response for the given chat conversation defined in chatBody.
@@ -301,8 +297,102 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createChatCompletionAsInputStream(chatBody: ChatBody): Request[Either[OpenAIException, InputStream]] =
     openAIAuthRequest
       .post(openAIUris.ChatCompletions)
-      .body(ChatBody.withStreaming(chatBody))
+      .body(asJson(ChatBody.withStreaming(chatBody)))
       .response(asInputStreamUnsafe_parseErrors)
+
+  /** Get a stored chat completion. Only chat completions that have been created with the store parameter set to true will be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/get]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def getChatCompletion(completionId: String): Request[Either[OpenAIException, ChatResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.chatCompletion(completionId))
+      .response(asJson_parseErrors[ChatResponse])
+
+  /** Get the messages in a stored chat completion. Only chat completions that have been created with the store parameter set to true will
+    * be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/getMessages]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to retrieve messages from.
+    *
+    * @return
+    *   A list of messages for the specified chat completion.
+    */
+  def getChatMessages(
+      completionId: String,
+      queryParameters: chat.ListMessagesQueryParameters = chat.ListMessagesQueryParameters.empty
+  ): Request[Either[OpenAIException, ListMessageResponse]] = {
+    val uri = openAIUris
+      .chatMessages(completionId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListMessageResponse])
+  }
+
+  /** List stored chat completions. Only chat completions that have been stored with the store parameter set to true will be returned.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/list]]
+    *
+    * @return
+    *   A list of chat completions matching the specified filters.
+    */
+  def listChatCompletions(
+      queryParameters: chat.ListChatCompletionsQueryParameters = chat.ListChatCompletionsQueryParameters.empty
+  ): Request[Either[OpenAIException, ListChatResponse]] = {
+    val uri = openAIUris.ChatCompletions
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListChatResponse])
+  }
+
+  /** Modify a stored chat completion. Only chat completions that have been created with the store parameter set to true can be modified.
+    * Currently, the only supported modification is to update the metadata field.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/update]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to update.
+    * @param requestBody
+    *   Chat completion update request body.
+    *
+    * @return
+    *   The ChatCompletion object matching the specified ID.
+    */
+  def updateChatCompletion(
+      completionId: String,
+      requestBody: UpdateChatCompletionRequestBody
+  ): Request[Either[OpenAIException, ChatResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.chatCompletion(completionId))
+      .body(asJson(requestBody))
+      .response(asJson_parseErrors[ChatResponse])
+
+  /** Delete a stored chat completion. Only chat completions that have been created with the store parameter set to true can be deleted.
+    *
+    * [[https://platform.openai.com/docs/api-reference/chat/delete]]
+    *
+    * @param completionId
+    *   The ID of the chat completion to delete.
+    *
+    * @return
+    *   A deletion confirmation object.
+    */
+  def deleteChatCompletion(completionId: String): Request[Either[OpenAIException, DeleteChatCompletionResponse]] =
+    openAIAuthRequest
+      .delete(openAIUris.chatCompletion(completionId))
+      .response(asJson_parseErrors[DeleteChatCompletionResponse])
 
   /** Returns a list of files that belong to the user's organization.
     *
@@ -434,6 +524,43 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .get(openAIUris.fileContent(fileId))
       .response(asStringEither)
 
+  /** Generates audio from the input text.
+    *
+    * [[https://platform.openai.com/docs/api-reference/audio/createSpeech]]
+    *
+    * @param s
+    *   The streams implementation to use.
+    * @param requestBody
+    *   Request body that will be used to create a speech.
+    *
+    * @return
+    *   The audio file content.
+    */
+  def createSpeechAsBinaryStream[S](
+      s: Streams[S],
+      requestBody: SpeechRequestBody
+  ): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
+    openAIAuthRequest
+      .post(openAIUris.Speech)
+      .body(asJson(requestBody))
+      .response(asStreamUnsafe_parseErrors(s))
+
+  /** Generates audio from the input text.
+    *
+    * [[https://platform.openai.com/docs/api-reference/audio/createSpeech]]
+    *
+    * @param requestBody
+    *   Request body that will be used to create a speech.
+    *
+    * @return
+    *   The audio file content.
+    */
+  def createSpeechAsInputStream(requestBody: SpeechRequestBody): Request[Either[OpenAIException, InputStream]] =
+    openAIAuthRequest
+      .post(openAIUris.Speech)
+      .body(asJson(requestBody))
+      .response(asInputStreamUnsafe_parseErrors)
+
   /** Translates audio into English text.
     *
     * [[https://platform.openai.com/docs/api-reference/audio/create]]
@@ -466,7 +593,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.Translations)
       .multipartBody(
         multipartFile("file", Paths.get(systemPath).toFile),
-        multipart("model", model)
+        multipart("model", asJson(model))
       )
       .response(asJson_parseErrors[AudioResponse])
 
@@ -486,8 +613,9 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
           Some(multipartFile("file", file)),
           Some(multipart("model", model.value)),
           prompt.map(multipart("prompt", _)),
-          responseFormat.map(format => multipart("response_format", format)),
-          temperature.map(multipart("temperature", _))
+          responseFormat.map(format => multipart("response_format", asJson(format))),
+          temperature.map(i => multipart("temperature", i.toString)),
+          language.map(multipart("language", _))
         ).flatten
       }
       .response(asJson_parseErrors[AudioResponse])
@@ -502,7 +630,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createModeration(moderationsBody: ModerationsBody): Request[Either[OpenAIException, ModerationData]] =
     openAIAuthRequest
       .post(openAIUris.Moderations)
-      .body(moderationsBody)
+      .body(asJson(moderationsBody))
       .response(asJson_parseErrors[ModerationData])
 
   /** Transcribes audio into the input language.
@@ -561,47 +689,194 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
           Some(multipart("model", model.value)),
           prompt.map(multipart("prompt", _)),
           responseFormat.map(format => multipart("response_format", format.value)),
-          temperature.map(multipart("temperature", _)),
+          temperature.map(t => multipart("temperature", t.toString)),
           language.map(lang => multipart("language", lang.value))
         ).flatten
       }
       .response(asJson_parseErrors[AudioResponse])
 
-  /** Creates a job that fine-tunes a specified model from a given dataset.
+  /** Creates an intermediate Upload object that you can add Parts to. Currently, an Upload can accept at most 8 GB in total and expires
+    * after an hour after you create it.
     *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/create]]
+    * Once you complete the Upload, we will create a File object that contains all the parts you uploaded. This File is usable in the rest
+    * of our platform as a regular File object.
     *
-    * @param fineTunesRequestBody
-    *   Request body that will be used to create a fine-tune.
+    * For certain purposes, the correct mime_type must be specified. Please refer to documentation for the supported MIME types for your use
+    * case:
+    *
+    * null.
+    *
+    * For guidance on the proper filename extensions for each purpose, please follow the documentation on creating a File.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/create]]
+    *
+    * @param uploadRequestBody
+    *   Request body that will be used to create an upload.
+    *
+    * @return
+    *   The Upload object with status pending.
     */
-  def createFineTune(
-      fineTunesRequestBody: FineTunesRequestBody
-  ): Request[Either[OpenAIException, FineTuneResponse]] =
+  def createUpload(uploadRequestBody: UploadRequestBody): Request[Either[OpenAIException, UploadResponse]] =
     openAIAuthRequest
-      .post(openAIUris.FineTunes)
-      .body(fineTunesRequestBody)
-      .response(asJson_parseErrors[FineTuneResponse])
+      .post(openAIUris.Uploads)
+      .body(asJson(uploadRequestBody))
+      .response(asJson_parseErrors[UploadResponse])
 
-  /** List of your organization's fine-tuning jobs.
+  /** Adds a Part to an Upload object. A Part represents a chunk of bytes from the file you are trying to upload.
     *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/list]]
+    * Each Part can be at most 64 MB, and you can add Parts until you hit the Upload maximum of 8 GB.
+    *
+    * It is possible to add multiple Parts in parallel. You can decide the intended order of the Parts when you complete the Upload.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/add-part]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    * @param data
+    *   The chunk of bytes for this Part.
+    *
+    * @return
+    *   The upload Part object.
     */
-  def getFineTunes: Request[Either[OpenAIException, GetFineTunesResponse]] =
+  def addUploadPart(uploadId: String, data: File): Request[Either[OpenAIException, UploadPartResponse]] =
     openAIAuthRequest
-      .get(openAIUris.FineTunes)
-      .response(asJson_parseErrors[GetFineTunesResponse])
+      .post(openAIUris.uploadParts(uploadId))
+      .multipartBody(multipartFile("data", data))
+      .response(asJson_parseErrors[UploadPartResponse])
+
+  /** Completes the Upload.
+    *
+    * Within the returned Upload object, there is a nested File object that is ready to use in the rest of the platform.
+    *
+    * You can specify the order of the Parts by passing in an ordered list of the Part IDs.
+    *
+    * The number of bytes uploaded upon completion must match the number of bytes initially specified when creating the Upload object. No
+    * Parts may be added after an Upload is completed.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/complete]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    * @param requestBody
+    *   Request body that will be used to complete an upload.
+    *
+    * @return
+    *   The Upload object with status completed with an additional file property containing the created usable File object.
+    */
+  def completeUpload(uploadId: String, requestBody: CompleteUploadRequestBody): Request[Either[OpenAIException, UploadResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.completeUpload(uploadId))
+      .body(asJson(requestBody))
+      .response(asJson_parseErrors[UploadResponse])
+
+  /** Cancels the Upload. No Parts may be added after an Upload is cancelled.
+    *
+    * [[https://platform.openai.com/docs/api-reference/uploads/cancel]]
+    *
+    * @param uploadId
+    *   The ID of the Upload.
+    *
+    * @return
+    *   The Upload object with status cancelled.
+    */
+  def cancelUpload(uploadId: String): Request[Either[OpenAIException, UploadResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelUpload(uploadId))
+      .response(asJson_parseErrors[UploadResponse])
+
+  /** Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
+    *
+    * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/create]]
+    *
+    * @param fineTuningRequestBody
+    *   Request body that will be used to create a fine-tuning job.
+    */
+  def createFineTuningJob(fineTuningRequestBody: FineTuningJobRequestBody): Request[Either[OpenAIException, FineTuningJobResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.FineTuningJobs)
+      .body(asJson(fineTuningRequestBody))
+      .response(asJson_parseErrors[FineTuningJobResponse])
+
+  /** List your organization's fine-tuning jobs
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list]]
+    */
+  def listFineTuningJobs(
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListFineTuningJobResponse]] = {
+    val uri = openAIUris.FineTuningJobs
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListFineTuningJobResponse])
+  }
+
+  /** Get status updates for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-events]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobEvents(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListFineTuningJobEventResponse]] = {
+    val uri = openAIUris
+      .fineTuningJobEvents(fineTuningJobId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListFineTuningJobEventResponse])
+  }
+
+  /** List checkpoints for a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/list-checkpoints]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to get checkpoints for.
+    */
+  def listFineTuningJobCheckpoints(
+      fineTuningJobId: String,
+      queryParameters: finetuning.QueryParameters = finetuning.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListFineTuningJobCheckpointResponse]] = {
+    val uri = openAIUris
+      .fineTuningJobCheckpoints(fineTuningJobId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListFineTuningJobCheckpointResponse])
+  }
+
+  /** Get info about a fine-tuning job.
+    *
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/retrieve]]
+    *
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job.
+    */
+  def retrieveFineTuningJob(fineTuningJobId: String): Request[Either[OpenAIException, FineTuningJobResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.fineTuningJob(fineTuningJobId))
+      .response(asJson_parseErrors[FineTuningJobResponse])
 
   /** Immediately cancel a fine-tune job.
     *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/cancel]]
+    * [[https://platform.openai.com/docs/api-reference/fine-tuning/cancel]]
     *
-    * @param fineTuneId
-    *   The ID of the fine-tune job to cancel.
+    * @param fineTuningJobId
+    *   The ID of the fine-tuning job to cancel.
     */
-  def cancelFineTune(fineTuneId: String): Request[Either[OpenAIException, FineTuneResponse]] =
+  def cancelFineTuningJob(fineTuningJobId: String): Request[Either[OpenAIException, FineTuningJobResponse]] =
     openAIAuthRequest
-      .post(openAIUris.cancelFineTune(fineTuneId))
-      .response(asJson_parseErrors[FineTuneResponse])
+      .post(openAIUris.cancelFineTuningJob(fineTuningJobId))
+      .response(asJson_parseErrors[FineTuningJobResponse])
 
   /** Gets info about the fine-tune job.
     *
@@ -613,44 +888,8 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createEmbeddings(embeddingsBody: EmbeddingsBody): Request[Either[OpenAIException, EmbeddingResponse]] =
     openAIAuthRequest
       .post(openAIUris.Embeddings)
-      .body(embeddingsBody)
+      .body(asJson(embeddingsBody))
       .response(asJson_parseErrors[EmbeddingResponse])
-
-  /** Gets info about the fine-tune job.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/retrieve]]
-    *
-    * @param fineTuneId
-    *   The ID of the fine-tune job.
-    */
-  def retrieveFineTune(fineTuneId: String): Request[Either[OpenAIException, FineTuneResponse]] =
-    openAIAuthRequest
-      .get(openAIUris.fineTune(fineTuneId))
-      .response(asJson_parseErrors[FineTuneResponse])
-
-  /** Delete a fine-tuned model. You must have the Owner role in your organization.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/delete-model]]
-    *
-    * @param model
-    *   The model to delete.
-    */
-  def deleteFineTuneModel(model: String): Request[Either[OpenAIException, DeleteFineTuneModelResponse]] =
-    openAIAuthRequest
-      .delete(openAIUris.fineTuneModel(model))
-      .response(asJson_parseErrors[DeleteFineTuneModelResponse])
-
-  /** Get fine-grained status updates for a fine-tune job.
-    *
-    * [[https://platform.openai.com/docs/api-reference/fine-tunes/events]]
-    *
-    * @param fineTuneId
-    *   The ID of the fine-tune job to get events for.
-    */
-  def getFineTuneEvents(fineTuneId: String): Request[Either[OpenAIException, FineTuneEventsResponse]] =
-    openAIAuthRequest
-      .get(openAIUris.fineTuneEvents(fineTuneId))
-      .response(asJson_parseErrors[FineTuneEventsResponse])
 
   /** Create a thread.
     *
@@ -662,7 +901,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createThread(createThreadBody: CreateThreadBody): Request[Either[OpenAIException, ThreadData]] =
     betaOpenAIAuthRequest
       .post(openAIUris.Threads)
-      .body(createThreadBody)
+      .body(asJson(createThreadBody))
       .response(asJson_parseErrors[ThreadData])
 
   /** Retrieves a thread.
@@ -712,7 +951,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createThreadMessage(threadId: String, message: CreateMessage): Request[Either[OpenAIException, MessageData]] =
     betaOpenAIAuthRequest
       .post(openAIUris.threadMessages(threadId))
-      .body(message)
+      .body(asJson(message))
       .response(asJson_parseErrors[MessageData])
 
   /** Returns a list of messages for a given thread.
@@ -769,6 +1008,24 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .body(metadata)
       .response(asJson_parseErrors[MessageData])
 
+  /** Deletes a message.
+    *
+    * [[https://platform.openai.com/docs/api-reference/messages/deleteMessage]]
+    *
+    * @param threadId
+    *   The ID of the thread to which this message belongs.
+    *
+    * @param messageId
+    *   The ID of the message to delete.
+    *
+    * @return
+    *   Deletion status
+    */
+  def deleteMessage(threadId: String, messageId: String): Request[Either[OpenAIException, DeleteMessageResponse]] =
+    betaOpenAIAuthRequest
+      .delete(openAIUris.threadMessage(threadId, messageId))
+      .response(asJson_parseErrors[DeleteMessageResponse])
+
   /** Create an assistant with a model and instructions.
     *
     * [[https://platform.openai.com/docs/api-reference/assistants/createAssistant]]
@@ -779,7 +1036,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createAssistant(createAssistantBody: CreateAssistantBody): Request[Either[OpenAIException, AssistantData]] =
     betaOpenAIAuthRequest
       .post(openAIUris.Assistants)
-      .body(createAssistantBody)
+      .body(asJson(createAssistantBody))
       .response(asJson_parseErrors[AssistantData])
 
   /** Returns a list of assistants.
@@ -822,7 +1079,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def modifyAssistant(assistantId: String, modifyAssistantBody: ModifyAssistantBody): Request[Either[OpenAIException, AssistantData]] =
     betaOpenAIAuthRequest
       .post(openAIUris.assistant(assistantId))
-      .body(modifyAssistantBody)
+      .body(asJson(modifyAssistantBody))
       .response(asJson_parseErrors[AssistantData])
 
   /** Delete an assistant.
@@ -849,7 +1106,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createRun(threadId: String, createRun: CreateRun): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
       .post(openAIUris.threadRuns(threadId))
-      .body(createRun)
+      .body(asJson(createRun))
       .response(asJson_parseErrors[RunData])
 
   /** Create a thread and run it in one request.
@@ -862,7 +1119,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createThreadAndRun(createThreadAndRun: CreateThreadAndRun): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
       .post(openAIUris.ThreadsRuns)
-      .body(createThreadAndRun)
+      .body(asJson(createThreadAndRun))
       .response(asJson_parseErrors[RunData])
 
   /** Returns a list of runs belonging to a thread..
@@ -947,7 +1204,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def modifyRun(threadId: String, runId: String, metadata: Map[String, String]): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
       .post(openAIUris.threadRun(threadId, runId))
-      .body(ModifyRun(metadata))
+      .body(asJson(ModifyRun(metadata)))
       .response(asJson_parseErrors[RunData])
 
   /** When a run has the status: "requires_action" and required_action.type is submit_tool_outputs, this endpoint can be used to submit the
@@ -965,7 +1222,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def submitToolOutputs(threadId: String, runId: String, toolOutputs: Seq[ToolOutput]): Request[Either[OpenAIException, RunData]] =
     betaOpenAIAuthRequest
       .post(openAIUris.threadRunSubmitToolOutputs(threadId, runId))
-      .body(SubmitToolOutputsToRun(toolOutputs))
+      .body(asJson(SubmitToolOutputsToRun(toolOutputs)))
       .response(asJson_parseErrors[RunData])
 
   /** Cancels a run that is in_progress.
@@ -993,7 +1250,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   def createVectorStore(createVectorStoreBody: CreateVectorStoreBody): Request[Either[OpenAIException, VectorStore]] =
     betaOpenAIAuthRequest
       .post(openAIUris.VectorStores)
-      .body(createVectorStoreBody)
+      .body(asJson(createVectorStoreBody))
       .response(asJson_parseErrors[VectorStore])
 
   /** Lists vector store
@@ -1037,7 +1294,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   ): Request[Either[OpenAIException, VectorStore]] =
     betaOpenAIAuthRequest
       .post(openAIUris.vectorStore(vectorStoreId))
-      .body(modifyVectorStoreBody)
+      .body(asJson(modifyVectorStoreBody))
       .response(asJson_parseErrors[VectorStore])
 
   /** Deletes vector store
@@ -1067,7 +1324,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
   ): Request[Either[OpenAIException, VectorStoreFile]] =
     betaOpenAIAuthRequest
       .post(openAIUris.vectorStoreFiles(vectorStoreId))
-      .body(createVectorStoreFileBody)
+      .body(asJson(createVectorStoreFileBody))
       .response(asJson_parseErrors[VectorStoreFile])
 
   /** List files belonging to particular datastore
@@ -1115,6 +1372,129 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .delete(openAIUris.vectorStoreFile(vectorStoreId, fileId))
       .response(asJson_parseErrors[DeleteVectorStoreFileResponse])
 
+  /** Creates and executes a batch from an uploaded file of requests
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/create]]
+    *
+    * @param createBatchRequest
+    *   Request body that will be used to create a batch.
+    * @return
+    *   The created Batch object.
+    */
+  def createBatch(createBatchRequest: BatchRequestBody): Request[Either[OpenAIException, BatchResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.Batches)
+      .body(asJson(createBatchRequest))
+      .response(asJson_parseErrors[BatchResponse])
+
+  /** Retrieves a batch.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/retreive]]
+    *
+    * @param batchId
+    *   The ID of the batch to retrieve.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def retrieveBatch(batchId: String): Request[Either[OpenAIException, BatchResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.batch(batchId))
+      .response(asJson_parseErrors[BatchResponse])
+
+  /** Cancels an in-progress batch. The batch will be in status cancelling for up to 10 minutes, before changing to cancelled, where it will
+    * have partial results (if any) available in the output file.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/cancel]]
+    *
+    * @param batchId
+    *   The ID of the batch to cancel.
+    * @return
+    *   The Batch object matching the specified ID.
+    */
+  def cancelBatch(batchId: String): Request[Either[OpenAIException, BatchResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelBatch(batchId))
+      .response(asJson_parseErrors[BatchResponse])
+
+  /** List your organization's batches.
+    *
+    * [[https://platform.openai.com/docs/api-reference/batch/list]]
+    *
+    * @return
+    *   A list of paginated Batch objects.
+    */
+  def listBatches(
+      queryParameters: batch.QueryParameters = batch.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListBatchResponse]] = {
+    val uri = openAIUris.Batches
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListBatchResponse])
+  }
+
+  /** Create an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/create]]
+    *
+    * @param createAdminApiKeyRequest
+    *   Request body that will be used to create an admin API key.
+    * @return
+    *   The created admin API key object.
+    */
+  def createAdminApiKey(createAdminApiKeyRequest: AdminApiKeyRequestBody): Request[Either[OpenAIException, AdminApiKeyResponse]] =
+    openAIAuthRequest
+      .post(openAIUris.AdminApiKeys)
+      .body(asJson(createAdminApiKeyRequest))
+      .response(asJson_parseErrors[AdminApiKeyResponse])
+
+  /** Retrieve a single organization API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/listget]]
+    *
+    * @param keyId
+    *   Key id used to retrieve an admin API key.
+    * @return
+    *   The requested admin API key object.
+    */
+  def retrieveAdminApiKey(keyId: String): Request[Either[OpenAIException, AdminApiKeyResponse]] =
+    openAIAuthRequest
+      .get(openAIUris.adminApiKey(keyId))
+      .response(asJson_parseErrors[AdminApiKeyResponse])
+
+  /** List organization API keys
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/list]]
+    *
+    * @return
+    *   A list of admin API key objects.
+    */
+  def listAdminApiKeys(
+      queryParameters: admin.QueryParameters = admin.QueryParameters.empty
+  ): Request[Either[OpenAIException, ListAdminApiKeyResponse]] = {
+    val uri = openAIUris.AdminApiKeys
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ListAdminApiKeyResponse])
+  }
+
+  /** Delete an organization admin API key
+    *
+    * [[https://platform.openai.com/docs/api-reference/admin-api-keys/delete]]
+    *
+    * @param keyId
+    *   Key id used to delete an admin API key.
+    * @return
+    *   A confirmation object indicating the key was deleted.
+    */
+  def deleteAdminApiKey(keyId: String): Request[Either[OpenAIException, DeleteAdminApiKeyResponse]] =
+    openAIAuthRequest
+      .delete(openAIUris.adminApiKey(keyId))
+      .response(asJson_parseErrors[DeleteAdminApiKeyResponse])
+
   protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 
@@ -1129,15 +1509,18 @@ private class OpenAIUris(val baseUri: Uri) {
   val ChatCompletions: Uri = uri"$baseUri/chat/completions"
   val Completions: Uri = uri"$baseUri/completions"
   val CreateImage: Uri = imageBase.addPath("generations")
-  val Edits: Uri = uri"$baseUri/edits"
   val Embeddings: Uri = uri"$baseUri/embeddings"
   val EditImage: Uri = imageBase.addPath("edits")
   val Files: Uri = uri"$baseUri/files"
-  val FineTunes: Uri = uri"$baseUri/fine-tunes"
   val Models: Uri = uri"$baseUri/models"
   val Moderations: Uri = uri"$baseUri/moderations"
+  val FineTuningJobs: Uri = uri"$baseUri/fine_tuning/jobs"
+  val Batches: Uri = uri"$baseUri/batches"
+  val Uploads: Uri = uri"$baseUri/uploads"
+  val AdminApiKeys: Uri = uri"$baseUri/organization/admin_api_keys"
   val Transcriptions: Uri = audioBase.addPath("transcriptions")
   val Translations: Uri = audioBase.addPath("translations")
+  val Speech: Uri = audioBase.addPath("speech")
   val VariationsImage: Uri = imageBase.addPath("variations")
 
   val Assistants: Uri = uri"$baseUri/assistants"
@@ -1145,12 +1528,26 @@ private class OpenAIUris(val baseUri: Uri) {
   val ThreadsRuns: Uri = uri"$baseUri/threads/runs"
   val VectorStores: Uri = uri"$baseUri/vector_stores"
 
-  def cancelFineTune(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId, "cancel")
+  def upload(uploadId: String): Uri = Uploads.addPath(uploadId)
+  def uploadParts(uploadId: String): Uri = upload(uploadId).addPath("parts")
+  def completeUpload(uploadId: String): Uri = upload(uploadId).addPath("complete")
+  def cancelUpload(uploadId: String): Uri = upload(uploadId).addPath("cancel")
+
+  def chatCompletion(completionId: String): Uri = ChatCompletions.addPath(completionId)
+  def chatMessages(completionId: String): Uri = chatCompletion(completionId).addPath("messages")
+
+  def fineTuningJob(fineTuningJobId: String): Uri = FineTuningJobs.addPath(fineTuningJobId)
+  def fineTuningJobEvents(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("events")
+  def fineTuningJobCheckpoints(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("checkpoints")
+  def cancelFineTuningJob(fineTuningJobId: String): Uri = fineTuningJob(fineTuningJobId).addPath("cancel")
+
+  def batch(batchId: String): Uri = Batches.addPath(batchId)
+  def cancelBatch(batchId: String): Uri = batch(batchId).addPath("cancel")
+
+  def adminApiKey(adminApiKeyId: String): Uri = AdminApiKeys.addPath(adminApiKeyId)
+
   def file(fileId: String): Uri = Files.addPath(fileId)
   def fileContent(fileId: String): Uri = Files.addPath(fileId, "content")
-  def fineTuneModel(model: String): Uri = Models.addPath(model)
-  def fineTuneEvents(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId, "events")
-  def fineTune(fineTuneId: String): Uri = FineTunes.addPath(fineTuneId)
   def model(modelId: String): Uri = Models.addPath(modelId)
 
   def assistant(assistantId: String): Uri = Assistants.addPath(assistantId)

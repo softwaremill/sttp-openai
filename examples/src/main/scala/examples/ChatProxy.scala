@@ -1,8 +1,8 @@
 //> using dep com.softwaremill.sttp.openai::ox:0.2.4
 //> using dep com.softwaremill.sttp.tapir::tapir-netty-server-sync:1.11.7
 //> using dep com.softwaremill.sttp.client4::ox:4.0.0-M19
-//> using dep com.softwaremill.ox::core:0.5.1
-//> using dep ch.qos.logback:logback-classic:1.5.10
+//> using dep com.softwaremill.ox::core:0.5.11
+//> using dep ch.qos.logback:logback-classic:1.5.17
 
 // remember to set the OPENAI_KEY env variable!
 // run with: OPENAI_KEY=... scala-cli run ChatProxy.scala
@@ -22,7 +22,6 @@ import sttp.openai.streaming.ox.*
 import sttp.tapir.*
 import sttp.tapir.CodecFormat.*
 import sttp.tapir.server.netty.sync.{NettySyncServer, OxStreams}
-
 import ox.flow.Flow
 
 //
@@ -47,7 +46,7 @@ def chat(sttpBackend: SyncBackend, openAI: OpenAI): OxStreams.Pipe[ChatMessage, 
       incoming
         // main processing loop: receives messages from the WS and queries OpenAI with the chat's history
         .mapStateful(() => Vector.empty[Message]) { (history, nextMessage) =>
-          val nextHistory = history :+ Message.UserMessage(content = Content.TextContent(nextMessage.message))
+          val nextHistory = history.apply() :+ Message.UserMessage(content = Content.TextContent(nextMessage.message))
 
           // querying OpenAI with the entire chat history, as each request is stateless
           val chatRequestBody: ChatBody = ChatBody(
@@ -72,7 +71,7 @@ def chat(sttpBackend: SyncBackend, openAI: OpenAI): OxStreams.Pipe[ChatMessage, 
           val entireResponse = responseList.map(_.message).mkString
           val nextNextHistory = nextHistory :+ Message.AssistantMessage(content = entireResponse)
 
-          (nextNextHistory, ())
+          (() => nextNextHistory, ())
         }
         // when the outer flow is run, running the incoming flow as well; it doesn't produce any meaningful results
         // (apart from emitting responses to the outer flow), so discarding its result

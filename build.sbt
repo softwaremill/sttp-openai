@@ -2,8 +2,8 @@ import com.softwaremill.SbtSoftwareMillCommon.commonSmlBuildSettings
 import com.softwaremill.Publish.ossPublishSettings
 import Dependencies._
 
-val scala2 = List("2.13.15")
-val scala3 = List("3.3.4")
+val scala2 = List("2.13.16")
+val scala3 = List("3.3.5")
 
 def dependenciesFor(version: String)(deps: (Option[(Long, Long)] => ModuleID)*): Seq[ModuleID] =
   deps.map(_.apply(CrossVersion.partialVersion(version)))
@@ -96,15 +96,15 @@ lazy val examples = (projectMatrix in file("examples"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.11.9",
+      "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.11.17",
       "ch.qos.logback" % "logback-classic" % "1.5.6"
     ) ++ Libraries.sttpClientOx,
     publish / skip := true
   )
   .dependsOn(ox)
 
-val compileDocs: TaskKey[Unit] = taskKey[Unit]("Compiles docs module throwing away its output")
-compileDocs := {
+val compileDocumentation: TaskKey[Unit] = taskKey[Unit]("Compiles docs module throwing away its output")
+compileDocumentation := {
   (docs.jvm(scala2.head) / mdoc).toTask(" --out target/sttp-openai-docs").value
 }
 

@@ -4,15 +4,21 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.{SnakePickle, SttpUpickleApiExtension}
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.message.Tool.{CodeInterpreterTool, FileSearchTool, FunctionTool}
-import sttp.openai.requests.completions.Usage
 import sttp.openai.requests.completions.chat.message.ToolResource.CodeInterpreterToolResource
 import sttp.openai.requests.completions.chat.message.ToolResources
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.ToolOutput
-import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, MessageCreation, RunStepData}
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{
+  ListRunStepsResponse,
+  ListRunsResponse,
+  MessageCreation,
+  RunStepData,
+  Usage
+}
+import sttp.openai.utils.JsonUtils
 import ujson.{Arr, Obj, Str}
 
 class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
@@ -60,7 +66,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, RunData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, RunData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -112,15 +118,15 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     // when
-    val givenResponse: Either[Exception, RunData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, RunData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
   }
 
   "Given list runs response as Json" should "be properly deserialized to case class" in {
-    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
     import sttp.openai.requests.threads.runs.ThreadRunsResponseData.ListRunsResponse._
+    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
 
     // given
     val jsonResponse = fixtures.ThreadRunsFixture.jsonListRunsResponse
@@ -181,7 +187,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       )
 
     // when
-    val givenResponse: Either[Exception, ListRunsResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, ListRunsResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -228,7 +234,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       )
 
     // when
-    val givenResponse: Either[Exception, ListRunStepsResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, ListRunStepsResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -263,7 +269,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       )
 
     // when
-    val givenResponse: Either[Exception, RunData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, RunData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -295,7 +301,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       )
 
     // when
-    val givenResponse: Either[Exception, RunStepData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, RunStepData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -345,7 +351,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       )
 
     // when
-    val givenResponse: Either[Exception, RunData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, RunData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -419,7 +425,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       )
 
     // when
-    val givenResponse: Either[Exception, RunData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, RunData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse
@@ -454,7 +460,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       )
 
     // when
-    val givenResponse: Either[Exception, RunData] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, RunData] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

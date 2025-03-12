@@ -5,6 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ox.{supervised, Ox}
 import sttp.client4.DefaultSyncBackend
+import sttp.client4.testing.ResponseStub
 import sttp.model.sse.ServerSentEvent
 import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException.DeserializationOpenAIException
@@ -21,7 +22,7 @@ class OxClientSpec extends AnyFlatSpec with Matchers with EitherValues {
   for ((statusCode, expectedError) <- ErrorFixture.testData)
     s"Service response with status code: $statusCode" should s"return properly deserialized ${expectedError.getClass.getSimpleName}" in {
       // given
-      val stub = DefaultSyncBackend.stub.whenAnyRequest.thenRespondWithCode(statusCode, ErrorFixture.errorResponse)
+      val stub = DefaultSyncBackend.stub.whenAnyRequest.thenRespondAdjust(ErrorFixture.errorResponse, statusCode)
       val client = new OpenAI("test-token")
 
       val givenRequest = ChatBody(
@@ -40,7 +41,7 @@ class OxClientSpec extends AnyFlatSpec with Matchers with EitherValues {
       // then
       caught.getClass shouldBe expectedError.getClass
       caught.message shouldBe expectedError.message
-      caught.cause shouldBe expectedError.cause
+      caught.cause.getClass shouldBe expectedError.cause.getClass
       caught.code shouldBe expectedError.code
       caught.param shouldBe expectedError.param
       caught.`type` shouldBe expectedError.`type`
@@ -53,7 +54,7 @@ class OxClientSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val streamedResponse = new ByteArrayInputStream(invalidEvent.toString.getBytes)
 
-    val stub = DefaultSyncBackend.stub.whenAnyRequest.thenRespond(streamedResponse)
+    val stub = DefaultSyncBackend.stub.whenAnyRequest.thenRespond(ResponseStub.adjust(streamedResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(
@@ -119,7 +120,7 @@ class OxClientSpec extends AnyFlatSpec with Matchers with EitherValues {
   }
 
   private def assertStreamedCompletion(givenResponse: InputStream, expectedResponse: Seq[ChatChunkResponse])(using Ox) = {
-    val stub = DefaultSyncBackend.stub.whenAnyRequest.thenRespond(givenResponse)
+    val stub = DefaultSyncBackend.stub.whenAnyRequest.thenRespond(ResponseStub.adjust(givenResponse))
     val client = new OpenAI(authToken = "test-token")
 
     val givenRequest = ChatBody(

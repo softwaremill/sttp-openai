@@ -4,9 +4,9 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
-import sttp.openai.json.SttpUpickleApiExtension
 import sttp.openai.requests.completions.Stop.SingleStop
 import sttp.openai.utils.ChatCompletionFixtures._
+import sttp.openai.utils.JsonUtils
 
 class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
@@ -17,16 +17,23 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     // given
     val jsonResponse = fixtures.ChatChunkFixture.jsonResponse
 
-    val delta: Delta = Delta(
-      role = Some(Role.Assistant),
-      content = Some("  Hi"),
-      toolCalls = toolCalls
-    )
-
-    val choices: Choices = Choices(
-      delta = delta,
-      finishReason = Some("stop"),
-      index = 0
+    val choices = Seq(
+      Choices(
+        delta = Delta(
+          content = Some("...")
+        ),
+        finishReason = None,
+        index = 0
+      ),
+      Choices(
+        delta = Delta(
+          role = Some(Role.Assistant),
+          content = Some("  Hi"),
+          toolCalls = toolCalls
+        ),
+        finishReason = Some("stop"),
+        index = 1
+      )
     )
 
     val expectedResponse: ChatChunkResponse = ChatChunkResponse(
@@ -34,12 +41,12 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       `object` = "chat.completion",
       created = 1681725687,
       model = "gpt-3.5-turbo-0301",
-      choices = Seq(choices),
+      choices = choices,
       systemFingerprint = Some("systemFingerprint")
     )
 
     // when
-    val givenResponse: Either[Exception, ChatChunkResponse] = SttpUpickleApiExtension.deserializeJsonSnake.apply(jsonResponse)
+    val givenResponse: Either[Exception, ChatChunkResponse] = JsonUtils.deserializeJsonSnake.apply(jsonResponse)
 
     // then
     givenResponse.value shouldBe expectedResponse

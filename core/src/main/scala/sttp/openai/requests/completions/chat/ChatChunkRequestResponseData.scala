@@ -25,7 +25,7 @@ object ChatChunkRequestResponseData {
 
   case class Choices(
       delta: Delta,
-      finishReason: Option[String],
+      finishReason: Option[String] = None,
       index: Int
   )
 
