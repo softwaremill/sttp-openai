@@ -10,7 +10,7 @@ object Dependencies {
     val sttpClient = "4.0.0-RC1"
     val pekkoStreams = "1.1.3"
     val akkaStreams = "2.6.20"
-    val tapir = "1.11.17"
+    val tapir = "1.11.19"
     val uPickle = "4.1.0"
   }
 
