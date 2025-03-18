@@ -190,8 +190,7 @@ object ChatFixture {
       |             "name": "Fish"
       |           }
       |         }
-      |        ],
-      |        "id": "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR"
+      |        ]
       |      },
       |      "finish_reason": "stop",
       |      "index": 0,

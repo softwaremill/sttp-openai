@@ -60,7 +60,6 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
         Message(
           role = Assistant,
           content = "Hi there! How can I assist you today?",
-          id = "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR",
           audio = Some(
             Audio(
               id = "audio_id",
@@ -106,8 +105,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val message: Message = Message(
       role = Role.Assistant,
       content = "Hi there! How can I assist you today?",
-      toolCalls = toolCalls,
-      id = "chatcmpl-76FxnKOjnPkDVYTAQ1wK8iUNFJPvR"
+      toolCalls = toolCalls
     )
 
     val choices: Choices = Choices(
