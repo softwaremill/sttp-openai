@@ -21,9 +21,9 @@ object ChatRequestBody {
     object JsonSchema {
       case class ParseException(circeException: DecodingFailure) extends Exception("Failed to parse JSON schema", circeException)
 
-      private case class InternalRepr(json_schema: JsonSchema)
+      case class InternalRepr(json_schema: JsonSchema)
 
-      private object InternalRepr {
+      object InternalRepr {
         case class FolderState(
             fields: List[(String, Json)],
             addAdditionalProperties: Boolean,
@@ -85,7 +85,7 @@ object ChatRequestBody {
           }
         }
 
-        implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SnakePickle
+        implicit val schemaRW: SnakePickle.ReadWriter[Schema] = SnakePickle
           .readwriter[Value]
           .bimap(
             s => CirceJson.transform(s.asJson.deepDropNullValues.foldWith(schemaFolder), upickle.default.reader[Value]),

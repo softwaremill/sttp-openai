@@ -2,6 +2,12 @@ package sttp.openai.requests.completions.chat.message
 
 import sttp.openai.json.SnakePickle
 import ujson._
+import sttp.apispec.Schema
+import sttp.openai.requests.completions.chat.ChatRequestBody
+import sttp.openai.requests.completions.chat.ChatRequestBody.ResponseFormat.JsonSchema.InternalRepr.schemaFolder
+import sttp.openai.requests.completions.chat.ChatRequestBody.ResponseFormat.JsonSchema.ParseException
+import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
+import ujson.circe.CirceJson
 
 sealed trait Tool
 
@@ -15,6 +21,22 @@ object Tool {
     *   The parameters the functions accepts, described as a JSON Schema object
     */
   case class FunctionTool(description: String, name: String, parameters: Map[String, Value]) extends Tool
+
+  case class SchematizedFunctionTool(description: String, name: String, parameters: Schema) extends Tool
+
+  object SchematizedFunctionTool {
+    def apply[T: sttp.tapir.Schema](description: String, name: String): SchematizedFunctionTool =
+      new SchematizedFunctionTool(description, name, TapirSchemaToJsonSchema(implicitly[sttp.tapir.Schema[T]], markOptionsAsNullable = true))
+  }
+
+  implicit val schemaRW: SnakePickle.ReadWriter[Schema] = ChatRequestBody.ResponseFormat.JsonSchema.InternalRepr.schemaRW
+
+  implicit val schematizedFunctionToolRW: SnakePickle.ReadWriter[SchematizedFunctionTool] = SnakePickle
+    .readwriter[Value]
+    .bimap[SchematizedFunctionTool](
+      functionTool => Obj("description" -> functionTool.description, "name" -> functionTool.name, "parameters" -> SnakePickle.writeJs(functionTool.parameters)),
+      json => SchematizedFunctionTool(json("description").str, json("name").str, SnakePickle.read[Schema](json("parameters")))
+    )
 
   implicit val functionToolRW: SnakePickle.ReadWriter[FunctionTool] = SnakePickle
     .readwriter[Value]
@@ -39,6 +61,8 @@ object Tool {
     .readwriter[Value]
     .bimap[Tool](
       {
+        case schematizedFunctionTool: SchematizedFunctionTool =>
+          Obj("type" -> "function", "function" -> SnakePickle.writeJs(schematizedFunctionTool))
         case functionTool: FunctionTool =>
           Obj("type" -> "function", "function" -> SnakePickle.writeJs(functionTool))
         case CodeInterpreterTool =>
