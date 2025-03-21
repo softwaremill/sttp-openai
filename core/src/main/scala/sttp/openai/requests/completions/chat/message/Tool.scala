@@ -1,13 +1,10 @@
 package sttp.openai.requests.completions.chat.message
 
-import sttp.openai.json.SnakePickle
-import ujson._
 import sttp.apispec.Schema
-import sttp.openai.requests.completions.chat.ChatRequestBody
-import sttp.openai.requests.completions.chat.ChatRequestBody.ResponseFormat.JsonSchema.InternalRepr.schemaFolder
-import sttp.openai.requests.completions.chat.ChatRequestBody.ResponseFormat.JsonSchema.ParseException
+import sttp.openai.json.SnakePickle
+import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
-import ujson.circe.CirceJson
+import ujson._
 
 sealed trait Tool
 
@@ -26,15 +23,24 @@ object Tool {
 
   object SchematizedFunctionTool {
     def apply[T: sttp.tapir.Schema](description: String, name: String): SchematizedFunctionTool =
-      new SchematizedFunctionTool(description, name, TapirSchemaToJsonSchema(implicitly[sttp.tapir.Schema[T]], markOptionsAsNullable = true))
+      new SchematizedFunctionTool(
+        description,
+        name,
+        TapirSchemaToJsonSchema(implicitly[sttp.tapir.Schema[T]], markOptionsAsNullable = true)
+      )
   }
 
-  implicit val schemaRW: SnakePickle.ReadWriter[Schema] = ChatRequestBody.ResponseFormat.JsonSchema.InternalRepr.schemaRW
+  implicit val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 
   implicit val schematizedFunctionToolRW: SnakePickle.ReadWriter[SchematizedFunctionTool] = SnakePickle
     .readwriter[Value]
     .bimap[SchematizedFunctionTool](
-      functionTool => Obj("description" -> functionTool.description, "name" -> functionTool.name, "parameters" -> SnakePickle.writeJs(functionTool.parameters)),
+      functionTool =>
+        Obj(
+          "description" -> functionTool.description,
+          "name" -> functionTool.name,
+          "parameters" -> SnakePickle.writeJs(functionTool.parameters)
+        ),
       json => SchematizedFunctionTool(json("description").str, json("name").str, SnakePickle.read[Schema](json("parameters")))
     )
 
