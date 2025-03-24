@@ -20,6 +20,9 @@ object Tool {
     */
   case class FunctionTool(description: String, name: String, parameters: Map[String, Value]) extends Tool
 
+  /** With this class we are not forced to provide Json Schema by hand. It will be automatically generated based on the type T. Please refer
+    * to readme for example of usage.
+    */
   case class SchematizedFunctionTool(description: String, name: String, parameters: Schema) extends Tool
 
   object SchematizedFunctionTool {

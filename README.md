@@ -541,7 +541,20 @@ val jsonSchema: ASchema = TapirSchemaToJsonSchema(
 
 #### Generating JSON Schema from case class
 
-We can also generate JSON Schema directly from case class, without defining the schema manually:
+We can also generate JSON Schema directly from case class, without defining the schema manually.
+
+In the example below I define such use case. User tries to book a flight, using function tool. The flow looks as follows:
+- User sends a message with the request to book a flight and provides function tool, which means that there is a function on a client side which 'knows' how to book a flight. Within this call it is necessary to provide Json Schema to define function arguments.
+- Assistant sends a message with arguments created based on Json Schema provided in the first step.
+- User calls custom function with arguments sent by Assistant before.
+- User sends result from the function call to Assistant.
+- Assistant sends a final result to User.
+
+The key point here is introducing SchematizedFunctionTool class. With this class in place Json Schema can be automatically generated using TapirSchemaToJsonSchema functionality. All we need to do is to define case class with [Tapir Schema](https://tapir.softwaremill.com/en/latest/endpoint/schemas.html) defined for it.
+
+Another helpful feature is adding possibility to create ToolMessage object passing object instead of String, which will be automatically serialized to Json. All you have to do is just define SnakePickle.Writer for specific class.
+
+With all this in mind please remember that it is still required to deserialized arguments, which are send back by Assistant to call our function.
 
 ```scala mdoc:compile-only
 //> using dep com.softwaremill.sttp.openai::core:0.3.1
@@ -580,6 +593,7 @@ object Main extends App {
 
   val initialRequestMessage = Seq(UserMessage(content = TextContent("I want to book a flight from London to Tokyo for Jane Doe, age 34")))
 
+  // Request created using SchematizedFunctionTool, all we need to do here is just define type without explicit Json Schema.
   val givenRequest = ChatBody(
     model = GPT4oMini,
     messages = initialRequestMessage,
@@ -626,17 +640,20 @@ object Main extends App {
     )
     */
 
+  // Tool calls list (in this example it is just single tool call, but there may be multiple), which is necessary to build message list for second request.
   val toolCalls = initialRequestResult.choices.head.message.toolCalls
 
   val functionToolCall = toolCalls.head match {
     case functionToolCall: FunctionToolCall => functionToolCall
   }
 
+  // Function arguments are manually deserialized, 'bookFlight' function mimic external function definition.
   val bookedFlight = bookFlight(SnakePickle.read[FlightDetails](functionToolCall.function.arguments))
 
   val secondRequest = givenRequest.copy(
     messages = initialRequestMessage
       :+ AssistantMessage(content = "", toolCalls = toolCalls)
+      // ToolMessage created using object instead of String with Json representation of object.
       :+ ToolMessage(toolCallId = functionToolCall.id.get, content = bookedFlight)
   )
 
