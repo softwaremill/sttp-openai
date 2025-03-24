@@ -539,6 +539,138 @@ val jsonSchema: ASchema = TapirSchemaToJsonSchema(
 )
 ```
 
+#### Generating JSON Schema from case class
+
+We can also generate JSON Schema directly from case class, without defining the schema manually:
+
+```scala mdoc:compile-only
+//> using dep com.softwaremill.sttp.openai::core:0.3.1
+
+import sttp.openai.OpenAISyncClient
+import sttp.openai.json.SnakePickle
+import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
+import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel.GPT4oMini
+import sttp.openai.requests.completions.chat.ToolCall
+import sttp.openai.requests.completions.chat.ToolCall.FunctionToolCall
+import sttp.openai.requests.completions.chat.message.Content.TextContent
+import sttp.openai.requests.completions.chat.message.Message.{AssistantMessage, ToolMessage, UserMessage}
+import sttp.openai.requests.completions.chat.message.Tool.SchematizedFunctionTool
+import sttp.tapir.Schema
+import sttp.tapir.generic.auto.*
+
+case class Passenger(name: String, age: Int)
+
+object Passenger {
+  implicit val passengerR: SnakePickle.Reader[Passenger] = SnakePickle.macroR[Passenger]
+}
+
+case class FlightDetails(passenger: Passenger, departureCity: String, destinationCity: String)
+
+object FlightDetails {
+  implicit val flightDetailsR: SnakePickle.Reader[FlightDetails] = SnakePickle.macroR[FlightDetails]
+}
+
+case class BookedFlight(confirmationNumber: String, status: String)
+
+object BookedFlight {
+  implicit val bookedFlightW: SnakePickle.Writer[BookedFlight] = SnakePickle.macroW[BookedFlight]
+}
+
+object Main extends App {
+  val apiKey = System.getenv("OPENAI_KEY")
+  val openAI = OpenAISyncClient(apiKey)
+
+  val initialRequestMessage = Seq(UserMessage(content = TextContent("I want to book a flight from London to Tokyo for Jane Doe, age 34")))
+
+  val givenRequest = ChatBody(
+    model = GPT4oMini,
+    messages = initialRequestMessage,
+    tools = Some(Seq(
+      SchematizedFunctionTool[FlightDetails](
+        description = "Books a flight for a passenger with full details",
+        name = "book_flight"))
+    )
+  )
+
+  val initialRequestResult = openAI.createChatCompletion(givenRequest)
+
+  println(initialRequestResult.choices)
+  /*
+    List(
+      Choices(
+        Message(
+          null,
+          None,
+          List(
+            FunctionToolCall(
+              Some(call_XZNvfldLQTa1f7aMInswpTMS),
+              FunctionCall(
+                {
+                  "passenger": {
+                    "name": "Jane Doe",
+                    "age": 34
+                  },
+                  "departureCity": "London",
+                  "destinationCity": "Tokyo"
+                },
+                Some(book_flight)
+              )
+            )
+          ),
+          Assistant,
+          None,
+          None
+        ),
+        tool_calls,
+        0,
+        None
+      )
+    )
+    */
+
+  val toolCalls = initialRequestResult.choices.head.message.toolCalls
+
+  val functionToolCall = toolCalls.head match {
+    case functionToolCall: FunctionToolCall => functionToolCall
+  }
+
+  val bookedFlight = bookFlight(SnakePickle.read[FlightDetails](functionToolCall.function.arguments))
+
+  val secondRequest = givenRequest.copy(
+    messages = initialRequestMessage
+      :+ AssistantMessage(content = "", toolCalls = toolCalls)
+      :+ ToolMessage(toolCallId = functionToolCall.id.get, content = bookedFlight)
+  )
+
+  val finalResult = openAI.createChatCompletion(secondRequest)
+
+  println(finalResult.choices)
+  /*
+    List(
+      Choices(
+        Message(
+          "The flight from London to Tokyo for Jane Doe, age 34, has been successfully booked. The confirmation number is **123456** and the status is **confirmed**.",
+          None,
+          List(),
+          Assistant,
+          None,
+          None
+        ),
+        stop,
+        0,
+        None
+      )
+    )
+    */
+
+  def bookFlight(flightDetails: FlightDetails): BookedFlight = {
+    println(flightDetails)
+    BookedFlight(confirmationNumber = "123456", status = "confirmed")
+  }
+
+}
+```
+
 ## Contributing
 
 If you have a question, or hit a problem, feel free to post on our community https://softwaremill.community/c/open-source/
