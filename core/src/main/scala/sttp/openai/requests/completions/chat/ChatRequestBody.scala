@@ -15,9 +15,9 @@ object ChatRequestBody {
     case object JsonObject extends ResponseFormat
     case class JsonSchema(name: String, strict: Boolean, schema: Schema) extends ResponseFormat
     object JsonSchema {
-      case class InternalRepr(json_schema: JsonSchema)
+      private case class InternalRepr(json_schema: JsonSchema)
 
-      object InternalRepr {
+      private object InternalRepr {
         implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 
         implicit private val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle
