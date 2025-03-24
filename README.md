@@ -550,13 +550,11 @@ import sttp.openai.OpenAISyncClient
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel.GPT4oMini
-import sttp.openai.requests.completions.chat.ToolCall
 import sttp.openai.requests.completions.chat.ToolCall.FunctionToolCall
 import sttp.openai.requests.completions.chat.message.Content.TextContent
 import sttp.openai.requests.completions.chat.message.Message.{AssistantMessage, ToolMessage, UserMessage}
 import sttp.openai.requests.completions.chat.message.Tool.SchematizedFunctionTool
-import sttp.tapir.Schema
-import sttp.tapir.generic.auto.*
+import sttp.tapir.generic.auto._
 
 case class Passenger(name: String, age: Int)
 
