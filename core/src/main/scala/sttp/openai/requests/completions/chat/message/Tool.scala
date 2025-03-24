@@ -4,6 +4,7 @@ import sttp.apispec.Schema
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
+import sttp.tapir.{Schema => TSchema}
 import ujson._
 
 sealed trait Tool
@@ -22,11 +23,11 @@ object Tool {
   case class SchematizedFunctionTool(description: String, name: String, parameters: Schema) extends Tool
 
   object SchematizedFunctionTool {
-    def apply[T: sttp.tapir.Schema](description: String, name: String): SchematizedFunctionTool =
+    def apply[T: TSchema](description: String, name: String): SchematizedFunctionTool =
       new SchematizedFunctionTool(
         description,
         name,
-        TapirSchemaToJsonSchema(implicitly[sttp.tapir.Schema[T]], markOptionsAsNullable = true)
+        TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
       )
   }
 
