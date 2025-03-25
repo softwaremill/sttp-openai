@@ -539,6 +539,153 @@ val jsonSchema: ASchema = TapirSchemaToJsonSchema(
 )
 ```
 
+#### Generating JSON Schema from case class
+
+We can also generate JSON Schema directly from case class, without defining the schema manually.
+
+In the example below I define such use case. User tries to book a flight, using function tool. The flow looks as follows:
+- User sends a message with the request to book a flight and provides function tool, which means that there is a function on a client side which 'knows' how to book a flight. Within this call it is necessary to provide Json Schema to define function arguments.
+- Assistant sends a message with arguments created based on Json Schema provided in the first step.
+- User calls custom function with arguments sent by Assistant before.
+- User sends result from the function call to Assistant.
+- Assistant sends a final result to User.
+
+The key point here is introducing SchematizedFunctionTool class. With this class in place Json Schema can be automatically generated using TapirSchemaToJsonSchema functionality. All we need to do is to define case class with [Tapir Schema](https://tapir.softwaremill.com/en/latest/endpoint/schemas.html) defined for it.
+
+Another helpful feature is adding possibility to create ToolMessage object passing object instead of String, which will be automatically serialized to Json. All you have to do is just define SnakePickle.Writer for specific class.
+
+With all this in mind please remember that it is still required to deserialized arguments, which are sent back by Assistant to call our function.
+
+```scala mdoc:compile-only
+//> using dep com.softwaremill.sttp.openai::core:0.3.1
+
+import sttp.openai.OpenAISyncClient
+import sttp.openai.json.SnakePickle
+import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
+import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel.GPT4oMini
+import sttp.openai.requests.completions.chat.ToolCall.FunctionToolCall
+import sttp.openai.requests.completions.chat.message.Content.TextContent
+import sttp.openai.requests.completions.chat.message.Message.{AssistantMessage, ToolMessage, UserMessage}
+import sttp.openai.requests.completions.chat.message.Tool.SchematizedFunctionTool
+import sttp.tapir.generic.auto._
+
+case class Passenger(name: String, age: Int)
+
+object Passenger {
+  implicit val passengerR: SnakePickle.Reader[Passenger] = SnakePickle.macroR[Passenger]
+}
+
+case class FlightDetails(passenger: Passenger, departureCity: String, destinationCity: String)
+
+object FlightDetails {
+  implicit val flightDetailsR: SnakePickle.Reader[FlightDetails] = SnakePickle.macroR[FlightDetails]
+}
+
+case class BookedFlight(confirmationNumber: String, status: String)
+
+object BookedFlight {
+  implicit val bookedFlightW: SnakePickle.Writer[BookedFlight] = SnakePickle.macroW[BookedFlight]
+}
+
+object Main extends App {
+  val apiKey = System.getenv("OPENAI_KEY")
+  val openAI = OpenAISyncClient(apiKey)
+
+  val initialRequestMessage = Seq(UserMessage(content = TextContent("I want to book a flight from London to Tokyo for Jane Doe, age 34")))
+
+  // Request created using SchematizedFunctionTool, all we need to do here is just define the type. The schema is automatically generated using a macro, available via the `sttp.tapir.generic.auto._` import.
+  val givenRequest = ChatBody(
+    model = GPT4oMini,
+    messages = initialRequestMessage,
+    tools = Some(Seq(
+      SchematizedFunctionTool[FlightDetails](
+        description = "Books a flight for a passenger with full details",
+        name = "book_flight"))
+    )
+  )
+
+  val initialRequestResult = openAI.createChatCompletion(givenRequest)
+
+  println(initialRequestResult.choices)
+  /*
+    List(
+      Choices(
+        Message(
+          null,
+          None,
+          List(
+            FunctionToolCall(
+              Some(call_XZNvfldLQTa1f7aMInswpTMS),
+              FunctionCall(
+                {
+                  "passenger": {
+                    "name": "Jane Doe",
+                    "age": 34
+                  },
+                  "departureCity": "London",
+                  "destinationCity": "Tokyo"
+                },
+                Some(book_flight)
+              )
+            )
+          ),
+          Assistant,
+          None,
+          None
+        ),
+        tool_calls,
+        0,
+        None
+      )
+    )
+    */
+
+  // Tool calls list (in this example it is just single tool call, but there may be multiple), which is necessary to build message list for second request.
+  val toolCalls = initialRequestResult.choices.head.message.toolCalls
+
+  val functionToolCall = toolCalls.head match {
+    case functionToolCall: FunctionToolCall => functionToolCall
+  }
+
+  // Function arguments are manually deserialized, 'bookFlight' function mimic external function definition.
+  val bookedFlight = bookFlight(SnakePickle.read[FlightDetails](functionToolCall.function.arguments))
+
+  val secondRequest = givenRequest.copy(
+    messages = initialRequestMessage
+      :+ AssistantMessage(content = "", toolCalls = toolCalls)
+      // ToolMessage created using object instead of String with Json representation of object.
+      :+ ToolMessage(toolCallId = functionToolCall.id.get, content = bookedFlight)
+  )
+
+  val finalResult = openAI.createChatCompletion(secondRequest)
+
+  println(finalResult.choices)
+  /*
+    List(
+      Choices(
+        Message(
+          "The flight from London to Tokyo for Jane Doe, age 34, has been successfully booked. The confirmation number is **123456** and the status is **confirmed**.",
+          None,
+          List(),
+          Assistant,
+          None,
+          None
+        ),
+        stop,
+        0,
+        None
+      )
+    )
+    */
+
+  def bookFlight(flightDetails: FlightDetails): BookedFlight = {
+    println(flightDetails)
+    BookedFlight(confirmationNumber = "123456", status = "confirmed")
+  }
+
+}
+```
+
 ## Contributing
 
 If you have a question, or hit a problem, feel free to post on our community https://softwaremill.community/c/open-source/

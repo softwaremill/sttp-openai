@@ -12,6 +12,21 @@ object Message {
   case class AssistantMessage(content: String, name: Option[String] = None, toolCalls: Seq[ToolCall] = Nil) extends Message
   case class ToolMessage(content: String, toolCallId: String) extends Message
 
+  object ToolMessage {
+    def apply(content: String, toolCallId: String): ToolMessage = new ToolMessage(content, toolCallId)
+
+    def apply[T: SnakePickle.Writer](content: T, toolCallId: String): ToolMessage =
+      new ToolMessage(SnakePickle.write(content), toolCallId)
+
+    implicit val toolMessageRW: SnakePickle.ReadWriter[ToolMessage] =
+      SnakePickle
+        .readwriter[Value]
+        .bimap[ToolMessage](
+          msg => Obj("role" -> "tool", "content" -> msg.content, "tool_call_id" -> msg.toolCallId),
+          json => ToolMessage(json("content").str, json("tool_call_id").str)
+        )
+  }
+
   implicit val systemMessageRW: SnakePickle.ReadWriter[SystemMessage] =
     SnakePickle
       .readwriter[Value]
@@ -54,14 +69,6 @@ object Message {
             json.obj.get("name").map(_.str),
             SnakePickle.read[Seq[ToolCall]](json.obj("tool_calls"))
           )
-      )
-
-  implicit val toolMessageRW: SnakePickle.ReadWriter[ToolMessage] =
-    SnakePickle
-      .readwriter[Value]
-      .bimap[ToolMessage](
-        msg => Obj("role" -> "tool", "content" -> msg.content, "tool_call_id" -> msg.toolCallId),
-        json => ToolMessage(json("content").str, json("tool_call_id").str)
       )
 
   implicit val messageRW: SnakePickle.ReadWriter[Message] =
