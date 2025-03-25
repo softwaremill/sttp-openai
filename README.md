@@ -593,7 +593,7 @@ object Main extends App {
 
   val initialRequestMessage = Seq(UserMessage(content = TextContent("I want to book a flight from London to Tokyo for Jane Doe, age 34")))
 
-  // Request created using SchematizedFunctionTool, all we need to do here is just define type without explicit Json Schema.
+  // Request created using SchematizedFunctionTool, all we need to do here is just define the type. The schema is automatically generated using a macro, available via the `sttp.tapir.generic.auto._` import.
   val givenRequest = ChatBody(
     model = GPT4oMini,
     messages = initialRequestMessage,
