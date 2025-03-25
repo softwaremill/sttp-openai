@@ -32,9 +32,8 @@ object SchemaSupport {
   /** OpenAI's JSON schema support imposes two requirements:
     *
     *   1. All fields must be `required`: https://platform.openai.com/docs/guides/structured-outputs/all-fields-must-be-required
-    *
-    * 2. `additionalProperties: false` must always be set in objects:
-    * https://platform.openai.com/docs/guides/structured-outputs/additionalproperties-false-must-always-be-set-in-objects
+    *   2. `additionalProperties: false` must always be set in objects:
+    *      https://platform.openai.com/docs/guides/structured-outputs/additionalproperties-false-must-always-be-set-in-objects
     *
     * We implement these by folding over the JSON structure. However, if a schema uses discriminated unions (indicated by a `discriminator`
     * property), we skip forcing `additionalProperties: false` to preserve flexibility in selecting sub-schemas.
