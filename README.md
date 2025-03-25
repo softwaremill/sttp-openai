@@ -554,7 +554,7 @@ The key point here is introducing SchematizedFunctionTool class. With this class
 
 Another helpful feature is adding possibility to create ToolMessage object passing object instead of String, which will be automatically serialized to Json. All you have to do is just define SnakePickle.Writer for specific class.
 
-With all this in mind please remember that it is still required to deserialized arguments, which are send back by Assistant to call our function.
+With all this in mind please remember that it is still required to deserialized arguments, which are sent back by Assistant to call our function.
 
 ```scala mdoc:compile-only
 //> using dep com.softwaremill.sttp.openai::core:0.3.1
