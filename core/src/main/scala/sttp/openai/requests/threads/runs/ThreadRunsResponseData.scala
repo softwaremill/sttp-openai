@@ -2,6 +2,10 @@ package sttp.openai.requests.threads.runs
 
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.message.{Tool, ToolResources}
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.FileSearchToolCall.FileSearch
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.FileSearchToolCall.FileSearch.FileSearchResult
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.FileSearchToolCall.FileSearch.FileSearchResult.Content
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.FileSearchToolCall.FileSearch.RankingOptions
 
 object ThreadRunsResponseData {
 
@@ -375,16 +379,89 @@ object ThreadRunsResponseData {
     *   The type of tool call. This is always going to be file_search for this type of tool call.
     *
     * @param fileSearch
-    *   For now, this is always going to be an empty object.
+    *   According to https://platform.openai.com/docs/api-reference/run-steps/step-object It should be map: "For now, this is always going
+    *   to be an empty object."
+    *
+    * Actually, it has two fields: "ranking_options" and "results"
     */
   case class FileSearchToolCall(
       id: String,
       `type`: String,
-      fileSearch: Map[String, String]
+      fileSearch: Option[FileSearch] = None
   ) extends ToolCall
 
   object FileSearchToolCall {
     implicit val fileSearchToolCallR: SnakePickle.Reader[FileSearchToolCall] = SnakePickle.macroR[FileSearchToolCall]
+
+    /** @param rankingOptions
+      *   The ranking options for the file search
+      * @param results
+      *   The results of the file search
+      */
+    case class FileSearch(
+        rankingOptions: Option[RankingOptions] = None,
+        results: Seq[FileSearchResult] = Seq.empty
+    )
+
+    object FileSearch {
+      implicit val fileSearchR: SnakePickle.Reader[FileSearch] = SnakePickle.macroR[FileSearch]
+
+      /** The ranking options for the file search
+        *
+        * @param ranker
+        *   The ranker to use for the file search. If not specified will use the auto ranker.
+        * @param scoreThreshold
+        *   The score threshold for the file search. All values must be a floating point number between 0 and 1
+        */
+      case class RankingOptions(
+          ranker: String,
+          scoreThreshold: Double
+      )
+
+      object RankingOptions {
+        implicit val rankingOptionsR: SnakePickle.Reader[RankingOptions] = SnakePickle.macroR[RankingOptions]
+      }
+
+      /** The results of the file search
+        *
+        * @param fileId
+        *   The ID of the file that result was found in
+        * @param fileName
+        *   The name of the file that result was found in
+        * @param score
+        *   The score of the result. All values must be a floating point number between 0 and 1.
+        * @param content
+        *   The content of the result that was found. The content is only included if requested via the include query parameter.
+        */
+      case class FileSearchResult(
+          fileId: String,
+          fileName: String,
+          score: Double,
+          content: Seq[Content] = Seq.empty
+      )
+
+      object FileSearchResult {
+        implicit val fileSearchResultR: SnakePickle.Reader[FileSearchResult] = SnakePickle.macroR[FileSearchResult]
+
+        /** The content of the result that was found.
+          *
+          * @param text
+          *   The text content of the file.
+          * @param type
+          *   The type of the content.
+          */
+        case class Content(
+            text: String,
+            `type`: String
+        )
+
+        object Content {
+          implicit val contentR: SnakePickle.Reader[Content] = SnakePickle.macroR[Content]
+        }
+
+      }
+
+    }
   }
 
   /** Function tool call
