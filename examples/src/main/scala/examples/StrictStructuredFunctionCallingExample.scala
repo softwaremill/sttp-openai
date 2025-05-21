@@ -9,7 +9,7 @@ package examples
   * Run from the project root folder with: OPENAI_API_KEY=… sbt "examples3/runMain examples.StrictStructuredFunctionCallingExample"
   */
 object StrictStructuredFunctionCallingExample extends App {
-  import ujson.{Str, Obj, Arr, Bool}
+  import ujson.{Arr, Bool, Obj, Str}
   import sttp.client4.{DefaultSyncBackend, SyncBackend}
   import sttp.openai.OpenAI
   import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, ResponseFormat}
@@ -20,22 +20,22 @@ object StrictStructuredFunctionCallingExample extends App {
 
   val getNumberTool = FunctionTool(
     description = "Convert given text to upper-case",
-    name        = "uppercase_text",
-    parameters  = Map(
-      "type"       -> Str("object"),
+    name = "uppercase_text",
+    parameters = Map(
+      "type" -> Str("object"),
       "properties" -> Obj(
         "text" -> Obj("type" -> Str("number"))
       ),
-      "required"   -> Arr(Str("text")),
+      "required" -> Arr(Str("text")),
       "additionalProperties" -> Bool(false)
     ),
     strict = Some(true)
   )
 
   val chatBody = ChatBody(
-    model    = ChatCompletionModel.GPT4oMini,
+    model = ChatCompletionModel.GPT4oMini,
     messages = Seq(Message.UserMessage(Content.TextContent("Please uppercase the word 'hello'"))),
-    tools    = Some(Seq(getNumberTool)),
+    tools = Some(Seq(getNumberTool)),
     toolChoice = Some(ToolChoice.ToolFunction("uppercase_text"))
   )
 
@@ -58,7 +58,7 @@ object StrictStructuredFunctionCallingExample extends App {
       maybeArgsRaw match {
         case Some(jsonStr) =>
           println(s"Function call arguments: $jsonStr")
-          val parsed   = ujson.read(jsonStr)
+          val parsed = ujson.read(jsonStr)
           val maybeNum = parsed.obj.get("text").flatMap(_.numOpt)
 
           maybeNum match {
