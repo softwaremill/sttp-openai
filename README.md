@@ -20,7 +20,7 @@ sttp-openai uses sttp client to describe requests and responses used in OpenAI (
 Add the following dependency:
 
 ```sbt
-"com.softwaremill.sttp.openai" %% "core" % "0.3.4"
+"com.softwaremill.sttp.openai" %% "core" % "0.3.5"
 ```
 
 sttp-openai is available for Scala 2.13 and Scala 3
@@ -36,7 +36,7 @@ Examples are runnable using [scala-cli](https://scala-cli.virtuslab.org).
 ### To use ChatGPT
 
 ```scala mdoc:compile-only 
-//> using dep com.softwaremill.sttp.openai::core:0.3.4
+//> using dep com.softwaremill.sttp.openai::core:0.3.5
 
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
@@ -86,7 +86,7 @@ object Main extends App {
 Ollama with sync backend:
 
 ```scala mdoc:compile-only
-//> using dep com.softwaremill.sttp.openai::core:0.3.4
+//> using dep com.softwaremill.sttp.openai::core:0.3.5
 
 import sttp.model.Uri._
 import sttp.openai.OpenAISyncClient
@@ -140,7 +140,7 @@ object Main extends App {
 Grok with cats-effect based backend:
 
 ```scala mdoc:compile-only
-//> using dep com.softwaremill.sttp.openai::core:0.3.4
+//> using dep com.softwaremill.sttp.openai::core:0.3.5
 //> using dep com.softwaremill.sttp.client4::cats:4.0.0-M17
 
 import cats.effect.{ExitCode, IO, IOApp}
@@ -217,7 +217,7 @@ Example below uses `HttpClientCatsBackend` as a backend, make sure to [add it to
 or use backend of your choice.
 
 ```scala mdoc:compile-only
-//> using dep com.softwaremill.sttp.openai::core:0.3.4
+//> using dep com.softwaremill.sttp.openai::core:0.3.5
 //> using dep com.softwaremill.sttp.client4::cats:4.0.0-M17
 
 import cats.effect.{ExitCode, IO, IOApp}
@@ -285,7 +285,7 @@ For example, to use `fs2` add the following dependency & import:
 
 ```scala
 // sbt dependency
-"com.softwaremill.sttp.openai" %% "fs2" % "0.3.4"
+"com.softwaremill.sttp.openai" %% "fs2" % "0.3.5"
 
 // import 
 import sttp.openai.streaming.fs2._
@@ -294,7 +294,7 @@ import sttp.openai.streaming.fs2._
 Example below uses `HttpClientFs2Backend` as a backend:
 
 ```scala mdoc:compile-only
-//> using dep com.softwaremill.sttp.openai::fs2:0.3.4
+//> using dep com.softwaremill.sttp.openai::fs2:0.3.5
 
 import cats.effect.{ExitCode, IO, IOApp}
 import fs2.Stream
@@ -376,7 +376,7 @@ To use direct-style streaming (requires Scala 3) add the following dependency & 
 
 ```scala
 // sbt dependency
-"com.softwaremill.sttp.openai" %% "ox" % "0.3.4"
+"com.softwaremill.sttp.openai" %% "ox" % "0.3.5"
 
 // import 
 import sttp.openai.streaming.ox.*
@@ -385,7 +385,7 @@ import sttp.openai.streaming.ox.*
 Example code:
 
 ```scala
-//> using dep com.softwaremill.sttp.openai::ox:0.3.4
+//> using dep com.softwaremill.sttp.openai::ox:0.3.5
 
 import ox.*
 import ox.either.orThrow
@@ -432,7 +432,7 @@ and support for JSON Schema, you can use `ResponseFormat.JsonSchema` when creati
 The example below produces a JSON object:
 
 ```scala mdoc:compile-only
-//> using dep com.softwaremill.sttp.openai::core:0.3.4
+//> using dep com.softwaremill.sttp.openai::core:0.3.5
 
 import scala.collection.immutable.ListMap
 import sttp.apispec.{Schema, SchemaType}
@@ -557,7 +557,7 @@ Another helpful feature is adding possibility to create ToolMessage object passi
 With all this in mind please remember that it is still required to deserialized arguments, which are sent back by Assistant to call our function.
 
 ```scala mdoc:compile-only
-//> using dep com.softwaremill.sttp.openai::core:0.3.4
+//> using dep com.softwaremill.sttp.openai::core:0.3.5
 
 import sttp.openai.OpenAISyncClient
 import sttp.openai.json.SnakePickle
