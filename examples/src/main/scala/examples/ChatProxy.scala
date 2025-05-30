@@ -1,7 +1,7 @@
 //> using dep com.softwaremill.sttp.openai::ox:0.3.4
 //> using dep com.softwaremill.sttp.tapir::tapir-netty-server-sync:1.11.7
 //> using dep com.softwaremill.sttp.client4::ox:4.0.0-M19
-//> using dep com.softwaremill.ox::core:0.5.13
+//> using dep com.softwaremill.ox::core:0.5.15
 //> using dep ch.qos.logback:logback-classic:1.5.18
 
 // remember to set the OPENAI_KEY env variable!
