@@ -1495,10 +1495,10 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .delete(openAIUris.adminApiKey(keyId))
       .response(asJson_parseErrors[DeleteAdminApiKeyResponse])
 
-  protected val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
+  protected lazy val openAIAuthRequest: PartialRequest[Either[String, String]] = basicRequest.auth
     .bearer(authToken)
 
-  protected val betaOpenAIAuthRequest: PartialRequest[Either[String, String]] =
+  protected lazy val betaOpenAIAuthRequest: PartialRequest[Either[String, String]] =
     openAIAuthRequest.withHeaders(openAIAuthRequest.headers :+ Header("OpenAI-Beta", "assistants=v2"))
 }
 
