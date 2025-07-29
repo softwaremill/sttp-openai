@@ -4,10 +4,10 @@ import sttp.openai.requests.images.edit.ImageEditsConfig
 import sttp.openai.requests.images.{ResponseFormat, Size}
 
 import java.io.File
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 
 trait ImageEditsFixture {
-  def createTempImageFile(prefix: String = "test-image", suffix: String = ".png"): File = {
+  def createTempImageFile(prefix: String, suffix: String = ".png"): File = {
     val tempFile = Files.createTempFile(prefix, suffix)
     // Create a minimal valid PNG file
     Files.write(
@@ -21,7 +21,7 @@ trait ImageEditsFixture {
   val testImage2: File = createTempImageFile("test-image-2")
   val testMask: File = createTempImageFile("test-mask")
 
-  val sampleImageEditsConfig: ImageEditsConfig = ImageEditsConfig(
+  val imageEditsConfigWithAllParametersSet: ImageEditsConfig = ImageEditsConfig(
     image = List(testImage1),
     prompt = "A test prompt",
     background = Some("transparent"),
@@ -39,7 +39,7 @@ trait ImageEditsFixture {
     user = Some("test-user")
   )
 
-  val multiImageEditsConfig: ImageEditsConfig = sampleImageEditsConfig.copy(
+  val multiImageEditsConfig: ImageEditsConfig = imageEditsConfigWithAllParametersSet.copy(
     image = List(testImage1, testImage2)
   )
 

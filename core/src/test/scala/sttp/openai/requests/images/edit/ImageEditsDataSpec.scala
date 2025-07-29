@@ -26,7 +26,7 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
     part.headers should contain(sttp.model.Header("Content-Type", "text/plain; charset=utf-8"))
   }
 
-  "imageEdits" should "create correct request with minimal config (single image)" in {
+  "imageEdits method" should "create correct request with minimal config (single image)" in {
     // given
     val config = minimalImageEditsConfig
 
@@ -43,9 +43,9 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
     checkStringPart(parts, "prompt", config.prompt)
   }
 
-  it should "create correct request with all parameters for single image" in {
+  "imageEdits method" should "create correct request with all parameters for single image" in {
     // given
-    val config = sampleImageEditsConfig
+    val config = imageEditsConfigWithAllParametersSet
 
     // when
     val request = openAI.imageEdits(config)
@@ -74,7 +74,7 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
     checkStringPart(parts, "user", "test-user")
   }
 
-  it should "create correct request with multiple images" in {
+  "imageEdits method" should "create correct request with multiple images" in {
     // given
     val config = multiImageEditsConfig
 
@@ -98,7 +98,7 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
     checkStringPart(parts, "prompt", config.prompt)
   }
 
-  it should "handle empty optional parameters" in {
+  "imageEdits method" should "handle empty optional parameters" in {
     // given
     val config = minimalImageEditsConfig
 
