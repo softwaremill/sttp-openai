@@ -24,7 +24,7 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
     part.headers should contain(sttp.model.Header("Content-Type", "text/plain; charset=utf-8"))
   }
 
-  "imageEdits" should "create correct request with minimal config" in {
+  "imageEdits" should "create correct request with minimal config (single image)" in {
     val request = openAI.imageEdits(minimalImageEditsConfig)
     val body = request.body.asInstanceOf[MultipartBody[BasicBodyPart]]
     val parts = body.parts
@@ -33,6 +33,8 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
     
     val imagePart = parts.find(_.name == "image").get
     checkFilePart(imagePart, "image", minimalImageEditsConfig.image.head)
+    
+    parts.find(_.name == "image[]") shouldBe None
     
     val promptPart = parts.find(_.name == "prompt").get
     checkStringPart(promptPart, "prompt", minimalImageEditsConfig.prompt)
@@ -47,6 +49,8 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
 
     val imagePart = parts.find(_.name == "image").get
     checkFilePart(imagePart, "image", sampleImageEditsConfig.image.head)
+    
+    parts.find(_.name == "image[]") shouldBe None
 
     val maskPart = parts.find(_.name == "mask").get
     checkFilePart(maskPart, "mask", sampleImageEditsConfig.mask.get)
@@ -73,11 +77,13 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
 
     parts should have size 16 // one extra for the second image
     
-    val image1Part = parts.find(_.name == "image").get
-    checkFilePart(image1Part, "image", multiImageEditsConfig.image.head)
+    parts.find(_.name == "image") shouldBe None
     
-    val image2Part = parts.find(_.name == "image_2").get
-    checkFilePart(image2Part, "image_2", multiImageEditsConfig.image(1))
+    val imageParts = parts.filter(_.name == "image[]")
+    imageParts should have size 2
+    imageParts.zipWithIndex.foreach { case (part, idx) =>
+      checkFilePart(part, "image[]", multiImageEditsConfig.image(idx))
+    }
     
     checkStringPart(parts.find(_.name == "prompt").get, "prompt", multiImageEditsConfig.prompt)
   }
