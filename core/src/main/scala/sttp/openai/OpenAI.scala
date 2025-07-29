@@ -181,14 +181,26 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.EditImage)
       .multipartBody {
         import imageEditsConfig._
-        Seq(
-          Some(multipartFile("image", image)),
+        val imageParts = image.zipWithIndex.map { case (img, idx) => 
+          multipartFile(if (idx == 0) "image" else s"image_${idx + 1}", img)
+        }
+        val otherParts = List(
           Some(multipart("prompt", prompt)),
+          background.map(bg => multipart("background", bg)),
+          inputFidelity.map(fid => multipart("input_fidelity", fid)),
           mask.map(multipartFile("mask", _)),
+          model.map(m => multipart("model", m)),
           n.map(i => multipart("n", i.toString)),
+          outputCompression.map(c => multipart("output_compression", c.toString)),
+          outputFormat.map(f => multipart("output_format", f)),
+          partialImages.map(p => multipart("partial_images", p.toString)),
+          quality.map(q => multipart("quality", q)),
           size.map(s => multipart("size", s.value)),
-          responseFormat.map(format => multipart("response_format", format.value))
+          responseFormat.map(format => multipart("response_format", format.value)),
+          stream.map(s => multipart("stream", s.toString)),
+          user.map(u => multipart("user", u))
         ).flatten
+        imageParts ++ otherParts
       }
       .response(asJson_parseErrors[ImageResponse])
 

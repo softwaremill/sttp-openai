@@ -26,6 +26,10 @@ import ujson.Str
   *   differ in rare cases. If a seed is not specified, one will be generated for you.
   * @param method
   *   The method used for fine-tuning.
+  * @param metadata
+  *   Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in
+  *   a structured format, and querying for objects via API or the dashboard. Keys are strings with a maximum length of 64 characters.
+  *   Values are strings with a maximum length of 512 characters.
   */
 case class FineTuningJobRequestBody(
     model: FineTuningModel,
@@ -34,7 +38,8 @@ case class FineTuningJobRequestBody(
     validationFile: Option[String] = None,
     integrations: Option[Seq[Integration]] = None,
     seed: Option[Int] = None,
-    method: Option[Method] = None
+    method: Option[Method] = None,
+    metadata: Option[Map[String, String]] = None
 )
 object FineTuningJobRequestBody {
   implicit val fineTuningRequestBodyWriter: SnakePickle.Writer[FineTuningJobRequestBody] = SnakePickle.macroW[FineTuningJobRequestBody]
