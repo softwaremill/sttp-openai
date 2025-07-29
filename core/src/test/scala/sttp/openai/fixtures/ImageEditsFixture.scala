@@ -10,7 +10,10 @@ trait ImageEditsFixture {
   def createTempImageFile(prefix: String = "test-image", suffix: String = ".png"): File = {
     val tempFile = Files.createTempFile(prefix, suffix)
     // Create a minimal valid PNG file
-    Files.write(tempFile, Array[Byte](0x89.toByte, 0x50.toByte, 0x4E.toByte, 0x47.toByte, 0x0D.toByte, 0x0A.toByte, 0x1A.toByte, 0x0A.toByte))
+    Files.write(
+      tempFile,
+      Array[Byte](0x89.toByte, 0x50.toByte, 0x4e.toByte, 0x47.toByte, 0x0d.toByte, 0x0a.toByte, 0x1a.toByte, 0x0a.toByte)
+    )
     tempFile.toFile
   }
 
@@ -44,4 +47,4 @@ trait ImageEditsFixture {
     image = List(testImage1),
     prompt = "A minimal test prompt"
   )
-} 
+}

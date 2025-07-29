@@ -10,7 +10,8 @@ object TranscriptionModel {
   case object Gpt4oMiniTranscribe extends TranscriptionModel("gpt-4o-mini-transcribe")
 
   /** Use only as a workaround if API supports a format that's not yet predefined as a case object of Model. Otherwise, a custom format
-    * would be rejected. See [[https://platform.openai.com/docs/api-reference/audio/createTranscription]] for current list of supported formats
+    * would be rejected. See [[https://platform.openai.com/docs/api-reference/audio/createTranscription]] for current list of supported
+    * formats
     */
   case class Custom(customModel: String) extends TranscriptionModel(customModel)
 

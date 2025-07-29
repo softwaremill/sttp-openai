@@ -37,7 +37,7 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
 
     // then
     parts should have size 2
-    
+
     checkFilePart(parts, "image", config.image.head)
     parts.find(_.name == "image[]") shouldBe None
     checkStringPart(parts, "prompt", config.prompt)
@@ -84,17 +84,17 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
     val parts = body.parts
 
     // then
-    parts should have size 16 
-    
+    parts should have size 16
+
     parts.find(_.name == "image") shouldBe None
-    
+
     val imageParts = parts.filter(_.name == "image[]")
     imageParts should have size 2
     imageParts.zipWithIndex.foreach { case (part, idx) =>
       val singlePartSeq = Seq(part)
       checkFilePart(singlePartSeq, "image[]", config.image(idx))
     }
-    
+
     checkStringPart(parts, "prompt", config.prompt)
   }
 
@@ -108,18 +108,18 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
     val parts = body.parts
 
     // then
-    parts.map(_.name) should not contain("background")
-    parts.map(_.name) should not contain("input_fidelity")
-    parts.map(_.name) should not contain("mask")
-    parts.map(_.name) should not contain("model")
-    parts.map(_.name) should not contain("n")
-    parts.map(_.name) should not contain("output_compression")
-    parts.map(_.name) should not contain("output_format")
-    parts.map(_.name) should not contain("partial_images")
-    parts.map(_.name) should not contain("quality")
-    parts.map(_.name) should not contain("size")
-    parts.map(_.name) should not contain("response_format")
-    parts.map(_.name) should not contain("stream")
-    parts.map(_.name) should not contain("user")
+    parts.map(_.name) should not contain "background"
+    parts.map(_.name) should not contain "input_fidelity"
+    parts.map(_.name) should not contain "mask"
+    parts.map(_.name) should not contain "model"
+    parts.map(_.name) should not contain "n"
+    parts.map(_.name) should not contain "output_compression"
+    parts.map(_.name) should not contain "output_format"
+    parts.map(_.name) should not contain "partial_images"
+    parts.map(_.name) should not contain "quality"
+    parts.map(_.name) should not contain "size"
+    parts.map(_.name) should not contain "response_format"
+    parts.map(_.name) should not contain "stream"
+    parts.map(_.name) should not contain "user"
   }
-} 
+}
