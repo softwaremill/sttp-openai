@@ -40,14 +40,16 @@ import java.nio.file.Paths
   *   between 0 and 3. When set to 0, the response will be a single image sent in one streaming event. Note that the final image may be sent
   *   before the full number of partial images are generated if the full image is generated more quickly.
   * @param quality
-  *   The quality of the image that will be generated. `high`, `medium` and `low` are only supported for `gpt-image-1`. 
-  *   `dall-e-2` only supports `standard` quality. Defaults to `auto`.
+  *   The quality of the image that will be generated. `high`, `medium` and `low` are only supported for `gpt-image-1`. `dall-e-2` only
+  *   supports `standard` quality. Defaults to `auto`.
   * @param size
-  *   The size of the generated images. Must be one of `1024x1024`, `1536x1024` (landscape), `1024x1536` (portrait), or `auto` (default value) for `gpt-image-1`, 
-  *   one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+  *   The size of the generated images. Must be one of `1024x1024`, `1536x1024` (landscape), `1024x1536` (portrait), or `auto` (default
+  *   value) for `gpt-image-1`, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of `1024x1024`, `1792x1024`, or
+  *   `1024x1792` for `dall-e-3`.
   * @param responseFormat
-  *   The format in which the generated images are returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated. 
-  *   This parameter is only supported for `dall-e-2`, as `gpt-image-1` will always return base64-encoded images.
+  *   The format in which the generated images are returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after
+  *   the image has been generated. This parameter is only supported for `dall-e-2`, as `gpt-image-1` will always return base64-encoded
+  *   images.
   * @param stream
   *   Edit the image in streaming mode. Defaults to `false`. See the Image generation guide for more information.
   * @param user
