@@ -10,14 +10,16 @@ import sttp.openai.OpenAI
 class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixture {
   val openAI = new OpenAI("test-key", Uri.unsafeParse("https://api.openai.com/v1"))
 
-  private def checkFilePart(part: Part[BodyPart[BasicBodyPart]], name: String, file: java.io.File) = {
+  private def checkFilePart(parts: Seq[Part[BodyPart[BasicBodyPart]]], name: String, file: java.io.File) = {
+    val part = parts.find(_.name == name).get
     part.name shouldBe name
     part.body shouldBe a[FileBody]
     part.headers should contain(sttp.model.Header("Content-Type", "application/octet-stream"))
     part.otherDispositionParams should contain("filename" -> file.getName)
   }
 
-  private def checkStringPart(part: Part[BodyPart[BasicBodyPart]], name: String, value: String) = {
+  private def checkStringPart(parts: Seq[Part[BodyPart[BasicBodyPart]]], name: String, value: String) = {
+    val part = parts.find(_.name == name).get
     part.name shouldBe name
     part.body shouldBe a[StringBody]
     part.body.asInstanceOf[StringBody].s shouldBe value
@@ -25,74 +27,87 @@ class ImageEditsDataSpec extends AnyFlatSpec with Matchers with ImageEditsFixtur
   }
 
   "imageEdits" should "create correct request with minimal config (single image)" in {
-    val request = openAI.imageEdits(minimalImageEditsConfig)
+    // given
+    val config = minimalImageEditsConfig
+
+    // when
+    val request = openAI.imageEdits(config)
     val body = request.body.asInstanceOf[MultipartBody[BasicBodyPart]]
     val parts = body.parts
 
+    // then
     parts should have size 2
     
-    val imagePart = parts.find(_.name == "image").get
-    checkFilePart(imagePart, "image", minimalImageEditsConfig.image.head)
-    
+    checkFilePart(parts, "image", config.image.head)
     parts.find(_.name == "image[]") shouldBe None
-    
-    val promptPart = parts.find(_.name == "prompt").get
-    checkStringPart(promptPart, "prompt", minimalImageEditsConfig.prompt)
+    checkStringPart(parts, "prompt", config.prompt)
   }
 
   it should "create correct request with all parameters for single image" in {
-    val request = openAI.imageEdits(sampleImageEditsConfig)
+    // given
+    val config = sampleImageEditsConfig
+
+    // when
+    val request = openAI.imageEdits(config)
     val body = request.body.asInstanceOf[MultipartBody[BasicBodyPart]]
     val parts = body.parts
 
+    // then
     parts should have size 15
 
-    val imagePart = parts.find(_.name == "image").get
-    checkFilePart(imagePart, "image", sampleImageEditsConfig.image.head)
-    
+    checkFilePart(parts, "image", config.image.head)
     parts.find(_.name == "image[]") shouldBe None
+    checkFilePart(parts, "mask", config.mask.get)
 
-    val maskPart = parts.find(_.name == "mask").get
-    checkFilePart(maskPart, "mask", sampleImageEditsConfig.mask.get)
-
-    checkStringPart(parts.find(_.name == "prompt").get, "prompt", sampleImageEditsConfig.prompt)
-    checkStringPart(parts.find(_.name == "background").get, "background", "transparent")
-    checkStringPart(parts.find(_.name == "input_fidelity").get, "input_fidelity", "high")
-    checkStringPart(parts.find(_.name == "model").get, "model", "gpt-image-1")
-    checkStringPart(parts.find(_.name == "n").get, "n", "2")
-    checkStringPart(parts.find(_.name == "output_compression").get, "output_compression", "80")
-    checkStringPart(parts.find(_.name == "output_format").get, "output_format", "png")
-    checkStringPart(parts.find(_.name == "partial_images").get, "partial_images", "2")
-    checkStringPart(parts.find(_.name == "quality").get, "quality", "high")
-    checkStringPart(parts.find(_.name == "size").get, "size", "1024x1024")
-    checkStringPart(parts.find(_.name == "response_format").get, "response_format", "url")
-    checkStringPart(parts.find(_.name == "stream").get, "stream", "false")
-    checkStringPart(parts.find(_.name == "user").get, "user", "test-user")
+    checkStringPart(parts, "prompt", config.prompt)
+    checkStringPart(parts, "background", "transparent")
+    checkStringPart(parts, "input_fidelity", "high")
+    checkStringPart(parts, "model", "gpt-image-1")
+    checkStringPart(parts, "n", "2")
+    checkStringPart(parts, "output_compression", "80")
+    checkStringPart(parts, "output_format", "png")
+    checkStringPart(parts, "partial_images", "2")
+    checkStringPart(parts, "quality", "high")
+    checkStringPart(parts, "size", "1024x1024")
+    checkStringPart(parts, "response_format", "url")
+    checkStringPart(parts, "stream", "false")
+    checkStringPart(parts, "user", "test-user")
   }
 
   it should "create correct request with multiple images" in {
-    val request = openAI.imageEdits(multiImageEditsConfig)
+    // given
+    val config = multiImageEditsConfig
+
+    // when
+    val request = openAI.imageEdits(config)
     val body = request.body.asInstanceOf[MultipartBody[BasicBodyPart]]
     val parts = body.parts
 
-    parts should have size 16 // one extra for the second image
+    // then
+    parts should have size 16 
     
     parts.find(_.name == "image") shouldBe None
     
     val imageParts = parts.filter(_.name == "image[]")
     imageParts should have size 2
     imageParts.zipWithIndex.foreach { case (part, idx) =>
-      checkFilePart(part, "image[]", multiImageEditsConfig.image(idx))
+      val singlePartSeq = Seq(part)
+      checkFilePart(singlePartSeq, "image[]", config.image(idx))
     }
     
-    checkStringPart(parts.find(_.name == "prompt").get, "prompt", multiImageEditsConfig.prompt)
+    checkStringPart(parts, "prompt", config.prompt)
   }
 
   it should "handle empty optional parameters" in {
-    val request = openAI.imageEdits(minimalImageEditsConfig)
+    // given
+    val config = minimalImageEditsConfig
+
+    // when
+    val request = openAI.imageEdits(config)
     val body = request.body.asInstanceOf[MultipartBody[BasicBodyPart]]
     val parts = body.parts
 
+    // then
     parts.map(_.name) should not contain("background")
     parts.map(_.name) should not contain("input_fidelity")
     parts.map(_.name) should not contain("mask")
