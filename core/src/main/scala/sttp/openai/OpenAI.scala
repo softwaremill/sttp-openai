@@ -9,21 +9,15 @@ import sttp.openai.requests.admin.{QueryParameters => _, _}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
-import sttp.openai.requests.audio.RecognitionModel
 import sttp.openai.requests.audio.speech.SpeechRequestBody
-import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
-import sttp.openai.requests.audio.translations.TranslationConfig
+import sttp.openai.requests.audio.transcriptions.{TranscriptionConfig, TranscriptionModel}
+import sttp.openai.requests.audio.translations.{TranslationConfig, TranslationModel}
 import sttp.openai.requests.batch.{QueryParameters => _, _}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
-  ChatResponse,
-  DeleteChatCompletionResponse,
-  ListChatResponse,
-  ListMessageResponse
-}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, DeleteChatCompletionResponse, ListChatResponse, ListMessageResponse}
 import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
@@ -47,11 +41,7 @@ import sttp.openai.requests.upload.{CompleteUploadRequestBody, UploadPartRespons
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
-  DeleteVectorStoreFileResponse,
-  ListVectorStoreFilesResponse,
-  VectorStoreFile
-}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, ListVectorStoreFilesResponse, VectorStoreFile}
 import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.{File, InputStream}
@@ -183,9 +173,9 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
         import imageEditsConfig._
         val imageParts = image match {
           case singleImage :: Nil => Seq(multipartFile("image", singleImage))
-          case _ => image.map(img => multipartFile("image[]", img))
+          case _                  => image.map(img => multipartFile("image[]", img))
         }
-        (imageParts ++ Seq(
+        imageParts ++ Seq(
           Some(multipart("prompt", prompt)),
           background.map(bg => multipart("background", bg)),
           inputFidelity.map(fid => multipart("input_fidelity", fid)),
@@ -200,7 +190,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
           responseFormat.map(format => multipart("response_format", format.value)),
           stream.map(s => multipart("stream", s.toString)),
           user.map(u => multipart("user", u))
-        ).flatten)
+        ).flatten
       }
       .response(asJson_parseErrors[ImageResponse])
 
@@ -582,7 +572,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(file: File, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
+  def createTranslation(file: File, model: TranslationModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
       .post(openAIUris.Translations)
       .multipartBody(
@@ -600,7 +590,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(systemPath: String, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
+  def createTranslation(systemPath: String, model: TranslationModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
       .post(openAIUris.Translations)
       .multipartBody(
@@ -654,7 +644,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranscription(file: File, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
+  def createTranscription(file: File, model: TranscriptionModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
       .post(openAIUris.Transcriptions)
       .multipartBody(
@@ -674,7 +664,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     */
   def createTranscription(
       systemPath: String,
-      model: RecognitionModel
+      model: TranscriptionModel
   ): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
       .post(openAIUris.Transcriptions)

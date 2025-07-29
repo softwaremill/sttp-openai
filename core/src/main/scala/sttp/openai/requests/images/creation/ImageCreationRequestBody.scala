@@ -1,8 +1,7 @@
 package sttp.openai.requests.images.creation
 
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.images.Size
-import sttp.openai.requests.images.ResponseFormat
+import sttp.openai.requests.images.{ResponseFormat, Size}
 
 object ImageCreationRequestBody {
 

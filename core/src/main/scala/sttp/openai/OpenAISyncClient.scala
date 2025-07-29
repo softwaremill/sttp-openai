@@ -7,20 +7,14 @@ import sttp.openai.requests.admin.{QueryParameters => _, _}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
-import sttp.openai.requests.audio.RecognitionModel
-import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
-import sttp.openai.requests.audio.translations.TranslationConfig
+import sttp.openai.requests.audio.transcriptions.{TranscriptionConfig, TranscriptionModel}
+import sttp.openai.requests.audio.translations.{TranslationConfig, TranslationModel}
 import sttp.openai.requests.batch.{BatchRequestBody, BatchResponse, ListBatchResponse}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
-  ChatResponse,
-  DeleteChatCompletionResponse,
-  ListChatResponse,
-  ListMessageResponse
-}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, DeleteChatCompletionResponse, ListChatResponse, ListMessageResponse}
 import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
@@ -44,11 +38,7 @@ import sttp.openai.requests.upload.{CompleteUploadRequestBody, UploadPartRespons
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
-  DeleteVectorStoreFileResponse,
-  ListVectorStoreFilesResponse,
-  VectorStoreFile
-}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, ListVectorStoreFilesResponse, VectorStoreFile}
 import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.File
@@ -375,7 +365,7 @@ class OpenAISyncClient private (
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(file: File, model: RecognitionModel): AudioResponse =
+  def createTranslation(file: File, model: TranslationModel): AudioResponse =
     sendOrThrow(openAI.createTranslation(file, model))
 
   /** Translates audio into English text.
@@ -387,7 +377,7 @@ class OpenAISyncClient private (
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(systemPath: String, model: RecognitionModel): AudioResponse =
+  def createTranslation(systemPath: String, model: TranslationModel): AudioResponse =
     sendOrThrow(openAI.createTranslation(systemPath, model))
 
   /** Translates audio into English text.
@@ -419,7 +409,7 @@ class OpenAISyncClient private (
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranscription(file: File, model: RecognitionModel): AudioResponse =
+  def createTranscription(file: File, model: TranscriptionModel): AudioResponse =
     sendOrThrow(openAI.createTranscription(file, model))
 
   /** Transcribes audio into the input language.
@@ -431,7 +421,7 @@ class OpenAISyncClient private (
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranscription(systemPath: String, model: RecognitionModel): AudioResponse =
+  def createTranscription(systemPath: String, model: TranscriptionModel): AudioResponse =
     sendOrThrow(openAI.createTranscription(systemPath, model))
 
   /** Transcribes audio into the input language.
