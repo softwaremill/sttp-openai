@@ -651,7 +651,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param file
     *   The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only whisper-1 is currently available.
+    *   ID of the model to use. Whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe are currently available.
     */
   def createTranscription(file: File, model: TranscriptionModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
@@ -669,7 +669,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param systemPath
     *   The audio systemPath to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only whisper-1 is currently available.
+    *   ID of the model to use. Whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe are currently available.
     */
   def createTranscription(
       systemPath: String,
