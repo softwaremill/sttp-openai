@@ -464,8 +464,8 @@ object Main extends App {
   val responseFormat: ResponseFormat.JsonSchema =
     ResponseFormat.JsonSchema(
       name = "mathReasoning",
-      strict = true,
-      schema = jsonSchema
+      strict = Some(true),
+      schema = Some(jsonSchema)
     )
 
   val bodyMessages: Seq[Message] = Seq(
