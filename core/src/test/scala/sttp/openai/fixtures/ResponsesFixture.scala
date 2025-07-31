@@ -35,10 +35,10 @@ object ResponsesFixture {
       |  "temperature": 0.7,
       |  "text": {
       |    "format": {
+      |      "schema": {"type": "string"},
       |      "name": "response_schema",
-      |      "schema": {"type": "object", "properties": {"answer": {"type": "string"}}},
       |      "description": "Response format",
-      |      "strict": "true",
+      |      "strict": true,
       |      "type": "json_schema"
       |    }
       |  },

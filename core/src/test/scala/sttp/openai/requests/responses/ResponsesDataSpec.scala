@@ -7,9 +7,8 @@ import org.scalatest.matchers.should.Matchers
 import sttp.apispec.{Schema, SchemaType}
 import sttp.openai.fixtures.ResponsesFixture
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.completions.chat.ChatRequestBody.ResponseFormat
-import sttp.openai.requests.completions.chat.ChatRequestBody.ResponseFormat.JsonSchema
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
+import sttp.openai.requests.responses.ResponsesRequestBody.Format.JsonSchema
 import sttp.openai.requests.responses.ResponsesRequestBody._
 import sttp.openai.utils.JsonUtils
 import ujson.{Obj, Str}
@@ -88,7 +87,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       model = Some("gpt-4o"),
       text = Some(
         TextConfig(
-          format = Some(ResponseFormat.Text)
+          format = Some(Format.Text)
         )
       )
     )
@@ -116,11 +115,12 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val jsonInput = Obj(
       "text" -> Obj(
         "format" -> Obj(
+//          "$type" -> Str("json_schema"),
           "type" -> Str("json_schema"),
           "name" -> Str("test_schema"),
           "schema" -> Obj("type" -> Str("string")),
           "description" -> Str("Test description"),
-          "strict" -> Str("true")
+          "strict" -> ujson.Bool(true)
         )
       )
     )
