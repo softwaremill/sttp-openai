@@ -1,7 +1,7 @@
 package sttp.openai.requests.completions.chat
 
 import sttp.apispec.Schema
-import sttp.openai.json.SnakePickle
+import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.Stop
 import sttp.openai.requests.completions.chat.message.{Message, Tool, ToolChoice}
 import ujson._
@@ -15,39 +15,16 @@ object ChatRequestBody {
     case object JsonObject extends ResponseFormat
     case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends ResponseFormat
     object JsonSchema {
-      private case class InternalRepr(json_schema: JsonSchema)
+      // Import the Schema ReadWriter from SchemaSupport
+      implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 
-      private object InternalRepr {
-        implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
+      // Automatically generate ReadWriter for JsonSchema case class
+      private val baseJsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle.macroRW
 
-        implicit private val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle.macroRW
-//          .readwriter[Value]
-//          .bimap(
-//            s => {
-//              val obj = Obj("name" -> s.name, "schema" -> SnakePickle.writeJs(s.schema), "description" -> s.description)
-//              s.strict.foreach(strict => obj("strict") = strict)
-//              obj
-//            },
-//            v => {
-//              val o = v.obj
-//              JsonSchema(
-//                name = o("name").str,
-//                strict = o("strict").boolOpt,
-//                schema = o("schema").objOpt.map(SnakePickle.read[Schema](_)),
-//                description = o("description").strOpt
-//              )
-//            }
-//          )
-//
-        implicit val internalReprRW: SnakePickle.ReadWriter[InternalRepr] = SnakePickle.macroRW
-      }
-
-      implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle
-        .readwriter[Value]
-        .bimap[JsonSchema](
-          s => Obj(SnakePickle.writeJs(InternalRepr(s)).obj.addOne("type" -> "json_schema")),
-          v => SnakePickle.read[InternalRepr](v).json_schema
-        )
+      // Use SerializationHelpers to automatically create nested discriminator structure
+      // This creates: {"type": "json_schema", "json_schema": {...actual JsonSchema object...}}
+      implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = 
+        SerializationHelpers.withNestedDiscriminator("type", "json_schema", "json_schema")(baseJsonSchemaRW)
     }
 
     implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
