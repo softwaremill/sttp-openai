@@ -18,6 +18,21 @@ object ImageCreationFixture {
       |"user": "user1"
       |}""".stripMargin
 
+  val jsonRequestWithSomeOptionalsSetToNone: String = """{
+      |"prompt": "cute fish",
+      |"background": "transparent",
+      |"model": "dall-e-3",
+      |"n": 1,
+      |"output_compression": 80,
+      |"output_format": "png",
+      |"quality": "high",
+      |"size": "1024x1024",
+      |"response_format": "url",
+      |"stream": false,
+      |"style": "vivid",
+      |"user": "user1"
+      |}""".stripMargin
+
   val jsonRequestDalle2: String = """{
       |"prompt": "cute fish",
       |"background": "transparent",
