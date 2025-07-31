@@ -2,9 +2,7 @@ package sttp.openai.requests.responses
 
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.ChatRequestBody.ResponseFormat
-import sttp.openai.requests.completions.chat.message.Tool.FunctionTool
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
-import ujson.{Obj, Str, Value}
 
 /** @param background
   *   Whether to run the model response in the background. Defaults to false.
@@ -104,7 +102,6 @@ object ResponsesRequestBody {
       effort: Option[String] = None,
       summary: Option[String] = None
   )
-
 
   case class TextConfig(
       format: Option[ResponseFormat] = None

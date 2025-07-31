@@ -39,19 +39,26 @@ object SnakePickle extends upickle.AttributeTagged {
 
 /** Helper utilities for automatic serialization with discriminator fields */
 object SerializationHelpers {
-  /** Creates a ReadWriter for nested discriminator patterns where the object is wrapped
-    * in another object with a discriminator field pointing to the nested content.
-    * 
+
+  /** Creates a ReadWriter for nested discriminator patterns where the object is wrapped in another object with a discriminator field
+    * pointing to the nested content.
+    *
     * For example: {"type": "json_schema", "json_schema": {...actual object...}}
-    * 
-    * @param discriminatorField The name of the field to add (e.g., "type")  
-    * @param discriminatorValue The value for the discriminator field (e.g., "json_schema")
-    * @param nestedField The name of the field containing the nested object (e.g., "json_schema")
-    * @param baseRW The base ReadWriter for the type T (typically SnakePickle.macroRW)
-    * @return A ReadWriter that wraps the object in the nested discriminator structure
+    *
+    * @param discriminatorField
+    *   The name of the field to add (e.g., "type")
+    * @param discriminatorValue
+    *   The value for the discriminator field (e.g., "json_schema")
+    * @param nestedField
+    *   The name of the field containing the nested object (e.g., "json_schema")
+    * @param baseRW
+    *   The base ReadWriter for the type T (typically SnakePickle.macroRW)
+    * @return
+    *   A ReadWriter that wraps the object in the nested discriminator structure
     */
-  def withNestedDiscriminator[T](discriminatorField: String, discriminatorValue: String, nestedField: String)
-    (implicit baseRW: SnakePickle.ReadWriter[T]): SnakePickle.ReadWriter[T] = 
+  def withNestedDiscriminator[T](discriminatorField: String, discriminatorValue: String, nestedField: String)(implicit
+      baseRW: SnakePickle.ReadWriter[T]
+  ): SnakePickle.ReadWriter[T] =
     SnakePickle
       .readwriter[Value]
       .bimap[T](
@@ -60,7 +67,7 @@ object SerializationHelpers {
           // Filter out any $type fields and null values (from None options)
           val cleanedJson = baseJson match {
             case obj: Obj =>
-              val filtered = obj.obj.filterNot { case (key, value) => 
+              val filtered = obj.obj.filterNot { case (key, value) =>
                 key.startsWith("$") || value == ujson.Null
               }
               Obj.from(filtered)

@@ -32,29 +32,37 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       model = Some("gpt-4o"),
       parallelToolCalls = Some(true),
       previousResponseId = Some("prev_resp_123"),
-      prompt = Some(PromptConfig(
-        id = "prompt_123",
-        variables = Some(Map("var1" -> "val1")),
-        version = Some("1.0")
-      )),
+      prompt = Some(
+        PromptConfig(
+          id = "prompt_123",
+          variables = Some(Map("var1" -> "val1")),
+          version = Some("1.0")
+        )
+      ),
       promptCacheKey = Some("cache_key_123"),
-      reasoning = Some(ReasoningConfig(
-        effort = Some("high"),
-        summary = Some("detailed")
-      )),
+      reasoning = Some(
+        ReasoningConfig(
+          effort = Some("high"),
+          summary = Some("detailed")
+        )
+      ),
       safetyIdentifier = Some("safety_123"),
       serviceTier = Some("auto"),
       store = Some(true),
       stream = Some(false),
       temperature = Some(0.7),
-      text = Some(TextConfig(
-        format = Some(JsonSchema(
-          name = "response_schema",
-          schema = Some(Schema(SchemaType.String)),
-          description = Some("Response format"),
-          strict = Some(true)
-        ))
-      )),
+      text = Some(
+        TextConfig(
+          format = Some(
+            JsonSchema(
+              name = "response_schema",
+              schema = Some(Schema(SchemaType.String)),
+              description = Some("Response format"),
+              strict = Some(true)
+            )
+          )
+        )
+      ),
       toolChoice = Some(ToolChoice.ToolAuto),
       tools = Some(List(Tool.CodeInterpreterTool)),
       topLogprobs = Some(5),
@@ -78,9 +86,11 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     // given
     val givenRequest = ResponsesRequestBody(
       model = Some("gpt-4o"),
-      text = Some(TextConfig(
-        format = Some(ResponseFormat.Text)
-      ))
+      text = Some(
+        TextConfig(
+          format = Some(ResponseFormat.Text)
+        )
+      )
     )
 
     val expectedJson = Obj(
@@ -100,7 +110,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   }
 
   "Given responses request with json schema format" should "be properly deserialized from Json" in {
-      import ResponsesRequestBody._
+    import ResponsesRequestBody._
 
     // given
     val jsonInput = Obj(
@@ -116,14 +126,18 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     val expected = ResponsesRequestBody(
-      text = Some(TextConfig(
-        format = Some(JsonSchema(
-          name = "test_schema",
-          schema = Some(Schema(SchemaType.String)),
-          description = Some("Test description"),
-          strict = Some(true)
-        ))
-      ))
+      text = Some(
+        TextConfig(
+          format = Some(
+            JsonSchema(
+              name = "test_schema",
+              schema = Some(Schema(SchemaType.String)),
+              description = Some("Test description"),
+              strict = Some(true)
+            )
+          )
+        )
+      )
     )
 
     // when
