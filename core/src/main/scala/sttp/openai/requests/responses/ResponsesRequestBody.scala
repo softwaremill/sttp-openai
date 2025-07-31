@@ -160,5 +160,5 @@ object ResponsesRequestBody {
   implicit val promptConfigRW: SnakePickle.ReadWriter[PromptConfig] = SnakePickle.macroRW
   implicit val reasoningConfigRW: SnakePickle.ReadWriter[ReasoningConfig] = SnakePickle.macroRW
   implicit val textConfigRW: SnakePickle.ReadWriter[TextConfig] = SnakePickle.macroRW
-  implicit val responsesRequestBodyRW: SnakePickle.ReadWriter[ResponsesRequestBody] = SnakePickle.macroRW
+  implicit val responsesRequestBodyW: SnakePickle.Writer[ResponsesRequestBody] = SnakePickle.macroW
 }
