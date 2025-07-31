@@ -27,7 +27,7 @@ class JsonSchemaSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val jsonStringSchema = ujson.read(fixtures.JsonSchemaFixture.stringSchemaWithoutStrictField)
 
-    val serializedSchema = SnakePickle.writeJs(JsonSchema("testString", None, schema.some, "description".some))
+    val serializedSchema = SnakePickle.writeJs(JsonSchema("testString", None, schema.some, None))
 
     serializedSchema shouldBe jsonStringSchema
   }

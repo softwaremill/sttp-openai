@@ -39,34 +39,6 @@ object SnakePickle extends upickle.AttributeTagged {
 
 /** Helper utilities for automatic serialization with discriminator fields */
 object SerializationHelpers {
-  /** Creates a ReadWriter that automatically adds a discriminator field to the JSON output
-    * and removes it when reading back, while leveraging automatic macro-based serialization
-    * for the core object fields.
-    * 
-    * @param discriminatorField The name of the field to add (e.g., "type")
-    * @param discriminatorValue The value for the discriminator field (e.g., "json_schema")
-    * @param baseRW The base ReadWriter for the type T (typically SnakePickle.macroRW)
-    * @return A ReadWriter that includes the discriminator field in serialization
-    */
-  def withDiscriminator[T](discriminatorField: String, discriminatorValue: String)
-    (implicit baseRW: SnakePickle.ReadWriter[T]): SnakePickle.ReadWriter[T] = 
-    SnakePickle
-      .readwriter[Value]
-      .bimap[T](
-        t => {
-          val baseJson = SnakePickle.writeJs(t)
-          baseJson match {
-            case obj: Obj =>
-              obj(discriminatorField) = discriminatorValue
-              obj
-            case other =>
-              // Fallback for non-object types (shouldn't happen with case classes)
-              Obj(discriminatorField -> discriminatorValue, "value" -> other)
-          }
-        },
-        json => SnakePickle.read[T](json)
-      )
-
   /** Creates a ReadWriter for nested discriminator patterns where the object is wrapped
     * in another object with a discriminator field pointing to the nested content.
     * 
@@ -85,10 +57,12 @@ object SerializationHelpers {
       .bimap[T](
         t => {
           val baseJson = SnakePickle.writeJs(t)
-          // Filter out any $type fields that might have been added automatically
+          // Filter out any $type fields and null values (from None options)
           val cleanedJson = baseJson match {
             case obj: Obj =>
-              val filtered = obj.obj.filterNot { case (key, _) => key.startsWith("$") }
+              val filtered = obj.obj.filterNot { case (key, value) => 
+                key.startsWith("$") || value == ujson.Null
+              }
               Obj.from(filtered)
             case other => other
           }
