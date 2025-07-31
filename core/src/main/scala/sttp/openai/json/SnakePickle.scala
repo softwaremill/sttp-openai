@@ -85,9 +85,16 @@ object SerializationHelpers {
       .bimap[T](
         t => {
           val baseJson = SnakePickle.writeJs(t)
+          // Filter out any $type fields that might have been added automatically
+          val cleanedJson = baseJson match {
+            case obj: Obj =>
+              val filtered = obj.obj.filterNot { case (key, _) => key.startsWith("$") }
+              Obj.from(filtered)
+            case other => other
+          }
           Obj(
             discriminatorField -> discriminatorValue,
-            nestedField -> baseJson
+            nestedField -> cleanedJson
           )
         },
         json => SnakePickle.read[T](json(nestedField))
