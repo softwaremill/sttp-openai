@@ -8,6 +8,18 @@ object JsonSchemaFixture {
       |  "json_schema": {
       |    "name": "testString",
       |    "strict": true,
+      |    "description": "description",
+      |    "schema": {
+      |      "type": "string"
+      |    }
+      |  }
+      |}""".stripMargin
+
+  val stringSchemaWithoutStrictField: String =
+    """{
+      |  "type": "json_schema",
+      |  "json_schema": {
+      |    "name": "testString",
       |    "schema": {
       |      "type": "string"
       |    }

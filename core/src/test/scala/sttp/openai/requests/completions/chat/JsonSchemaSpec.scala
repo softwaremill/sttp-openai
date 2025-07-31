@@ -1,8 +1,10 @@
 package sttp.openai.requests.completions.chat
 
+import cats.implicits.catsSyntaxOptionId
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.collection.immutable.ListMap
 import sttp.apispec.{Schema, SchemaType}
 import sttp.openai.fixtures
@@ -15,7 +17,17 @@ class JsonSchemaSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val jsonStringSchema = ujson.read(fixtures.JsonSchemaFixture.stringSchema)
 
-    val serializedSchema = SnakePickle.writeJs(JsonSchema("testString", true, schema))
+    val serializedSchema = SnakePickle.writeJs(JsonSchema("testString", true.some, schema.some, "description".some))
+
+    serializedSchema shouldBe jsonStringSchema
+  }
+
+  "Given string JSON schema without strict field" should "be properly serialized to Json" in {
+    val schema = Schema(SchemaType.String)
+
+    val jsonStringSchema = ujson.read(fixtures.JsonSchemaFixture.stringSchemaWithoutStrictField)
+
+    val serializedSchema = SnakePickle.writeJs(JsonSchema("testString", None, schema.some, "description".some))
 
     serializedSchema shouldBe jsonStringSchema
   }
@@ -25,7 +37,7 @@ class JsonSchemaSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val jsonNumberSchema = ujson.read(fixtures.JsonSchemaFixture.numberSchema)
 
-    val serializedSchema = SnakePickle.writeJs(JsonSchema("testNumber", true, schema))
+    val serializedSchema = SnakePickle.writeJs(JsonSchema("testNumber", true.some, schema.some, None))
 
     serializedSchema shouldBe jsonNumberSchema
   }
@@ -36,7 +48,7 @@ class JsonSchemaSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val jsonObjectSchema = ujson.read(fixtures.JsonSchemaFixture.objectSchema)
 
-    val serializedSchema = SnakePickle.writeJs(JsonSchema("testObject", true, schema))
+    val serializedSchema = SnakePickle.writeJs(JsonSchema("testObject", true.some, schema.some, None))
 
     serializedSchema shouldBe jsonObjectSchema
   }
@@ -46,7 +58,7 @@ class JsonSchemaSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val jsonArraySchema = ujson.read(fixtures.JsonSchemaFixture.arraySchema)
 
-    val serializedSchema = SnakePickle.writeJs(JsonSchema("testArray", true, schema))
+    val serializedSchema = SnakePickle.writeJs(JsonSchema("testArray", true.some, schema.some, None))
 
     serializedSchema shouldBe jsonArraySchema
   }

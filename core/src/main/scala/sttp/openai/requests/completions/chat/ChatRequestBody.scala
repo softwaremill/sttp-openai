@@ -13,27 +13,32 @@ object ChatRequestBody {
   object ResponseFormat {
     case object Text extends ResponseFormat
     case object JsonObject extends ResponseFormat
-    case class JsonSchema(name: String, strict: Boolean, schema: Schema) extends ResponseFormat
+    case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends ResponseFormat
     object JsonSchema {
       private case class InternalRepr(json_schema: JsonSchema)
 
       private object InternalRepr {
         implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 
-        implicit private val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle
-          .readwriter[Value]
-          .bimap(
-            s => Obj("name" -> s.name, "strict" -> s.strict, "schema" -> SnakePickle.writeJs(s.schema)),
-            v => {
-              val o = v.obj
-              JsonSchema(
-                name = o("name").str,
-                strict = o("strict").bool,
-                schema = SnakePickle.read[Schema](o("schema"))
-              )
-            }
-          )
-
+        implicit private val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle.macroRW
+//          .readwriter[Value]
+//          .bimap(
+//            s => {
+//              val obj = Obj("name" -> s.name, "schema" -> SnakePickle.writeJs(s.schema), "description" -> s.description)
+//              s.strict.foreach(strict => obj("strict") = strict)
+//              obj
+//            },
+//            v => {
+//              val o = v.obj
+//              JsonSchema(
+//                name = o("name").str,
+//                strict = o("strict").boolOpt,
+//                schema = o("schema").objOpt.map(SnakePickle.read[Schema](_)),
+//                description = o("description").strOpt
+//              )
+//            }
+//          )
+//
         implicit val internalReprRW: SnakePickle.ReadWriter[InternalRepr] = SnakePickle.macroRW
       }
 

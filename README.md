@@ -25,6 +25,7 @@ Add the following dependency:
 
 sttp-openai is available for Scala 2.13 and Scala 3
 
+
 ## Project content
 
 OpenAI API Official Documentation https://platform.openai.com/docs/api-reference/completions

@@ -1533,6 +1533,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Translations: Uri = audioBase.addPath("translations")
   val Speech: Uri = audioBase.addPath("speech")
   val VariationsImage: Uri = imageBase.addPath("variations")
+  val Responses: Uri = uri"$baseUri/responses"
 
   val Assistants: Uri = uri"$baseUri/assistants"
   val Threads: Uri = uri"$baseUri/threads"
