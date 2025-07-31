@@ -14,18 +14,13 @@ object ChatRequestBody {
     case object Text extends ResponseFormat
     case object JsonObject extends ResponseFormat
     case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends ResponseFormat
-    object JsonSchema {
-      // Import the Schema ReadWriter from SchemaSupport
-      implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 
-      // Create base ReadWriter separately to avoid forward reference issues
-      private implicit val baseRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle.macroRW[JsonSchema]
+    implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 
-      // Use SerializationHelpers to automatically create nested discriminator structure
-      // This creates: {"type": "json_schema", "json_schema": {...actual JsonSchema object...}}  
-      implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = 
-        SerializationHelpers.withNestedDiscriminator("type", "json_schema", "json_schema")(baseRW)
-    }
+    // Use SerializationHelpers to automatically create nested discriminator structure
+    // This creates: {"type": "json_schema", "json_schema": {...actual JsonSchema object...}}
+    implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] =
+      SerializationHelpers.withNestedDiscriminator("type", "json_schema", "json_schema")(SnakePickle.macroRW[JsonSchema])
 
     implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
       .readwriter[Value]
