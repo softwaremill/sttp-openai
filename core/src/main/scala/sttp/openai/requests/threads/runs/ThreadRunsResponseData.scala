@@ -3,9 +3,8 @@ package sttp.openai.requests.threads.runs
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.message.{Tool, ToolResources}
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.FileSearchToolCall.FileSearch
-import sttp.openai.requests.threads.runs.ThreadRunsResponseData.FileSearchToolCall.FileSearch.FileSearchResult
 import sttp.openai.requests.threads.runs.ThreadRunsResponseData.FileSearchToolCall.FileSearch.FileSearchResult.Content
-import sttp.openai.requests.threads.runs.ThreadRunsResponseData.FileSearchToolCall.FileSearch.RankingOptions
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.FileSearchToolCall.FileSearch.{FileSearchResult, RankingOptions}
 
 object ThreadRunsResponseData {
 

@@ -37,12 +37,20 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
     // given
     val givenRequest: ImageCreationBody = ImageCreationBody(
-      prompt = "cute fish",
-      "dall-e-3",
-      Some(1),
-      size = Some(Size.Custom("1024x1024")),
-      Some(ResponseFormat.Custom("url")),
-      Some("user1")
+      "cute fish", // prompt
+      Some("transparent"), // background
+      "dall-e-3", // model
+      Some("strict"), // moderation
+      Some(1), // n
+      Some(80), // outputCompression
+      Some("png"), // outputFormat
+      Some(2), // partialImages
+      Some("high"), // quality
+      Some(Size.Large), // size
+      Some(ResponseFormat.URL), // responseFormat
+      Some(false), // stream
+      Some("vivid"), // style
+      Some("user1") // user
     )
 
     val jsonRequest = ujson.read(fixtures.ImageCreationFixture.jsonRequest)
@@ -60,12 +68,20 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
     // given
     val givenRequest: ImageCreationBody = ImageCreationBody(
-      "cute fish",
-      "dall-e-3",
-      Some(1),
-      Some(Size.Large),
-      Some(ResponseFormat.URL),
-      Some("user1")
+      "cute fish", // prompt
+      Some("transparent"), // background
+      "dall-e-3", // model
+      Some("strict"), // moderation
+      Some(1), // n
+      Some(80), // outputCompression
+      Some("png"), // outputFormat
+      Some(2), // partialImages
+      Some("high"), // quality
+      Some(Size.Large), // size
+      Some(ResponseFormat.URL), // responseFormat
+      Some(false), // stream
+      Some("vivid"), // style
+      Some("user1") // user
     )
 
     val jsonRequest = ujson.read(fixtures.ImageCreationFixture.jsonRequest)
@@ -83,12 +99,20 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
     // given
     val givenRequest: ImageCreationBody = ImageCreationBody(
-      "cute fish",
-      "dall-e-2",
-      Some(1),
-      Some(Size.Large),
-      Some(ResponseFormat.URL),
-      Some("user1")
+      "cute fish", // prompt
+      Some("transparent"), // background
+      "dall-e-2", // model
+      Some("strict"), // moderation
+      Some(1), // n
+      Some(80), // outputCompression
+      Some("png"), // outputFormat
+      Some(2), // partialImages
+      Some("high"), // quality
+      Some(Size.Large), // size
+      Some(ResponseFormat.URL), // responseFormat
+      Some(false), // stream
+      Some("vivid"), // style
+      Some("user1") // user
     )
 
     val jsonRequest = ujson.read(fixtures.ImageCreationFixture.jsonRequestDalle2)
