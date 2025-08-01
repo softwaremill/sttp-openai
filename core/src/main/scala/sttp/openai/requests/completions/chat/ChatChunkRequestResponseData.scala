@@ -2,6 +2,7 @@ package sttp.openai.requests.completions.chat
 
 import sttp.model.sse.ServerSentEvent
 import sttp.openai.json.SnakePickle
+import sttp.openai.requests.completions.Usage
 
 object ChatChunkRequestResponseData {
 
@@ -39,7 +40,8 @@ object ChatChunkRequestResponseData {
       created: Int,
       model: String,
       `object`: String,
-      systemFingerprint: Option[String] = None
+      systemFingerprint: Option[String] = None,
+      usage: Option[Usage] = None
   )
 
   object ChatChunkResponse {
