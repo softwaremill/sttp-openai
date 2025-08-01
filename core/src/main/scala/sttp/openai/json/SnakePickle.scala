@@ -108,12 +108,43 @@ object SerializationHelpers {
               key.startsWith("$") || value == ujson.Null
             }
             // Add the discriminator field to the filtered object
-            Obj.from(filtered + (discriminatorField -> Str(discriminatorValue)))
+            Obj.from(filtered ++ Map(discriminatorField -> Str(discriminatorValue)))
           case other =>
             // If it's not an object, create a new object with the discriminator and the value
             Obj(discriminatorField -> Str(discriminatorValue), "value" -> other)
         }
         cleanedJson
       }
+
+  /** Creates a Writer for discriminated unions where different subtypes are serialized with different strategies.
+    *
+    * @param cases
+    *   A partial function that maps from union members to their serialized JSON representation
+    * @return
+    *   A Writer that handles the discriminated union
+    */
+  def discriminatedUnionWriter[T](cases: PartialFunction[T, Value]): SnakePickle.Writer[T] =
+    SnakePickle
+      .writer[Value]
+      .comap(cases)
+
+  /** Case builder for simple discriminator values that only need a type field */
+  def simpleCase[T](discriminatorField: String, discriminatorValue: String): T => Value =
+    _ => Obj(discriminatorField -> Str(discriminatorValue))
+
+  /** Case builder for complex objects that need flattened discriminator handling */
+  def flattenedCase[T](discriminatorField: String, discriminatorValue: String)(implicit writer: SnakePickle.Writer[T]): T => Value =
+    value => {
+      val baseJson = SnakePickle.writeJs(value)
+      baseJson match {
+        case obj: Obj =>
+          val filtered = obj.obj.filterNot { case (key, jsonValue) =>
+            key.startsWith("$") || jsonValue == ujson.Null
+          }
+          Obj.from(filtered ++ Map(discriminatorField -> Str(discriminatorValue)))
+        case other =>
+          Obj(discriminatorField -> Str(discriminatorValue), "value" -> other)
+      }
+    }
 
 }
