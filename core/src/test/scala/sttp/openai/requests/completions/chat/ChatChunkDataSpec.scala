@@ -81,4 +81,46 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     // then
     serializedJson shouldBe jsonRequest
   }
+
+  "Given chat chunk with usage data" should "properly deserialize usage field" in {
+    import ChatChunkRequestResponseData._
+    import sttp.openai.requests.completions.Usage
+
+    // given
+    val jsonWithUsage = """{
+      |  "id": "chatcmpl-usage",
+      |  "object": "chat.completion.chunk",
+      |  "created": 1681725687,
+      |  "model": "gpt-4",
+      |  "system_fingerprint": "fp_123",
+      |  "choices": [],
+      |  "usage": {
+      |    "prompt_tokens": 25,
+      |    "completion_tokens": 12,
+      |    "total_tokens": 37
+      |  }
+      |}""".stripMargin
+
+    val expectedResponse = ChatChunkResponse(
+      id = "chatcmpl-usage",
+      `object` = "chat.completion.chunk",
+      created = 1681725687,
+      model = "gpt-4",
+      choices = Seq.empty,
+      systemFingerprint = Some("fp_123"),
+      usage = Some(
+        Usage(
+          promptTokens = 25,
+          completionTokens = 12,
+          totalTokens = 37
+        )
+      )
+    )
+
+    // when
+    val givenResponse: Either[Exception, ChatChunkResponse] = JsonUtils.deserializeJsonSnake[ChatChunkResponse].apply(jsonWithUsage)
+
+    // then
+    givenResponse.value shouldBe expectedResponse
+  }
 }
