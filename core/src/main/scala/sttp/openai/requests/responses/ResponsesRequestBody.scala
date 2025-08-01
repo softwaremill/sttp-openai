@@ -4,7 +4,7 @@ import sttp.apispec.Schema
 import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
-import ujson.Value
+import ujson.{Obj, Value}
 
 /** @param background
   *   Whether to run the model response in the background. Defaults to false.
@@ -116,14 +116,18 @@ object ResponsesRequestBody {
 
     implicit private val schemaW: SnakePickle.Writer[Schema] = SchemaSupport.schemaRW
 
-    implicit val jsonSchemaW: SnakePickle.Writer[JsonSchema] = SerializationHelpers.withFlattenedDiscriminator("type", "json_schema")(SnakePickle.macroW)
+    implicit val jsonSchemaW: SnakePickle.Writer[JsonSchema] =
+      SerializationHelpers.withFlattenedDiscriminator("type", "json_schema")(SnakePickle.macroW)
 
+    implicit val textW: SnakePickle.Writer[Text.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter("type", "text")
 
+    implicit val jsonObjectW: SnakePickle.Writer[JsonObject.type] =
+      SerializationHelpers.caseObjectWithDiscriminatorWriter("type", "json_object")
 
-    implicit val formatW: SnakePickle.Writer[Format] = SerializationHelpers.discriminatedUnionWriter {
-      case text: Text.type             => SerializationHelpers.simpleCase("type", "text")(text)
-      case jsonObject: JsonObject.type => SerializationHelpers.simpleCase("type", "json_object")(jsonObject)
-      case jsonSchema: JsonSchema      => SerializationHelpers.flattenedCase("type", "json_schema")(jsonSchemaW)(jsonSchema)
+    implicit val formatW: SnakePickle.Writer[Format] = SnakePickle.writer[Value].comap {
+      case text: Text.type             => SnakePickle.writeJs(text)
+      case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
+      case jsonSchema: JsonSchema      => SnakePickle.writeJs(jsonSchema)
     }
   }
   case class TextConfig(
