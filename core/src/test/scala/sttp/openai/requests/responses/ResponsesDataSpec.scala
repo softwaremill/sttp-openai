@@ -1,6 +1,5 @@
 package sttp.openai.requests.responses
 
-import cats.implicits.catsSyntaxOptionId
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -10,7 +9,6 @@ import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
 import sttp.openai.requests.responses.ResponsesRequestBody.Format.JsonSchema
 import sttp.openai.requests.responses.ResponsesRequestBody._
-import sttp.openai.utils.JsonUtils
 import ujson.{Obj, Str}
 
 class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {

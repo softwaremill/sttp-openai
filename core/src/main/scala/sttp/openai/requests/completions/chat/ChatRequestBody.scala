@@ -1,6 +1,7 @@
 package sttp.openai.requests.completions.chat
 
 import sttp.apispec.Schema
+import sttp.openai.json.SerializationHelpers.DiscriminatorField
 import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.Stop
 import sttp.openai.requests.completions.chat.message.{Message, Tool, ToolChoice}
@@ -17,33 +18,24 @@ object ChatRequestBody {
 
     implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 
+    private val discriminatorField = DiscriminatorField("type")
     // Use SerializationHelpers to automatically create nested discriminator structure
     // This creates: {"type": "json_schema", "json_schema": {...actual JsonSchema object...}}
-    implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] =
-      SerializationHelpers.withNestedDiscriminator("type", "json_schema", "json_schema")(SnakePickle.macroRW[JsonSchema])
+    implicit val jsonSchemaRW: SnakePickle.Writer[JsonSchema] =
+      SerializationHelpers.withNestedDiscriminator(discriminatorField, "json_schema", "json_schema")(SnakePickle.macroRW[JsonSchema])
 
-    implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
-      .readwriter[Value]
-      .bimap[Text.type](
-        _ => Obj("type" -> "text"),
-        _ => Text
-      )
+    implicit val textRW: SnakePickle.Writer[Text.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter(discriminatorField, "text")
 
-    implicit val jsonObjectRW: SnakePickle.ReadWriter[JsonObject.type] = SnakePickle
-      .readwriter[Value]
-      .bimap[JsonObject.type](
-        _ => Obj("type" -> "json_object"),
-        _ => JsonObject
-      )
+    implicit val jsonObjectRW: SnakePickle.Writer[JsonObject.type] =
+      SerializationHelpers.caseObjectWithDiscriminatorWriter(discriminatorField, "json_object")
 
     implicit val responseFormatRW: SnakePickle.Writer[ResponseFormat] = SnakePickle
       .writer[Value]
-      .comap
-        {
-          case text: Text.type             => SnakePickle.writeJs(text)
-          case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
-          case jsonSchema: JsonSchema      => SnakePickle.writeJs(jsonSchema)
-        }
+      .comap {
+        case text: Text.type             => SnakePickle.writeJs(text)
+        case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
+        case jsonSchema: JsonSchema      => SnakePickle.writeJs(jsonSchema)
+      }
 
   }
 

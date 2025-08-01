@@ -4,12 +4,12 @@ import cats.implicits.catsSyntaxOptionId
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
-import scala.collection.immutable.ListMap
 import sttp.apispec.{Schema, SchemaType}
 import sttp.openai.fixtures
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.ChatRequestBody.ResponseFormat.JsonSchema
+
+import scala.collection.immutable.ListMap
 
 class JsonSchemaSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given string JSON schema" should "be properly serialized to Json" in {

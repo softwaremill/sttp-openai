@@ -11,7 +11,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
   "Given image generation response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.images.ImageResponseData.ImageResponse._
-    import sttp.openai.requests.images.ImageResponseData._
+      import sttp.openai.requests.images.ImageResponseData._
 
     // given
     val jsonResponse = fixtures.ImageCreationFixture.jsonResponse
@@ -33,7 +33,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
   "Given a fully populated ImageCreationBody" should "serialize to full JSON correctly" in {
     import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody._
-    import sttp.openai.requests.images.creation.ImageCreationRequestBody._
+      import sttp.openai.requests.images.creation.ImageCreationRequestBody._
 
     // given
     val givenRequest: ImageCreationBody = ImageCreationBody(
@@ -64,7 +64,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
   "Given an ImageCreationBody with optional fields set to None" should "serialize without those fields" in {
     import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody._
-    import sttp.openai.requests.images.creation.ImageCreationRequestBody._
+      import sttp.openai.requests.images.creation.ImageCreationRequestBody._
 
     // given
     val givenRequest: ImageCreationBody = ImageCreationBody(
@@ -95,7 +95,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
   "Given create image request as case class created with enum values" should "be properly serialized to Json" in {
     import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody._
-    import sttp.openai.requests.images.creation.ImageCreationRequestBody._
+      import sttp.openai.requests.images.creation.ImageCreationRequestBody._
 
     // given
     val givenRequest: ImageCreationBody = ImageCreationBody(
@@ -126,7 +126,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
 
   "Given create image request as case class with different model" should "be properly serialized to Json" in {
     import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody._
-    import sttp.openai.requests.images.creation.ImageCreationRequestBody._
+      import sttp.openai.requests.images.creation.ImageCreationRequestBody._
 
     // given
     val givenRequest: ImageCreationBody = ImageCreationBody(

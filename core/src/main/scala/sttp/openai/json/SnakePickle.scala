@@ -40,6 +40,8 @@ object SnakePickle extends upickle.AttributeTagged {
 /** Helper utilities for automatic serialization with discriminator fields */
 object SerializationHelpers {
 
+  case class DiscriminatorField(value: String)
+
   /** Creates a ReadWriter for nested discriminator patterns where the object is wrapped in another object with a discriminator field
     * pointing to the nested content.
     *
@@ -56,30 +58,27 @@ object SerializationHelpers {
     * @return
     *   A ReadWriter that wraps the object in the nested discriminator structure
     */
-  def withNestedDiscriminator[T](discriminatorField: String, discriminatorValue: String, nestedField: String)(implicit
-      baseRW: SnakePickle.ReadWriter[T]
-  ): SnakePickle.ReadWriter[T] =
+  def withNestedDiscriminator[T](discriminatorField: DiscriminatorField, discriminatorValue: String, nestedField: String)(implicit
+      baseRW: SnakePickle.Writer[T]
+  ): SnakePickle.Writer[T] =
     SnakePickle
-      .readwriter[Value]
-      .bimap[T](
-        t => {
-          val baseJson = SnakePickle.writeJs(t)
-          // Filter out any $type fields and null values (from None options)
-          val cleanedJson = baseJson match {
-            case obj: Obj =>
-              val filtered = obj.obj.filterNot { case (key, value) =>
-                key.startsWith("$") || value == ujson.Null
-              }
-              Obj.from(filtered)
-            case other => other
-          }
-          Obj(
-            discriminatorField -> discriminatorValue,
-            nestedField -> cleanedJson
-          )
-        },
-        json => SnakePickle.read[T](json(nestedField))
-      )
+      .writer[Value]
+      .comap { t =>
+        val baseJson = SnakePickle.writeJs(t)
+        // Filter out any $type fields and null values (from None options)
+        val cleanedJson = baseJson match {
+          case obj: Obj =>
+            val filtered = obj.obj.filterNot { case (key, value) =>
+              key.startsWith("$") || value == ujson.Null
+            }
+            Obj.from(filtered)
+          case other => other
+        }
+        Obj(
+          discriminatorField.value -> discriminatorValue,
+          nestedField -> cleanedJson
+        )
+      }
 
   /** Creates a ReadWriter for flattened discriminator patterns where the object fields are at the same level as the discriminator field.
     *
@@ -94,7 +93,7 @@ object SerializationHelpers {
     * @return
     *   A ReadWriter that flattens the object with the discriminator field
     */
-  def withFlattenedDiscriminator[T](discriminatorField: String, discriminatorValue: String)(implicit
+  def withFlattenedDiscriminator[T](discriminatorField: DiscriminatorField, discriminatorValue: String)(implicit
       baseW: SnakePickle.Writer[T]
   ): SnakePickle.Writer[T] =
     SnakePickle
@@ -108,15 +107,15 @@ object SerializationHelpers {
               key.startsWith("$") || value == ujson.Null
             }
             // Add the discriminator field to the filtered object
-            Obj.from(filtered ++ Map(discriminatorField -> Str(discriminatorValue)))
+            Obj.from(filtered ++ Map(discriminatorField.value -> Str(discriminatorValue)))
           case other =>
             // If it's not an object, create a new object with the discriminator and the value
-            Obj(discriminatorField -> Str(discriminatorValue), "value" -> other)
+            Obj(discriminatorField.value -> Str(discriminatorValue), "value" -> other)
         }
         cleanedJson
       }
 
-  def caseObjectWithDiscriminatorWriter[T](discriminatorField: String, discriminatorValue: String): SnakePickle.Writer[T] =
-    SnakePickle.writer[Value].comap(_ => Obj(discriminatorField -> Str(discriminatorValue)))
+  def caseObjectWithDiscriminatorWriter[T](discriminatorField: DiscriminatorField, discriminatorValue: String): SnakePickle.Writer[T] =
+    SnakePickle.writer[Value].comap(_ => Obj(discriminatorField.value -> Str(discriminatorValue)))
 
 }
