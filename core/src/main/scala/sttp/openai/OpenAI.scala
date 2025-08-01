@@ -9,10 +9,9 @@ import sttp.openai.requests.admin.{QueryParameters => _, _}
 import sttp.openai.requests.assistants.AssistantsRequestBody.{CreateAssistantBody, ModifyAssistantBody}
 import sttp.openai.requests.assistants.AssistantsResponseData.{AssistantData, DeleteAssistantResponse, ListAssistantsResponse}
 import sttp.openai.requests.audio.AudioResponseData.AudioResponse
-import sttp.openai.requests.audio.RecognitionModel
 import sttp.openai.requests.audio.speech.SpeechRequestBody
-import sttp.openai.requests.audio.transcriptions.TranscriptionConfig
-import sttp.openai.requests.audio.translations.TranslationConfig
+import sttp.openai.requests.audio.transcriptions.{TranscriptionConfig, TranscriptionModel}
+import sttp.openai.requests.audio.translations.{TranslationConfig, TranslationModel}
 import sttp.openai.requests.batch.{QueryParameters => _, _}
 import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
@@ -181,13 +180,25 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .post(openAIUris.EditImage)
       .multipartBody {
         import imageEditsConfig._
-        Seq(
-          Some(multipartFile("image", image)),
+        val imageParts = image match {
+          case singleImage :: Nil => Seq(multipartFile("image", singleImage))
+          case _                  => image.map(img => multipartFile("image[]", img))
+        }
+        imageParts ++ Seq(
           Some(multipart("prompt", prompt)),
+          background.map(bg => multipart("background", bg)),
+          inputFidelity.map(fid => multipart("input_fidelity", fid)),
           mask.map(multipartFile("mask", _)),
+          model.map(m => multipart("model", m)),
           n.map(i => multipart("n", i.toString)),
+          outputCompression.map(c => multipart("output_compression", c.toString)),
+          outputFormat.map(f => multipart("output_format", f)),
+          partialImages.map(p => multipart("partial_images", p.toString)),
+          quality.map(q => multipart("quality", q)),
           size.map(s => multipart("size", s.value)),
-          responseFormat.map(format => multipart("response_format", format.value))
+          responseFormat.map(format => multipart("response_format", format.value)),
+          stream.map(s => multipart("stream", s.toString)),
+          user.map(u => multipart("user", u))
         ).flatten
       }
       .response(asJson_parseErrors[ImageResponse])
@@ -570,7 +581,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(file: File, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
+  def createTranslation(file: File, model: TranslationModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
       .post(openAIUris.Translations)
       .multipartBody(
@@ -588,7 +599,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param model
     *   ID of the model to use. Only whisper-1 is currently available.
     */
-  def createTranslation(systemPath: String, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
+  def createTranslation(systemPath: String, model: TranslationModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
       .post(openAIUris.Translations)
       .multipartBody(
@@ -640,9 +651,9 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param file
     *   The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only whisper-1 is currently available.
+    *   ID of the model to use. Whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe are currently available.
     */
-  def createTranscription(file: File, model: RecognitionModel): Request[Either[OpenAIException, AudioResponse]] =
+  def createTranscription(file: File, model: TranscriptionModel): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
       .post(openAIUris.Transcriptions)
       .multipartBody(
@@ -658,11 +669,11 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     * @param systemPath
     *   The audio systemPath to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
     * @param model
-    *   ID of the model to use. Only whisper-1 is currently available.
+    *   ID of the model to use. Whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe are currently available.
     */
   def createTranscription(
       systemPath: String,
-      model: RecognitionModel
+      model: TranscriptionModel
   ): Request[Either[OpenAIException, AudioResponse]] =
     openAIAuthRequest
       .post(openAIUris.Transcriptions)

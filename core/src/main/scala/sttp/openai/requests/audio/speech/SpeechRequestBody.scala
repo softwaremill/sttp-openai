@@ -38,6 +38,8 @@ object SpeechModel {
 
   case object TTS1 extends SpeechModel("tts-1")
   case object TTS1HD extends SpeechModel("tts-1-hd")
+  case object GPT4oMiniTTS extends SpeechModel("gpt-4o-mini-tts")
+
   case class CustomSpeechModel(customValue: String) extends SpeechModel(customValue)
 }
 
