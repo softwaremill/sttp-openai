@@ -2,8 +2,6 @@ package sttp.openai.requests.responses
 
 import sttp.apispec.Schema
 import sttp.openai.json.{SerializationHelpers, SnakePickle}
-import sttp.openai.requests.completions.chat.ChatRequestBody.ResponseFormat.{JsonObject, JsonSchema, Text}
-import sttp.openai.requests.completions.chat.ChatRequestBody.{Format, ResponseFormat}
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
 import ujson.{Obj, Value}
@@ -116,42 +114,32 @@ object ResponsesRequestBody {
 
     case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends Format
 
-    implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
+    implicit private val schemaW: SnakePickle.Writer[Schema] = SchemaSupport.schemaRW
 
-    // Use SerializationHelpers to automatically create nested discriminator structure
-    // This creates: {"type": "json_schema", "json_schema": {...actual JsonSchema object...}}
-    implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] =
-      SerializationHelpers.withFlattenedDiscriminator("type", "json_schema")(SnakePickle.macroRW[JsonSchema])
+    implicit val jsonSchemaW: SnakePickle.Writer[JsonSchema] = SerializationHelpers.withFlattenedDiscriminator("type", "json_schema")(SnakePickle.macroW)
 
-    implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
-      .readwriter[Value]
-      .bimap[Text.type](
-        _ => Obj("type" -> "text"),
-        _ => Text
-      )
+//    implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
+//      .readwriter[Value]
+//      .bimap[Text.type](
+//        _ => Obj("type" -> "text"),
+//        _ => Text
+//      )
+//
+//    implicit val jsonObjectRW: SnakePickle.ReadWriter[JsonObject.type] = SnakePickle
+//      .readwriter[Value]
+//      .bimap[JsonObject.type](
+//        _ => Obj("type" -> "json_object"),
+//        _ => JsonObject
+//      )
 
-    implicit val jsonObjectRW: SnakePickle.ReadWriter[JsonObject.type] = SnakePickle
-      .readwriter[Value]
-      .bimap[JsonObject.type](
-        _ => Obj("type" -> "json_object"),
-        _ => JsonObject
-      )
-
-    implicit val responseFormatRW: SnakePickle.ReadWriter[Format] = SnakePickle
-      .readwriter[Value]
-      .bimap[Format](
+    implicit val formatW: SnakePickle.Writer[Format] = SnakePickle
+      .writer[Value]
+      .comap
         {
-          case text: Text.type             => SnakePickle.writeJs(text)
-          case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
+          case text: Text.type             => Obj("type" -> "text")
+          case jsonObject: JsonObject.type => Obj("type" -> "json_object")
           case jsonSchema: JsonSchema      => SnakePickle.writeJs(jsonSchema)
-        },
-        json =>
-          json("type").str match {
-            case "text"        => SnakePickle.read[Text.type](json)
-            case "json_object" => SnakePickle.read[JsonObject.type](json)
-            case "json_schema" => SnakePickle.read[JsonSchema](json)
-          }
-      )
+        }
   }
   case class TextConfig(
       format: Option[Format] = None
@@ -159,6 +147,6 @@ object ResponsesRequestBody {
 
   implicit val promptConfigRW: SnakePickle.ReadWriter[PromptConfig] = SnakePickle.macroRW
   implicit val reasoningConfigRW: SnakePickle.ReadWriter[ReasoningConfig] = SnakePickle.macroRW
-  implicit val textConfigRW: SnakePickle.ReadWriter[TextConfig] = SnakePickle.macroRW
+  implicit val textConfigRW: SnakePickle.Writer[TextConfig] = SnakePickle.macroW
   implicit val responsesRequestBodyW: SnakePickle.Writer[ResponsesRequestBody] = SnakePickle.macroW
 }

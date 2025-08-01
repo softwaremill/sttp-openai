@@ -80,7 +80,7 @@ object SerializationHelpers {
         },
         json => SnakePickle.read[T](json(nestedField))
       )
-      
+
   /** Creates a ReadWriter for flattened discriminator patterns where the object fields are at the same level as the discriminator field.
     *
     * For example: {"type": "json_schema", ...actual object fields...}
@@ -89,44 +89,31 @@ object SerializationHelpers {
     *   The name of the field to add (e.g., "type")
     * @param discriminatorValue
     *   The value for the discriminator field (e.g., "json_schema")
-    * @param baseRW
-    *   The base ReadWriter for the type T (typically SnakePickle.macroRW)
+    * @param baseW
+    *   The base Writer for the type T (typically SnakePickle.macroW)
     * @return
     *   A ReadWriter that flattens the object with the discriminator field
     */
   def withFlattenedDiscriminator[T](discriminatorField: String, discriminatorValue: String)(implicit
-      baseRW: SnakePickle.ReadWriter[T]
-  ): SnakePickle.ReadWriter[T] =
+      baseW: SnakePickle.Writer[T]
+  ): SnakePickle.Writer[T] =
     SnakePickle
-      .readwriter[Value]
-      .bimap[T](
-        t => {
-          val baseJson = SnakePickle.writeJs(t)
-          // Filter out any $type fields and null values (from None options)
-          val cleanedJson = baseJson match {
-            case obj: Obj =>
-              val filtered = obj.obj.filterNot { case (key, value) =>
-                key.startsWith("$") || value == ujson.Null
-              }
-              // Add the discriminator field to the filtered object
-              Obj.from(filtered + (discriminatorField -> Str(discriminatorValue)))
-            case other => 
-              // If it's not an object, create a new object with the discriminator and the value
-              Obj(discriminatorField -> Str(discriminatorValue), "value" -> other)
-          }
-          cleanedJson
-        },
-        json => {
-          // Create a copy of the JSON without the discriminator field
-//          val jsonWithoutDiscriminator = json match {
-//            case obj: Obj =>
-//              val filtered = obj.obj.filterNot { case (key, _) =>
-//                key == discriminatorField
-//              }
-//              Obj.from(filtered)
-//            case other => other
-//          }
-          SnakePickle.read[T](json)
+      .writer[Value]
+      .comap { t =>
+        val baseJson = SnakePickle.writeJs(t)
+        // Filter out any $type fields and null values (from None options)
+        val cleanedJson = baseJson match {
+          case obj: Obj =>
+            val filtered = obj.obj.filterNot { case (key, value) =>
+              key.startsWith("$") || value == ujson.Null
+            }
+            // Add the discriminator field to the filtered object
+            Obj.from(filtered + (discriminatorField -> Str(discriminatorValue)))
+          case other =>
+            // If it's not an object, create a new object with the discriminator and the value
+            Obj(discriminatorField -> Str(discriminatorValue), "value" -> other)
         }
-      )
+        cleanedJson
+      }
+
 }

@@ -36,21 +36,15 @@ object ChatRequestBody {
         _ => JsonObject
       )
 
-    implicit val responseFormatRW: SnakePickle.ReadWriter[ResponseFormat] = SnakePickle
-      .readwriter[Value]
-      .bimap[ResponseFormat](
+    implicit val responseFormatRW: SnakePickle.Writer[ResponseFormat] = SnakePickle
+      .writer[Value]
+      .comap
         {
           case text: Text.type             => SnakePickle.writeJs(text)
           case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
           case jsonSchema: JsonSchema      => SnakePickle.writeJs(jsonSchema)
-        },
-        json =>
-          json("type").str match {
-            case "text"        => SnakePickle.read[Text.type](json)
-            case "json_object" => SnakePickle.read[JsonObject.type](json)
-            case "json_schema" => SnakePickle.read[JsonSchema](json)
-          }
-      )
+        }
+
   }
 
   /** @param messages
