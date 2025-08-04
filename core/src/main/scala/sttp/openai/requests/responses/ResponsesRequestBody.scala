@@ -11,12 +11,12 @@ import ujson.Value
   *   Whether to run the model response in the background. Defaults to false.
   * @param include
   *   Specify additional output data to include in the model response. Currently supported values are:
-  *   - code_interpreter_call.outputs: Includes the outputs of python code execution in code interpreter tool call items.
-  *   - computer_call_output.output.image_url: Include image urls from the computer call output.
-  *   - file_search_call.results: Include the search results of the file search tool call.
-  *   - message.input_image.image_url: Include image urls from the input message.
-  *   - message.output_text.logprobs: Include logprobs with assistant messages.
-  *   - reasoning.encrypted_content: Includes an encrypted version of reasoning tokens in reasoning item outputs.
+  *   - `code_interpreter_call.outputs`: Includes the outputs of python code execution in code interpreter tool call items.
+  *   - `computer_call_output.output.image_url`: Include image urls from the computer call output.
+  *   - `file_search_call.results`: Include the search results of the file search tool call.
+  *   - `message.input_image.image_url`: Include image urls from the input message.
+  *   - `message.output_text.logprobs`: Include logprobs with assistant messages.
+  *   - `reasoning.encrypted_content`: Includes an encrypted version of reasoning tokens in reasoning item outputs.
   * @param input
   *   Text, image, or file inputs to the model, used to generate a response.
   * @param instructions
