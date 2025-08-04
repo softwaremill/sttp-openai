@@ -49,4 +49,24 @@ object ResponsesFixture {
       |  "truncation": "disabled",
       |  "user": "user123"
       |}""".stripMargin
+
+  val jsonRequestWithInputMessage: String =
+    """{
+      |  "input": {
+      |    "role": "user",
+      |    "type": "message",
+      |    "content": [
+      |      {
+      |        "type": "input_text",
+      |        "text": "what is in this image?"
+      |      },
+      |      {
+      |        "type": "input_image",
+      |        "detail": "auto",
+      |        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
+      |      }
+      |    ]
+      |  },
+      |  "model": "gpt-4.1"
+      |}""".stripMargin
 }

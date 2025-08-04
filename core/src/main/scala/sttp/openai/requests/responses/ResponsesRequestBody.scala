@@ -122,7 +122,7 @@ object ResponsesRequestBody {
     }
 
     implicit val inputTextW: SnakePickle.Writer[InputText] =
-      SerializationHelpers.caseObjectWithDiscriminatorWriter(discriminatorField, "input_text")
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_text")(SnakePickle.macroW)
 
     implicit val inputImageW: SnakePickle.Writer[InputImage] =
       SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_image")(SnakePickle.macroW)

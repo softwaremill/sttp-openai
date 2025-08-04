@@ -106,42 +106,37 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     serializedJson shouldBe expectedJson
   }
 
-//  "Given responses request with json schema format" should "be properly deserialized from Json" in {
-//    import ResponsesRequestBody._
-//
-//    // given
-//    val jsonInput = Obj(
-//      "text" -> Obj(
-//        "format" -> Obj(
-////          "$type" -> Str("json_schema"),
-//          "type" -> Str("json_schema"),
-//          "name" -> Str("test_schema"),
-//          "schema" -> Obj("type" -> Str("string")),
-//          "description" -> Str("Test description"),
-//          "strict" -> ujson.Bool(true)
-//        )
-//      )
-//    )
-//
-//    val expected = ResponsesRequestBody(
-//      text = Some(
-//        TextConfig(
-//          format = Some(
-//            JsonSchema(
-//              name = "test_schema",
-//              schema = Some(Schema(SchemaType.String)),
-//              description = Some("Test description"),
-//              strict = Some(true)
-//            )
-//          )
-//        )
-//      )
-//    )
-//
-//    // when
-//    val deserialized = JsonUtils.deserializeJsonSnake[ResponsesRequestBody].apply(jsonInput.toString())
-//
-//    // then
-//    deserialized.value shouldBe expected
-//  }
+  "Given responses request with input message containing text and image" should "be properly serialized to Json" in {
+    import ResponsesRequestBody._
+    import Input._
+    import InputContentItem._
+
+    // given
+    val givenRequest = ResponsesRequestBody(
+      model = Some("gpt-4.1"),
+      input = Some(
+        InputMessage(
+          content = List(
+            InputText("what is in this image?"),
+            InputImage(
+              detail = "auto", // default detail level
+              fileId = None,
+              imageUrl = Some("https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg")
+            )
+          ),
+          role = "user",
+          status = None
+        )
+      )
+    )
+
+    val expectedJson = ujson.read(ResponsesFixture.jsonRequestWithInputMessage)
+
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+
+    // then
+    serializedJson shouldBe expectedJson
+  }
+  
 }
