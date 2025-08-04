@@ -5,7 +5,7 @@ object ResponsesFixture {
     """{
       |  "background": false,
       |  "include": ["code_interpreter_call.outputs", "message.output_text.logprobs"],
-      |  "input": ["What is the capital of France?"],
+      |  "input": "What is the capital of France?",
       |  "instructions": "You are a helpful assistant",
       |  "max_output_tokens": 1000,
       |  "max_tool_calls": 5,

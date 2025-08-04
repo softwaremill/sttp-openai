@@ -5,6 +5,9 @@ import sttp.openai.json.SerializationHelpers.DiscriminatorField
 import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
+import sttp.openai.requests.responses.ResponsesRequestBody.Format.{JsonObject, JsonSchema, Text, discriminatorField}
+import sttp.openai.requests.responses.ResponsesRequestBody.Input
+import sttp.openai.requests.responses.ResponsesRequestBody.Input.InputContentItem.{InputFile, InputImage, InputText}
 import ujson.Value
 
 /** @param background
@@ -68,7 +71,7 @@ import ujson.Value
 case class ResponsesRequestBody(
     background: Option[Boolean] = None,
     include: Option[List[String]] = None,
-    input: Option[List[String]] = None,
+    input: Option[Input] = None,
     instructions: Option[String] = None,
     maxOutputTokens: Option[Int] = None,
     maxToolCalls: Option[Int] = None,
@@ -105,6 +108,262 @@ object ResponsesRequestBody {
       effort: Option[String] = None,
       summary: Option[String] = None
   )
+
+  sealed trait Input
+  object Input {
+    private val discriminatorField = DiscriminatorField("type")
+
+    sealed trait InputContentItem
+    object InputContentItem {
+      case class InputText(text: String) extends InputContentItem
+      case class InputImage(detail: String, fileId: Option[String], imageUrl: Option[String]) extends InputContentItem
+      case class InputFile(fileData: Option[String], fileId: Option[String], fileUrl: Option[String], filename: Option[String])
+          extends InputContentItem
+    }
+
+    implicit val inputTextW: SnakePickle.Writer[InputText] =
+      SerializationHelpers.caseObjectWithDiscriminatorWriter(discriminatorField, "input_text")
+
+    implicit val inputImageW: SnakePickle.Writer[InputImage] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_image")(SnakePickle.macroW)
+
+    implicit val inputFileW: SnakePickle.Writer[InputFile] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_file")(SnakePickle.macroW)
+
+    implicit val inputContentItemW: SnakePickle.Writer[InputContentItem] = SnakePickle.writer[Value].comap {
+      case inputText: InputText => SnakePickle.writeJs(inputText)
+      case inputImage: InputImage => SnakePickle.writeJs(inputImage)
+      case inputFile: InputFile => SnakePickle.writeJs(inputFile)
+    }
+    sealed trait OutputContentItem
+    object OutputContentItem {
+
+      sealed trait Annotation
+      object Annotation {
+        case class FileCitation(
+            fileId: String,
+            filename: String,
+            index: Int
+        ) extends Annotation
+
+        case class UrlCitation(
+            endIndex: Int,
+            startIndex: Int,
+            title: String,
+            url: String
+        ) extends Annotation
+
+        case class ContainerFileCitation(
+            containerId: String,
+            endIndex: Int,
+            fileId: String,
+            filename: String,
+            startIndex: Int
+        ) extends Annotation
+
+        case class FilePath(
+            fileId: String,
+            index: Int
+        ) extends Annotation
+      }
+
+      case class LogProb(
+          bytes: List[Byte],
+          logprob: Double,
+          token: String,
+          topLogprobs: List[TopLogProb]
+      )
+
+      case class TopLogProb(
+          bytes: List[Byte],
+          logprob: Double,
+          token: String
+      )
+
+      case class OutputText(
+          annotations: List[Annotation],
+          text: String,
+          logprobs: Option[List[LogProb]] = None
+      ) extends OutputContentItem
+
+    }
+
+    case class Text(text: String) extends Input
+    case class InputMessage(content: List[InputContentItem], role: String, status: Option[String]) extends Input
+    case class OutputMessage(content: OutputContentItem, id: String, role: String, status: String) extends Input
+    case class ItemReference(id: String) extends Input
+
+    implicit val inputMessageW: SnakePickle.Writer[InputMessage] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "message")(SnakePickle.macroW)
+
+    implicit val inputW: SnakePickle.Writer[Input] = SnakePickle.writer[Value].comap {
+      case Text(text) => SnakePickle.writeJs(text)
+      case inputMessage: InputMessage => SnakePickle.writeJs(inputMessage)
+      case OutputMessage(content, id, role, status) => ???
+      case ItemReference(id) => ???
+      case FileSearchToolCall(id, queries, status, results) => ???
+      case ComputerToolCall(action, callId, id, pendingSafetyChecks) => ???
+      case ComputerToolCallOutput(callId, output, acknowledgedSafetyChecks, id, status) => ???
+      case WebSearchToolCall(action, id, status) => ???
+      case FunctionToolCall(arguments, callId, name, id, status) => ???
+      case FunctionToolCallOutput(callId, output, id, status) => ???
+      case Reasoning(id, summary, encryptedContent, status) => ???
+      case ImageGenerationCall(id, result, status) => ???
+      case CodeInterpreterToolCall(code, containerId, id, outputs, status) => ???
+      case LocalShellCall(action, callId, id, status) => ???
+      case LocalShellCallOutput(id, output, status) => ???
+      case McpListTools(id, serverLabel, tools, error) => ???
+      case McpApprovalRequest(arguments, id, name, serverLabel) => ???
+      case McpApprovalResponse(approvalRequestId, approve, id, reason) => ???
+      case McpToolCall(arguments, id, name, serverLabel, error, output) => ???
+
+    }
+
+    // File search tool call
+    case class FileSearchToolCall(
+        id: String,
+        queries: List[String],
+        status: String,
+        results: Option[List[Value]] = None
+    ) extends Input
+
+    // Computer tool call
+    case class ComputerToolCall(
+        action: Value,
+        callId: String,
+        id: String,
+        pendingSafetyChecks: List[ComputerToolCall.PendingSafetyCheck]
+    ) extends Input
+
+    object ComputerToolCall {
+      case class PendingSafetyCheck(
+          code: String,
+          id: String,
+          message: String,
+          status: String
+      )
+    }
+
+    // Computer tool call output
+    case class ComputerToolCallOutput(
+        callId: String,
+        output: ComputerToolCallOutput.ComputerScreenshot,
+        acknowledgedSafetyChecks: Option[List[Value]] = None,
+        id: Option[String] = None,
+        status: Option[String] = None
+    ) extends Input
+
+    object ComputerToolCallOutput {
+      case class ComputerScreenshot(
+          fileId: Option[String] = None,
+          imageUrl: Option[String] = None
+      )
+    }
+
+    // Web search tool call
+    case class WebSearchToolCall(
+        action: Value,
+        id: String,
+        status: String
+    ) extends Input
+
+    // Function tool call
+    case class FunctionToolCall(
+        arguments: String,
+        callId: String,
+        name: String,
+        id: Option[String] = None,
+        status: Option[String] = None
+    ) extends Input
+
+    // Function tool call output
+    case class FunctionToolCallOutput(
+        callId: String,
+        output: String,
+        id: Option[String] = None,
+        status: Option[String] = None
+    ) extends Input
+
+    // Reasoning
+    case class Reasoning(
+        id: String,
+        summary: List[Reasoning.SummaryText],
+        encryptedContent: Option[String] = None,
+        status: Option[String] = None
+    ) extends Input
+
+    object Reasoning {
+      case class SummaryText(
+          text: String
+      )
+    }
+
+    // Image generation call
+    case class ImageGenerationCall(
+        id: String,
+        result: Option[String],
+        status: String
+    ) extends Input
+
+    // Code interpreter tool call
+    case class CodeInterpreterToolCall(
+        code: Option[String],
+        containerId: String,
+        id: String,
+        outputs: Option[List[Value]] = None,
+        status: String
+    ) extends Input
+
+    // Local shell call
+    case class LocalShellCall(
+        action: Value,
+        callId: String,
+        id: String,
+        status: String
+    ) extends Input
+
+    // Local shell call output
+    case class LocalShellCallOutput(
+        id: String,
+        output: String,
+        status: Option[String] = None
+    ) extends Input
+
+    // MCP list tools
+    case class McpListTools(
+        id: String,
+        serverLabel: String,
+        tools: List[Value],
+        error: Option[String] = None
+    ) extends Input
+
+    // MCP approval request
+    case class McpApprovalRequest(
+        arguments: String,
+        id: String,
+        name: String,
+        serverLabel: String
+    ) extends Input
+
+    // MCP approval response
+    case class McpApprovalResponse(
+        approvalRequestId: String,
+        approve: Boolean,
+        id: Option[String] = None,
+        reason: Option[String] = None
+    ) extends Input
+
+    // MCP tool call
+    case class McpToolCall(
+        arguments: String,
+        id: String,
+        name: String,
+        serverLabel: String,
+        error: Option[String] = None,
+        output: Option[String] = None
+    ) extends Input
+
+  }
 
   sealed trait Format
 

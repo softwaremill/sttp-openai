@@ -21,7 +21,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val givenRequest = ResponsesRequestBody(
       background = Some(false),
       include = Some(List("code_interpreter_call.outputs", "message.output_text.logprobs")),
-      input = Some(List("What is the capital of France?")),
+      input = Some(Input.Text("What is the capital of France?")),
       instructions = Some("You are a helpful assistant"),
       maxOutputTokens = Some(1000),
       maxToolCalls = Some(5),
