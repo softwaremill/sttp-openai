@@ -196,7 +196,7 @@ object ResponsesRequestBody {
     implicit val inputMessageW: SnakePickle.Writer[InputMessage] =
       SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "message")(SnakePickle.macroW)
 
-    implicit val textOrInputListW: SnakePickle.Writer[Either[Input.Text, Input]] = SnakePickle.writer[Value].comap {
+    implicit val textOrInputListW: SnakePickle.Writer[Either[Input.Text, List[Input]]] = SnakePickle.writer[Value].comap {
       case Left(value) => SnakePickle.writeJs(value)
       case Right(value) => SnakePickle.writeJs(value)
     }
