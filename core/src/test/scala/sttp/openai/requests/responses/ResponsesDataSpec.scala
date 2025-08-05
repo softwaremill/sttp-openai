@@ -21,7 +21,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val givenRequest = ResponsesRequestBody(
       background = Some(false),
       include = Some(List("code_interpreter_call.outputs", "message.output_text.logprobs")),
-      input = Some(Input.Text("What is the capital of France?")),
+      input = Some(Left(Input.Text("What is the capital of France?"))),
       instructions = Some("You are a helpful assistant"),
       maxOutputTokens = Some(1000),
       maxToolCalls = Some(5),
@@ -115,7 +115,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val givenRequest = ResponsesRequestBody(
       model = Some("gpt-4.1"),
       input = Some(
-        InputMessage(
+        Right(InputMessage(
           content = List(
             InputText("what is in this image?"),
             InputImage(
@@ -126,7 +126,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           ),
           role = "user",
           status = None
-        )
+        ) :: Nil)
       )
     )
 

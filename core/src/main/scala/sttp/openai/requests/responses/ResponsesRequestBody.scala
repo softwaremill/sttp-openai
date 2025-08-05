@@ -71,7 +71,7 @@ import ujson.Value
 case class ResponsesRequestBody(
     background: Option[Boolean] = None,
     include: Option[List[String]] = None,
-    input: Option[Input] = None,
+    input: Option[Either[Input.Text,List[Input]]] = None,
     instructions: Option[String] = None,
     maxOutputTokens: Option[Int] = None,
     maxToolCalls: Option[Int] = None,
@@ -188,7 +188,7 @@ object ResponsesRequestBody {
 
     }
 
-    case class Text(text: String) extends Input
+    case class Text(text: String)
     case class InputMessage(content: List[InputContentItem], role: String, status: Option[String]) extends Input
     case class OutputMessage(content: OutputContentItem, id: String, role: String, status: String) extends Input
     case class ItemReference(id: String) extends Input
@@ -196,8 +196,14 @@ object ResponsesRequestBody {
     implicit val inputMessageW: SnakePickle.Writer[InputMessage] =
       SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "message")(SnakePickle.macroW)
 
+    implicit val textOrInputListW: SnakePickle.Writer[Either[Input.Text, Input]] = SnakePickle.writer[Value].comap {
+      case Left(value) => SnakePickle.writeJs(value)
+      case Right(value) => SnakePickle.writeJs(value)
+    }
+
+    implicit val textW: SnakePickle.Writer[Text] = SnakePickle.writer[Value].comap(t => ujson.Str(t.text))
+
     implicit val inputW: SnakePickle.Writer[Input] = SnakePickle.writer[Value].comap {
-      case Text(text) => SnakePickle.writeJs(text)
       case inputMessage: InputMessage => SnakePickle.writeJs(inputMessage)
       case OutputMessage(content, id, role, status) => ???
       case ItemReference(id) => ???
