@@ -236,36 +236,37 @@ object ResponsesRequestBody {
 
     case class ItemReference(id: String) extends Input
 
-    implicit val inputMessageW: SnakePickle.Writer[InputMessage] =
-      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "message")(SnakePickle.macroW)
+    implicit val textW: SnakePickle.Writer[Text] = SnakePickle.writer[Value].comap(t => ujson.Str(t.text))
 
     implicit val textOrInputListW: SnakePickle.Writer[Either[Input.Text, List[Input]]] = SnakePickle.writer[Value].comap {
       case Left(value)  => SnakePickle.writeJs(value)
       case Right(value) => SnakePickle.writeJs(value)
     }
 
-    implicit val textW: SnakePickle.Writer[Text] = SnakePickle.writer[Value].comap(t => ujson.Str(t.text))
+    implicit val inputMessageW: SnakePickle.Writer[InputMessage] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "message")(SnakePickle.macroW)
+
+
 
     implicit val inputW: SnakePickle.Writer[Input] = SnakePickle.writer[Value].comap {
-      case inputMessage: InputMessage                                                   => SnakePickle.writeJs(inputMessage)
-      case OutputMessage(content, id, role, status)                                     => ???
-      case FileSearchToolCall(id, queries, status, results)                             => ???
-      case ComputerToolCall(action, callId, id, pendingSafetyChecks)                    => ???
-      case ComputerToolCallOutput(callId, output, acknowledgedSafetyChecks, id, status) => ???
-      case WebSearchToolCall(action, id, status)                                        => ???
-      case FunctionToolCall(arguments, callId, name, id, status)                        => ???
-      case FunctionToolCallOutput(callId, output, id, status)                           => ???
-      case Reasoning(id, summary, encryptedContent, status)                             => ???
-      case ImageGenerationCall(id, result, status)                                      => ???
-      case CodeInterpreterToolCall(code, containerId, id, outputs, status)              => ???
-      case LocalShellCall(action, callId, id, status)                                   => ???
-      case LocalShellCallOutput(id, output, status)                                     => ???
-      case McpListTools(id, serverLabel, tools, error)                                  => ???
-      case McpApprovalRequest(arguments, id, name, serverLabel)                         => ???
-      case McpApprovalResponse(approvalRequestId, approve, id, reason)                  => ???
-      case McpToolCall(arguments, id, name, serverLabel, error, output)                 => ???
-      case ItemReference(id)                                                            => ???
-
+      case inputMessage: InputMessage                       => SnakePickle.writeJs(inputMessage)
+      case outputMessage: OutputMessage                     => SnakePickle.writeJs(outputMessage)
+      case fileSearchToolCall: FileSearchToolCall           => SnakePickle.writeJs(fileSearchToolCall)
+      case computerToolCall: ComputerToolCall               => SnakePickle.writeJs(computerToolCall)
+      case computerToolCallOutput: ComputerToolCallOutput   => SnakePickle.writeJs(computerToolCallOutput)
+      case webSearchToolCall: WebSearchToolCall             => SnakePickle.writeJs(webSearchToolCall)
+      case functionToolCall: FunctionToolCall               => SnakePickle.writeJs(functionToolCall)
+      case functionToolCallOutput: FunctionToolCallOutput   => SnakePickle.writeJs(functionToolCallOutput)
+      case reasoning: Reasoning                             => SnakePickle.writeJs(reasoning)
+      case imageGenerationCall: ImageGenerationCall         => SnakePickle.writeJs(imageGenerationCall)
+      case codeInterpreterToolCall: CodeInterpreterToolCall => SnakePickle.writeJs(codeInterpreterToolCall)
+      case localShellCall: LocalShellCall                   => SnakePickle.writeJs(localShellCall)
+      case localShellCallOutput: LocalShellCallOutput       => SnakePickle.writeJs(localShellCallOutput)
+      case mcpListTools: McpListTools                       => SnakePickle.writeJs(mcpListTools)
+      case mcpApprovalRequest: McpApprovalRequest           => SnakePickle.writeJs(mcpApprovalRequest)
+      case mcpApprovalResponse: McpApprovalResponse         => SnakePickle.writeJs(mcpApprovalResponse)
+      case mcpToolCall: McpToolCall                         => SnakePickle.writeJs(mcpToolCall)
+      case itemReference: ItemReference                     => SnakePickle.writeJs(itemReference)
     }
 
   }
