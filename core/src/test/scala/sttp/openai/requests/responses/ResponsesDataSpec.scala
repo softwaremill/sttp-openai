@@ -16,8 +16,6 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given responses request as case class" should "be properly serialized to Json" in {
 
     // given
-    val schema = Schema(SchemaType.String)
-
     val givenRequest = ResponsesRequestBody(
       background = Some(false),
       include = Some(List("code_interpreter_call.outputs", "message.output_text.logprobs")),
@@ -131,6 +129,40 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     val expectedJson = ujson.read(ResponsesFixture.jsonRequestWithInputMessage)
+
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+
+    // then
+    serializedJson shouldBe expectedJson
+  }
+  
+  "Given responses request with input message containing text and file" should "be properly serialized to Json" in {
+    import ResponsesRequestBody._
+    import Input._
+    import InputContentItem._
+
+    // given
+    val givenRequest = ResponsesRequestBody(
+      model = Some("gpt-4.1"),
+      input = Some(
+        Right(InputMessage(
+          content = List(
+            InputText("what is in this file?"),
+            InputFile(
+              fileData = None,
+              fileId = None,
+              fileUrl = Some("https://www.berkshirehathaway.com/letters/2024ltr.pdf"),
+              filename = None
+            )
+          ),
+          role = "user",
+          status = None
+        ) :: Nil)
+      )
+    )
+
+    val expectedJson = ujson.read(ResponsesFixture.jsonRequestWithInputFile)
 
     // when
     val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)

@@ -69,4 +69,22 @@ object ResponsesFixture {
       |  }],
       |  "model": "gpt-4.1"
       |}""".stripMargin
+      
+  val jsonRequestWithInputFile: String =
+    """{
+      |  "model": "gpt-4.1",
+      |  "input": [
+      |    {
+      |      "role": "user",
+      |      "type": "message",
+      |      "content": [
+      |        {"type": "input_text", "text": "what is in this file?"},
+      |        {
+      |          "type": "input_file",
+      |          "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf"
+      |        }
+      |      ]
+      |    }
+      |  ]
+      |}""".stripMargin
 }
