@@ -5,13 +5,9 @@ import sttp.openai.json.SerializationHelpers.DiscriminatorField
 import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
-import sttp.openai.requests.responses.ResponsesRequestBody.Format.{discriminatorField, JsonObject, JsonSchema, Text}
 import sttp.openai.requests.responses.ResponsesRequestBody.Input
-import sttp.openai.requests.responses.ResponsesRequestBody.Input.InputContentItem.{InputFile, InputImage, InputText}
+import sttp.openai.requests.responses.ResponsesRequestBody.Input.OutputContentItem.OutputText.{Annotation, LogProb}
 import ujson.Value
-
-import java.util.concurrent.{Executor, ExecutorService, Executors}
-import scala.concurrent.ExecutionContext
 
 /** @param background
   *   Whether to run the model response in the background. Defaults to false.
@@ -119,51 +115,92 @@ object ResponsesRequestBody {
     sealed trait InputContentItem
     object InputContentItem {
       case class InputText(text: String) extends InputContentItem
+
       case class InputImage(detail: String, fileId: Option[String], imageUrl: Option[String]) extends InputContentItem
+
       case class InputFile(fileData: Option[String], fileId: Option[String], fileUrl: Option[String], filename: Option[String])
           extends InputContentItem
-    }
 
-    implicit val inputTextW: SnakePickle.Writer[InputText] =
-      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_text")(SnakePickle.macroW)
+      implicit val inputTextW: SnakePickle.Writer[InputText] =
+        SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_text")(SnakePickle.macroW)
 
-    implicit val inputImageW: SnakePickle.Writer[InputImage] =
-      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_image")(SnakePickle.macroW)
+      implicit val inputImageW: SnakePickle.Writer[InputImage] =
+        SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_image")(SnakePickle.macroW)
 
-    implicit val inputFileW: SnakePickle.Writer[InputFile] =
-      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_file")(SnakePickle.macroW)
+      implicit val inputFileW: SnakePickle.Writer[InputFile] =
+        SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "input_file")(SnakePickle.macroW)
 
-    implicit val inputContentItemW: SnakePickle.Writer[InputContentItem] = SnakePickle.writer[Value].comap {
-      case inputText: InputText   => SnakePickle.writeJs(inputText)
-      case inputImage: InputImage => SnakePickle.writeJs(inputImage)
-      case inputFile: InputFile   => SnakePickle.writeJs(inputFile)
+      implicit val inputContentItemW: SnakePickle.Writer[InputContentItem] = SnakePickle.writer[Value].comap {
+        case inputText: InputText   => SnakePickle.writeJs(inputText)
+        case inputImage: InputImage => SnakePickle.writeJs(inputImage)
+        case inputFile: InputFile   => SnakePickle.writeJs(inputFile)
+      }
     }
 
     sealed trait OutputContentItem
 
     object OutputContentItem {
-      sealed trait Annotation
-      object Annotation {
-        case class FileCitation(fileId: String, filename: String, index: Int) extends Annotation
+      object OutputText {
+        sealed trait Annotation
 
-        case class UrlCitation(endIndex: Int, startIndex: Int, title: String, url: String) extends Annotation
+        object Annotation {
+          case class FileCitation(fileId: String, filename: String, index: Int) extends Annotation
 
-        case class ContainerFileCitation(containerId: String, endIndex: Int, fileId: String, filename: String, startIndex: Int)
-            extends Annotation
+          case class UrlCitation(endIndex: Int, startIndex: Int, title: String, url: String) extends Annotation
 
-        case class FilePath(fileId: String, index: Int) extends Annotation
+          case class ContainerFileCitation(containerId: String, endIndex: Int, fileId: String, filename: String, startIndex: Int)
+              extends Annotation
+
+          case class FilePath(fileId: String, index: Int) extends Annotation
+
+          implicit val fileCitationW: SnakePickle.Writer[FileCitation] =
+            SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "file_citation")(SnakePickle.macroW)
+
+          implicit val urlCitationW: SnakePickle.Writer[UrlCitation] =
+            SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "url_citation")(SnakePickle.macroW)
+
+          implicit val containerFileCitationW: SnakePickle.Writer[ContainerFileCitation] =
+            SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "container_file_citation")(SnakePickle.macroW)
+
+          implicit val filePathW: SnakePickle.Writer[FilePath] =
+            SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "file_path")(SnakePickle.macroW)
+
+          implicit val annotationW: SnakePickle.Writer[Annotation] = SnakePickle.writer[Value].comap {
+            case fileCitation: FileCitation                   => SnakePickle.writeJs(fileCitation)
+            case urlCitation: UrlCitation                     => SnakePickle.writeJs(urlCitation)
+            case containerFileCitation: ContainerFileCitation => SnakePickle.writeJs(containerFileCitation)
+            case filePath: FilePath                           => SnakePickle.writeJs(filePath)
+          }
+        }
+
+        case class TopLogProb(bytes: List[Byte], logprob: Double, token: String)
+
+        case class LogProb(bytes: List[Byte], logprob: Double, token: String, topLogprobs: List[TopLogProb])
+
+        implicit val topLogProbW: SnakePickle.Writer[TopLogProb] = SnakePickle.macroW
+
+        implicit val logProbW: SnakePickle.Writer[LogProb] = SnakePickle.macroW
       }
 
-      case class LogProb(bytes: List[Byte], logprob: Double, token: String, topLogprobs: List[TopLogProb])
-
-      case class TopLogProb(bytes: List[Byte], logprob: Double, token: String)
-
       case class OutputText(annotations: List[Annotation], text: String, logprobs: Option[List[LogProb]] = None) extends OutputContentItem
+
+      case class Refusal(refusal: String) extends OutputContentItem
+
+      implicit val outputTextW: SnakePickle.Writer[OutputText] =
+        SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "output_text")(SnakePickle.macroW)
+
+      implicit val refusalW: SnakePickle.Writer[Refusal] =
+        SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "refusal")(SnakePickle.macroW)
+
+      implicit val outputContentItemW: SnakePickle.Writer[OutputContentItem] = SnakePickle.writer[Value].comap {
+        case outputText: OutputText => SnakePickle.writeJs(outputText)
+        case refusal: Refusal       => SnakePickle.writeJs(refusal)
+      }
     }
 
     case class Text(text: String)
     case class InputMessage(content: List[InputContentItem], role: String, status: Option[String]) extends Input
-    case class OutputMessage(content: OutputContentItem, id: String, role: String, status: String) extends Input
+    case class OutputMessage(content: List[OutputContentItem], id: String, role: String, status: String) extends Input
     case class FileSearchToolCall(id: String, queries: List[String], status: String, results: Option[List[Value]] = None) extends Input
 
     case class ComputerToolCall(action: Value, callId: String, id: String, pendingSafetyChecks: List[ComputerToolCall.PendingSafetyCheck])
@@ -171,6 +208,8 @@ object ResponsesRequestBody {
 
     object ComputerToolCall {
       case class PendingSafetyCheck(code: String, id: String, message: String, status: String)
+
+      implicit val pendingSafetyCheckW: SnakePickle.Writer[PendingSafetyCheck] = SnakePickle.macroW
     }
 
     case class ComputerToolCallOutput(
@@ -183,6 +222,8 @@ object ResponsesRequestBody {
 
     object ComputerToolCallOutput {
       case class ComputerScreenshot(fileId: Option[String] = None, imageUrl: Option[String] = None)
+
+      implicit val computerScreenshotW: SnakePickle.Writer[ComputerScreenshot] = SnakePickle.macroW
     }
 
     case class WebSearchToolCall(action: Value, id: String, status: String) extends Input
@@ -202,6 +243,8 @@ object ResponsesRequestBody {
 
     object Reasoning {
       case class SummaryText(text: String)
+
+      implicit val summaryTextW: SnakePickle.Writer[SummaryText] = SnakePickle.macroW
     }
 
     case class ImageGenerationCall(id: String, result: Option[String], status: String) extends Input
@@ -246,7 +289,56 @@ object ResponsesRequestBody {
     implicit val inputMessageW: SnakePickle.Writer[InputMessage] =
       SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "message")(SnakePickle.macroW)
 
+    implicit val outputMessageW: SnakePickle.Writer[OutputMessage] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "message")(SnakePickle.macroW)
 
+    implicit val fileSearchToolCallW: SnakePickle.Writer[FileSearchToolCall] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "file_search_call")(SnakePickle.macroW)
+
+    implicit val computerToolCallW: SnakePickle.Writer[ComputerToolCall] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "computer_call")(SnakePickle.macroW)
+
+    implicit val computerToolCallOutputW: SnakePickle.Writer[ComputerToolCallOutput] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "computer_call_output")(SnakePickle.macroW)
+
+    implicit val webSearchToolCallW: SnakePickle.Writer[WebSearchToolCall] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "web_search_call")(SnakePickle.macroW)
+
+    implicit val functionToolCallW: SnakePickle.Writer[FunctionToolCall] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "function_call")(SnakePickle.macroW)
+
+    implicit val functionToolCallOutputW: SnakePickle.Writer[FunctionToolCallOutput] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "function_call_output")(SnakePickle.macroW)
+
+    implicit val reasoningW: SnakePickle.Writer[Reasoning] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "reasoning")(SnakePickle.macroW)
+
+    implicit val imageGenerationCallW: SnakePickle.Writer[ImageGenerationCall] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "image_generation_call")(SnakePickle.macroW)
+
+    implicit val codeInterpreterToolCallW: SnakePickle.Writer[CodeInterpreterToolCall] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "code_interpreter_call")(SnakePickle.macroW)
+
+    implicit val localShellCallW: SnakePickle.Writer[LocalShellCall] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "local_shell_call")(SnakePickle.macroW)
+
+    implicit val localShellCallOutputW: SnakePickle.Writer[LocalShellCallOutput] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "local_shell_call_output")(SnakePickle.macroW)
+
+    implicit val mcpListToolsW: SnakePickle.Writer[McpListTools] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "mcp_list_tools")(SnakePickle.macroW)
+
+    implicit val mcpApprovalRequestW: SnakePickle.Writer[McpApprovalRequest] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "mcp_approval_request")(SnakePickle.macroW)
+
+    implicit val mcpApprovalResponseW: SnakePickle.Writer[McpApprovalResponse] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "mcp_approval_response")(SnakePickle.macroW)
+
+    implicit val mcpToolCallW: SnakePickle.Writer[McpToolCall] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "mcp_tool_call")(SnakePickle.macroW)
+
+    implicit val itemReferenceW: SnakePickle.Writer[ItemReference] =
+      SerializationHelpers.withFlattenedDiscriminator(discriminatorField, "item_reference")(SnakePickle.macroW)
 
     implicit val inputW: SnakePickle.Writer[Input] = SnakePickle.writer[Value].comap {
       case inputMessage: InputMessage                       => SnakePickle.writeJs(inputMessage)
