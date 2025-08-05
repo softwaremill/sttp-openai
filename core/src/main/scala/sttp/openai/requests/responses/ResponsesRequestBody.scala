@@ -199,18 +199,21 @@ object ResponsesRequestBody {
     }
 
     case class Text(text: String)
+   
     case class InputMessage(content: List[InputContentItem], role: String, status: Option[String]) extends Input
-    case class OutputMessage(content: List[OutputContentItem], id: String, role: String, status: String) extends Input
-    case class FileSearchToolCall(id: String, queries: List[String], status: String, results: Option[List[Value]] = None) extends Input
 
-    case class ComputerToolCall(action: Value, callId: String, id: String, pendingSafetyChecks: List[ComputerToolCall.PendingSafetyCheck])
-        extends Input
+    case class OutputMessage(content: List[OutputContentItem], id: String, role: String, status: String) extends Input
+
+    case class FileSearchToolCall(id: String, queries: List[String], status: String, results: Option[List[Value]] = None) extends Input
 
     object ComputerToolCall {
       case class PendingSafetyCheck(code: String, id: String, message: String, status: String)
 
       implicit val pendingSafetyCheckW: SnakePickle.Writer[PendingSafetyCheck] = SnakePickle.macroW
     }
+
+    case class ComputerToolCall(action: Value, callId: String, id: String, pendingSafetyChecks: List[ComputerToolCall.PendingSafetyCheck])
+        extends Input
 
     case class ComputerToolCallOutput(
         callId: String,
