@@ -170,5 +170,63 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     // then
     serializedJson shouldBe expectedJson
   }
+
+  "Given responses request with file search tool call" should "be properly serialized to Json" in {
+    import ResponsesRequestBody._
+    import Input._
+
+    // given
+    val givenRequest = ResponsesRequestBody(
+      model = Some("gpt-4.1"),
+      input = Some(
+        Right(FileSearchToolCall(
+          id = "call_abc123",
+          queries = List("machine learning algorithms", "neural networks"),
+          status = "completed",
+          results = Some(List(
+            ujson.Obj(
+              "file_id" -> ujson.Str("file-abc123"),
+              "filename" -> ujson.Str("ml_algorithms.pdf"),
+              "content" -> ujson.Str("Neural networks are a subset of machine learning...")
+            )
+          ))
+        ) :: Nil)
+      )
+    )
+
+    val expectedJson = ujson.read(ResponsesFixture.jsonRequestWithFileSearchToolCall)
+
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+
+    // then
+    serializedJson shouldBe expectedJson
+  }
+
+  "Given responses request with file search tool call in progress" should "be properly serialized to Json" in {
+    import ResponsesRequestBody._
+    import Input._
+
+    // given
+    val givenRequest = ResponsesRequestBody(
+      model = Some("gpt-4.1"),
+      input = Some(
+        Right(FileSearchToolCall(
+          id = "call_def456",
+          queries = List("python programming", "data analysis"),
+          status = "in_progress",
+          results = None
+        ) :: Nil)
+      )
+    )
+
+    val expectedJson = ujson.read(ResponsesFixture.jsonRequestWithFileSearchToolCallInProgress)
+
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+
+    // then
+    serializedJson shouldBe expectedJson
+  }
   
 }

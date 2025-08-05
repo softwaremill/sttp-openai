@@ -87,4 +87,37 @@ object ResponsesFixture {
       |    }
       |  ]
       |}""".stripMargin
+
+  val jsonRequestWithFileSearchToolCall: String =
+    """{
+      |  "model": "gpt-4.1",
+      |  "input": [
+      |    {
+      |      "type": "file_search_call",
+      |      "id": "call_abc123",
+      |      "queries": ["machine learning algorithms", "neural networks"],
+      |      "status": "completed",
+      |      "results": [
+      |        {
+      |          "file_id": "file-abc123",
+      |          "filename": "ml_algorithms.pdf",
+      |          "content": "Neural networks are a subset of machine learning..."
+      |        }
+      |      ]
+      |    }
+      |  ]
+      |}""".stripMargin
+
+  val jsonRequestWithFileSearchToolCallInProgress: String =
+    """{
+      |  "model": "gpt-4.1",
+      |  "input": [
+      |    {
+      |      "type": "file_search_call",
+      |      "id": "call_def456",
+      |      "queries": ["python programming", "data analysis"],
+      |      "status": "in_progress"
+      |    }
+      |  ]
+      |}""".stripMargin
 }
