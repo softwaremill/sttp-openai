@@ -199,7 +199,7 @@ object ResponsesRequestBody {
     }
 
     case class Text(text: String)
-   
+
     case class InputMessage(content: List[InputContentItem], role: String, status: Option[String]) extends Input
 
     case class OutputMessage(content: List[OutputContentItem], id: String, role: String, status: String) extends Input
@@ -215,6 +215,12 @@ object ResponsesRequestBody {
     case class ComputerToolCall(action: Value, callId: String, id: String, pendingSafetyChecks: List[ComputerToolCall.PendingSafetyCheck])
         extends Input
 
+    object ComputerToolCallOutput {
+      case class ComputerScreenshot(fileId: Option[String] = None, imageUrl: Option[String] = None)
+
+      implicit val computerScreenshotW: SnakePickle.Writer[ComputerScreenshot] = SnakePickle.macroW
+    }
+
     case class ComputerToolCallOutput(
         callId: String,
         output: ComputerToolCallOutput.ComputerScreenshot,
@@ -222,12 +228,6 @@ object ResponsesRequestBody {
         id: Option[String] = None,
         status: Option[String] = None
     ) extends Input
-
-    object ComputerToolCallOutput {
-      case class ComputerScreenshot(fileId: Option[String] = None, imageUrl: Option[String] = None)
-
-      implicit val computerScreenshotW: SnakePickle.Writer[ComputerScreenshot] = SnakePickle.macroW
-    }
 
     case class WebSearchToolCall(action: Value, id: String, status: String) extends Input
 
@@ -237,18 +237,18 @@ object ResponsesRequestBody {
     case class FunctionToolCallOutput(callId: String, output: String, id: Option[String] = None, status: Option[String] = None)
         extends Input
 
+    object Reasoning {
+      case class SummaryText(text: String)
+
+      implicit val summaryTextW: SnakePickle.Writer[SummaryText] = SnakePickle.macroW
+    }
+
     case class Reasoning(
         id: String,
         summary: List[Reasoning.SummaryText],
         encryptedContent: Option[String] = None,
         status: Option[String] = None
     ) extends Input
-
-    object Reasoning {
-      case class SummaryText(text: String)
-
-      implicit val summaryTextW: SnakePickle.Writer[SummaryText] = SnakePickle.macroW
-    }
 
     case class ImageGenerationCall(id: String, result: Option[String], status: String) extends Input
 
