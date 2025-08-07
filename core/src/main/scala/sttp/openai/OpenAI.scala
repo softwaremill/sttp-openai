@@ -30,7 +30,7 @@ import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
-import sttp.openai.requests.responses.ResponsesRequestBody
+import sttp.openai.requests.responses.{ResponsesRequestBody, ResponsesResponseBody}
 import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
@@ -397,11 +397,12 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .delete(openAIUris.chatCompletion(completionId))
       .response(asJson_parseErrors[DeleteChatCompletionResponse])
 
-  def createModelResponse(requestBody: ResponsesRequestBody) =
+  def createModelResponse(requestBody: ResponsesRequestBody): Request[Either[OpenAIException, ResponsesResponseBody]] =
     openAIAuthRequest
       .post(openAIUris.Responses)
       .body(asJson(requestBody))
-      .response(asJson_parseErrors[ChatResponse])
+      .response(asJson_parseErrors[ResponsesResponseBody])
+
   /** Returns a list of files that belong to the user's organization.
     *
     * [[https://platform.openai.com/docs/api-reference/files]]

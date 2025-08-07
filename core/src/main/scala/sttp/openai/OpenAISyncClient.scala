@@ -27,6 +27,7 @@ import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
+import sttp.openai.requests.responses.{ResponsesRequestBody, ResponsesResponseBody}
 import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
@@ -257,6 +258,9 @@ class OpenAISyncClient private (
     */
   def deleteChatCompletion(completionId: String): DeleteChatCompletionResponse =
     sendOrThrow(openAI.deleteChatCompletion(completionId))
+
+  def createModelResponse(requestBody: ResponsesRequestBody): ResponsesResponseBody =
+    sendOrThrow(openAI.createModelResponse(requestBody))
 
   /** Returns a list of files that belong to the user's organization.
     *
