@@ -523,7 +523,6 @@ object ResponsesResponseBody {
   implicit val outputTokensDetailsRW: SnakePickle.ReadWriter[OutputTokensDetails] = SnakePickle.macroRW
   implicit val usageRW: SnakePickle.ReadWriter[Usage] = SnakePickle.macroRW
 
-  // Custom ReadWriter for instructions field that can be either a string or list of strings
   implicit val instructionsRW: SnakePickle.ReadWriter[Either[String, List[String]]] = SnakePickle
     .readwriter[ujson.Value]
     .bimap[Either[String, List[String]]](
@@ -531,10 +530,10 @@ object ResponsesResponseBody {
         case Left(str) => ujson.Str(str)
         case Right(list) => ujson.Arr.from(list.map(ujson.Str(_)))
       },
-      json => json match {
+      {
         case ujson.Str(str) => Left(str)
         case ujson.Arr(arr) => Right(arr.map(_.str).toList)
-        case _ => throw new RuntimeException(s"Expected string or array for instructions, got: $json")
+        case json => throw new RuntimeException(s"Expected string or array for instructions, got: $json")
       }
     )
 
