@@ -14,7 +14,12 @@ import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, DeleteChatCompletionResponse, ListChatResponse, ListMessageResponse}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
+  ChatResponse,
+  DeleteChatCompletionResponse,
+  ListChatResponse,
+  ListMessageResponse
+}
 import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
@@ -39,7 +44,11 @@ import sttp.openai.requests.upload.{CompleteUploadRequestBody, UploadPartRespons
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, ListVectorStoreFilesResponse, VectorStoreFile}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
+  DeleteVectorStoreFileResponse,
+  ListVectorStoreFilesResponse,
+  VectorStoreFile
+}
 import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.File
