@@ -1,49 +1,38 @@
-//package sttp.openai.json
-//
-//import org.scalatest.flatspec.AnyFlatSpec
-//import org.scalatest.matchers.should.Matchers
-//import sttp.openai.json.SnakePickle
-//import ujson._
-//
-//class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
-//
-//  sealed trait Core
-//  case class TestObject(name: String, value: Int, optionalField: Option[String] = None) extends Core
-//  case class SimpleData(message: String) extends Core
-//  case class EmptyObject() extends Core
-//
-////  implicit val testObjectRW: SnakePickle.ReadWriter[TestObject] = SnakePickle.macroRW
-////  implicit val simpleDataRW: SnakePickle.ReadWriter[SimpleData] = SnakePickle.macroRW
-////  implicit val emptyObjectRW: SnakePickle.ReadWriter[EmptyObject] = SnakePickle.macroRW
-//
-//  "withFlattenedDiscriminator" should "add discriminator field when writing object" in {
-//    //given
-//    val testObj: Core = TestObject("test", 42, Some("optional"))
-//    implicit val flattenedRW: SnakePickle.ReadWriter[TestObject] = SerializationHelpers.withFlattenedDiscriminator[TestObject]("type", "test_object")(SnakePickle.macroRW)
-//    implicit val coreRW: SnakePickle.ReadWriter[Core] = SnakePickle.readwriter[Value].bimap(
-//      {
-//        case testObject: TestObject => SnakePickle.writeJs(testObject)
-//        case _=> throw new Exception("eh")
-//      },
-//      json =>
-//        json("type").str match {
-//          case "test_object" => SnakePickle.read[TestObject](json)
-//        }
-//    )
-//
-//    //when
-//    val serializedJson = SnakePickle.writeJs(testObj)
-//
-//    //then
-//    val expectedJson = Obj(
-//      "type" -> Str("test_object"),
-//      "name" -> Str("test"),
-//      "value" -> Num(42),
-//      "optional_field" -> Str("optional")
-//    )
-//    serializedJson shouldBe expectedJson
-//  }
-//
+package sttp.openai.json
+
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import sttp.openai.json.SerializationHelpers.DiscriminatorField
+import sttp.openai.json.SnakePickle
+import ujson._
+
+class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
+
+  sealed trait Core
+  case class TestObject(name: String, value: Int, optionalField: Option[String] = None) extends Core
+  case class SimpleData(message: String) extends Core
+  case class EmptyObject() extends Core
+
+  "withFlattenedDiscriminator" should "add discriminator field when writing object" in {
+    // given
+    val testObj = TestObject("test", 42, Some("optional"))
+    val discriminatorField = DiscriminatorField("type")
+    implicit val flattenedRW: SnakePickle.Writer[TestObject] =
+      SerializationHelpers.withFlattenedDiscriminator[TestObject](discriminatorField, "test_object")(SnakePickle.macroRW)
+
+    // when
+    val serializedJson = SnakePickle.writeJs(testObj)
+
+    // then
+    val expectedJson = Obj(
+      "type" -> Str("test_object"),
+      "name" -> Str("test"),
+      "value" -> Num(42),
+      "optional_field" -> Str("optional")
+    )
+    serializedJson shouldBe expectedJson
+  }
+
 //  it should "remove discriminator field when reading object" in {
 //    //given
 //    val inputJson = Obj(
@@ -53,7 +42,8 @@
 //      "value" -> Num(42),
 //      "optional_field" -> Str("optional")
 //    )
-//    implicit val flattenedRW: SnakePickle.ReadWriter[TestObject] = SerializationHelpers.withFlattenedDiscriminator[TestObject]("type", "test_object")(SnakePickle.macroRW)
+//    val discriminatorField = DiscriminatorField("type")
+//    implicit val flattenedRW: SnakePickle.Writer[TestObject] = SerializationHelpers.withFlattenedDiscriminator[TestObject](discriminatorField, "test_object")(SnakePickle.macroRW)
 //
 //    //when
 //    val deserializedObj = SnakePickle.read[TestObject](inputJson)
@@ -62,11 +52,12 @@
 //    val expectedObj = TestObject("test", 42, Some("optional"))
 //    deserializedObj shouldBe expectedObj
 //  }
-//
+
 //  it should "filter out null values from optional fields when writing" in {
 //    //given
+//    val discriminatorField = DiscriminatorField("type")
 //    val testObj = TestObject("test", 42, None) // None should become null and be filtered
-//    implicit val flattenedRW: SnakePickle.ReadWriter[TestObject] = SerializationHelpers.withFlattenedDiscriminator[TestObject]("type", "test_object")(SnakePickle.macroRW)
+//    implicit val flattenedRW: SnakePickle.Writer[TestObject] = SerializationHelpers.withFlattenedDiscriminator[TestObject](discriminatorField, "test_object")(SnakePickle.macroRW)
 //
 //    //when
 //    val serializedJson = SnakePickle.writeJs(testObj)
@@ -188,4 +179,4 @@
 //    serializedJson.obj.size shouldBe 1 // Only the discriminator field
 //    deserializedObj shouldBe emptyObj
 //  }
-//}
+}
