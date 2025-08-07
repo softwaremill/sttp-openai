@@ -266,11 +266,8 @@ object ResponsesFixture {
       |      "strict": true
       |    }
       |  },
-      |  "tool_choice": "required",
-      |  "tools": [
-      |    {"type": "file_search"},
-      |    {"type": "code_interpreter"}
-      |  ],
+      |  "tool_choice": "auto",
+      |  "tools": [],
       |  "top_p": 0.9,
       |  "truncation": "auto",
       |  "usage": {
