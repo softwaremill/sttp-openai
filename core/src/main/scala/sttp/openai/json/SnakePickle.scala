@@ -10,7 +10,7 @@ object SnakePickle extends upickle.AttributeTagged {
   private def camelToSnake(s: String): String =
     s.replaceAll("([A-Z])", "#$1").split('#').map(_.toLowerCase).mkString("_")
 
-  def snakeToCamel(s: String) = {
+  private def snakeToCamel(s: String) = {
     val res = s.split("_", -1).map(x => s"${x(0).toUpper}${x.drop(1)}").mkString
     s"${s(0).toLower}${res.drop(1)}"
   }
