@@ -8,7 +8,8 @@ import sttp.openai.fixtures.ResponsesFixture
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
 import sttp.openai.requests.responses.ResponsesRequestBody.Format.JsonSchema
-import sttp.openai.requests.responses.ResponsesRequestBody._
+import sttp.openai.requests.responses.ResponsesRequestBody.{PromptConfig => RequestPromptConfig, ReasoningConfig => RequestReasoningConfig, TextConfig => RequestTextConfig, Format => RequestFormat, _}
+import sttp.openai.requests.responses.ResponsesResponseBody._
 import ujson.{Obj, Str}
 
 class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
@@ -28,7 +29,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       parallelToolCalls = Some(true),
       previousResponseId = Some("prev_resp_123"),
       prompt = Some(
-        PromptConfig(
+        RequestPromptConfig(
           id = "prompt_123",
           variables = Some(Map("var1" -> "val1")),
           version = Some("1.0")
@@ -36,7 +37,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       ),
       promptCacheKey = Some("cache_key_123"),
       reasoning = Some(
-        ReasoningConfig(
+        RequestReasoningConfig(
           effort = Some("high"),
           summary = Some("detailed")
         )
@@ -47,7 +48,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       stream = Some(false),
       temperature = Some(0.7),
       text = Some(
-        TextConfig(
+        RequestTextConfig(
           format = Some(
             JsonSchema(
               name = "response_schema",
@@ -82,8 +83,8 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     val givenRequest = ResponsesRequestBody(
       model = Some("gpt-4o"),
       text = Some(
-        TextConfig(
-          format = Some(Format.Text)
+        RequestTextConfig(
+          format = Some(RequestFormat.Text)
         )
       )
     )
@@ -227,6 +228,124 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // then
     serializedJson shouldBe expectedJson
+  }
+
+  "Given responses response with basic output message" should "be properly deserialized from Json" in {
+    
+    // given
+    val jsonResponse = ujson.read(ResponsesFixture.jsonResponseBasic)
+    
+    // when
+    val deserializedResponse: ResponsesResponseBody = SnakePickle.read[ResponsesResponseBody](jsonResponse)
+
+    // then
+    deserializedResponse.id shouldBe "resp_67ccd3a9da748190baa7f1570fe91ac604becb25c45c1d41"
+    deserializedResponse.model shouldBe "gpt-4o-2024-08-06"
+    deserializedResponse.`object` shouldBe "response"
+    deserializedResponse.status shouldBe "completed"
+    deserializedResponse.createdAt shouldBe 1741476777L
+    deserializedResponse.parallelToolCalls shouldBe Some(true)
+    deserializedResponse.temperature shouldBe Some(1.0)
+    deserializedResponse.topP shouldBe Some(1.0)
+    deserializedResponse.truncation shouldBe Some("disabled")
+    deserializedResponse.metadata shouldBe Some(Map.empty)
+    
+    // Check usage structure
+    deserializedResponse.usage shouldBe defined
+    val usage = deserializedResponse.usage.get
+    usage.inputTokens shouldBe 328
+    usage.outputTokens shouldBe 52
+    usage.totalTokens shouldBe 380
+    usage.inputTokensDetails shouldBe Some(InputTokensDetails(cachedTokens = 0))
+    usage.outputTokensDetails shouldBe Some(OutputTokensDetails(reasoningTokens = Some(0)))
+    
+    // Check the output structure
+    deserializedResponse.output should have size 1
+    val outputMessage = deserializedResponse.output.head.asInstanceOf[OutputItem.OutputMessage]
+    outputMessage.id shouldBe "msg_67ccd3acc8d48190a77525dc6de64b4104becb25c45c1d41"
+    outputMessage.role shouldBe "assistant"
+    outputMessage.status shouldBe "completed"
+    outputMessage.content should have size 1
+    
+    val outputText = outputMessage.content.head.asInstanceOf[OutputContent.OutputText]
+    outputText.text should include("The image depicts a scenic landscape")
+    outputText.annotations shouldBe empty
+  }
+
+  "Given responses response with complex output items" should "be properly deserialized from Json" in {
+    
+    // given
+    val jsonResponse = ujson.read(ResponsesFixture.jsonResponseWithComplexOutput)
+    
+    // when
+    val deserializedResponse: ResponsesResponseBody = SnakePickle.read[ResponsesResponseBody](jsonResponse)
+
+    // then
+    deserializedResponse.id shouldBe "resp_complex123"
+    deserializedResponse.model shouldBe "gpt-4o"
+    deserializedResponse.`object` shouldBe "response"
+    deserializedResponse.status shouldBe "completed"
+    deserializedResponse.createdAt shouldBe 1741476778L
+    deserializedResponse.instructions shouldBe Some(Left("You are a helpful assistant"))
+    deserializedResponse.maxOutputTokens shouldBe Some(2000)
+    deserializedResponse.parallelToolCalls shouldBe Some(false)
+    deserializedResponse.previousResponseId shouldBe Some("prev_resp_123")
+    deserializedResponse.temperature shouldBe Some(0.7)
+    deserializedResponse.topP shouldBe Some(0.9)
+    deserializedResponse.truncation shouldBe Some("auto")
+    deserializedResponse.user shouldBe Some("user123")
+    deserializedResponse.metadata shouldBe Some(Map(
+      "session_id" -> "session_123",
+      "experiment" -> "test_run"
+    ))
+    
+    // Check usage structure
+    deserializedResponse.usage shouldBe defined
+    val usage2 = deserializedResponse.usage.get
+    usage2.inputTokens shouldBe 500
+    usage2.outputTokens shouldBe 150
+    usage2.totalTokens shouldBe 650
+    usage2.inputTokensDetails shouldBe Some(InputTokensDetails(cachedTokens = 100))
+    usage2.outputTokensDetails shouldBe Some(OutputTokensDetails(reasoningTokens = Some(50)))
+    
+    // Check reasoning config
+    deserializedResponse.reasoning shouldBe defined
+    deserializedResponse.reasoning.get.effort shouldBe Some("medium")
+    deserializedResponse.reasoning.get.summary shouldBe Some("concise")
+    
+    // Check output structure
+    deserializedResponse.output should have size 3
+    
+    // Check first output item (message)
+    val outputMessage = deserializedResponse.output(0).asInstanceOf[OutputItem.OutputMessage]
+    outputMessage.id shouldBe "msg_complex123"
+    outputMessage.role shouldBe "assistant"
+    outputMessage.status shouldBe "completed"
+    outputMessage.content should have size 1
+    
+    val outputText = outputMessage.content.head.asInstanceOf[OutputContent.OutputText]
+    outputText.text shouldBe "I'll search for information about machine learning."
+    outputText.annotations should have size 1
+    
+    val citation = outputText.annotations.head.asInstanceOf[OutputContent.Annotation.FileCitation]
+    citation.fileId shouldBe "file-123"
+    citation.filename shouldBe "ml_guide.pdf"
+    citation.index shouldBe 0
+    
+    // Check second output item (file search tool call)
+    val fileSearchCall = deserializedResponse.output(1).asInstanceOf[OutputItem.FileSearchToolCall]
+    fileSearchCall.id shouldBe "call_search123"
+    fileSearchCall.queries shouldBe List("machine learning", "neural networks")
+    fileSearchCall.status shouldBe "completed"
+    fileSearchCall.results shouldBe defined
+    
+    // Check third output item (code interpreter tool call)
+    val codeCall = deserializedResponse.output(2).asInstanceOf[OutputItem.CodeInterpreterToolCall]
+    codeCall.id shouldBe "code_call123"
+    codeCall.containerId shouldBe "container_123"
+    codeCall.code shouldBe Some("import numpy as np\nprint('Hello ML')")
+    codeCall.status shouldBe "completed"
+    codeCall.outputs shouldBe defined
   }
   
 }

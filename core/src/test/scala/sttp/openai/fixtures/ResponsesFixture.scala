@@ -126,4 +126,168 @@ object ResponsesFixture {
       |    }
       |  ]
       |}""".stripMargin
+
+  val jsonResponseBasic: String =
+    """{
+      |  "id": "resp_67ccd3a9da748190baa7f1570fe91ac604becb25c45c1d41",
+      |  "object": "response",
+      |  "created_at": 1741476777,
+      |  "status": "completed",
+      |  "error": null,
+      |  "incomplete_details": null,
+      |  "instructions": null,
+      |  "max_output_tokens": null,
+      |  "model": "gpt-4o-2024-08-06",
+      |  "output": [
+      |    {
+      |      "type": "message",
+      |      "id": "msg_67ccd3acc8d48190a77525dc6de64b4104becb25c45c1d41",
+      |      "status": "completed",
+      |      "role": "assistant",
+      |      "content": [
+      |        {
+      |          "type": "output_text",
+      |          "text": "The image depicts a scenic landscape with a wooden boardwalk or pathway leading through lush, green grass under a blue sky with some clouds. The setting suggests a peaceful natural area, possibly a park or nature reserve. There are trees and shrubs in the background.",
+      |          "annotations": []
+      |        }
+      |      ]
+      |    }
+      |  ],
+      |  "parallel_tool_calls": true,
+      |  "previous_response_id": null,
+      |  "reasoning": {
+      |    "effort": null,
+      |    "summary": null
+      |  },
+      |  "store": true,
+      |  "temperature": 1,
+      |  "text": {
+      |    "format": {
+      |      "type": "text"
+      |    }
+      |  },
+      |  "tool_choice": "auto",
+      |  "tools": [],
+      |  "top_p": 1,
+      |  "truncation": "disabled",
+      |  "usage": {
+      |    "input_tokens": 328,
+      |    "input_tokens_details": {
+      |      "cached_tokens": 0
+      |    },
+      |    "output_tokens": 52,
+      |    "output_tokens_details": {
+      |      "reasoning_tokens": 0
+      |    },
+      |    "total_tokens": 380
+      |  },
+      |  "user": null,
+      |  "metadata": {}
+      |}""".stripMargin
+
+  val jsonResponseWithComplexOutput: String =
+    """{
+      |  "id": "resp_complex123",
+      |  "object": "response",
+      |  "created_at": 1741476778,
+      |  "status": "completed",
+      |  "error": null,
+      |  "incomplete_details": null,
+      |  "instructions": "You are a helpful assistant",
+      |  "max_output_tokens": 2000,
+      |  "model": "gpt-4o",
+      |  "output": [
+      |    {
+      |      "type": "message",
+      |      "id": "msg_complex123",
+      |      "status": "completed",
+      |      "role": "assistant",
+      |      "content": [
+      |        {
+      |          "type": "output_text",
+      |          "text": "I'll search for information about machine learning.",
+      |          "annotations": [
+      |            {
+      |              "type": "file_citation",
+      |              "file_id": "file-123",
+      |              "filename": "ml_guide.pdf",
+      |              "index": 0
+      |            }
+      |          ]
+      |        }
+      |      ]
+      |    },
+      |    {
+      |      "type": "file_search_call",
+      |      "id": "call_search123",
+      |      "queries": ["machine learning", "neural networks"],
+      |      "status": "completed",
+      |      "results": [
+      |        {
+      |          "file_id": "file-123",
+      |          "filename": "ml_guide.pdf",
+      |          "score": 0.95,
+      |          "text": "Machine learning is a subset of artificial intelligence...",
+      |          "attributes": {
+      |            "page": 1,
+      |            "section": "introduction"
+      |          }
+      |        }
+      |      ]
+      |    },
+      |    {
+      |      "type": "code_interpreter_call",
+      |      "id": "code_call123",
+      |      "container_id": "container_123",
+      |      "code": "import numpy as np\nprint('Hello ML')",
+      |      "status": "completed",
+      |      "outputs": [
+      |        {
+      |          "type": "logs",
+      |          "logs": "Hello ML\n"
+      |        }
+      |      ]
+      |    }
+      |  ],
+      |  "parallel_tool_calls": false,
+      |  "previous_response_id": "prev_resp_123",
+      |  "reasoning": {
+      |    "effort": "medium",
+      |    "summary": "concise"
+      |  },
+      |  "store": false,
+      |  "temperature": 0.7,
+      |  "text": {
+      |    "format": {
+      |      "type": "json_schema",
+      |      "name": "ml_response",
+      |      "schema": {"type": "object"},
+      |      "description": "ML response format",
+      |      "strict": true
+      |    }
+      |  },
+      |  "tool_choice": "required",
+      |  "tools": [
+      |    {"type": "file_search"},
+      |    {"type": "code_interpreter"}
+      |  ],
+      |  "top_p": 0.9,
+      |  "truncation": "auto",
+      |  "usage": {
+      |    "input_tokens": 500,
+      |    "input_tokens_details": {
+      |      "cached_tokens": 100
+      |    },
+      |    "output_tokens": 150,
+      |    "output_tokens_details": {
+      |      "reasoning_tokens": 50
+      |    },
+      |    "total_tokens": 650
+      |  },
+      |  "user": "user123",
+      |  "metadata": {
+      |    "session_id": "session_123",
+      |    "experiment": "test_run"
+      |  }
+      |}""".stripMargin
 }
