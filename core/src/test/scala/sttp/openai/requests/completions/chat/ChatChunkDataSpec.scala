@@ -84,7 +84,7 @@ class ChatChunkDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given chat chunk with usage data" should "properly deserialize usage field" in {
     import ChatChunkRequestResponseData._
-    import sttp.openai.requests.completions.Usage
+      import sttp.openai.requests.completions.Usage
 
     // given
     val jsonWithUsage = """{

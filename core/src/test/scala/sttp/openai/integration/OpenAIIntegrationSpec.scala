@@ -15,7 +15,7 @@ import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 // Suppress warnings for unused assertions - these are test assertions that verify behavior
 //noinspection ScalaUnusedSymbol
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 /** Integration tests for sttp-openai library that test against the real OpenAI API.
   *
@@ -66,21 +66,21 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     }
     clientOpt match {
       case Some(client) => test(client)
-      case None => fail("OpenAI client not initialized")
+      case None         => fail("OpenAI client not initialized")
     }
   }
 
   object IntegrationTest extends Tag("integration")
 
-  "OpenAI Models API" should "list available models successfully" taggedAs IntegrationTest in {
+  "OpenAI Models API" should "list available models successfully" taggedAs IntegrationTest in
     withClient { client =>
-      //given
+      // given
       // No setup needed - getModels is a free endpoint
 
-      //when
+      // when
       val models = client.getModels
 
-      //then
+      // then
       models should not be null
       models.`object` shouldBe "list"
       models.data should not be empty
@@ -91,35 +91,33 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       }
       ()
     }
-  }
 
-  it should "retrieve a specific model successfully" taggedAs IntegrationTest in {
+  it should "retrieve a specific model successfully" taggedAs IntegrationTest in
     withClient { client =>
-      //given
+      // given
       val modelId = "gpt-4o-mini" // A commonly available model
 
-      //when
+      // when
       val model = client.retrieveModel(modelId)
 
-      //then
+      // then
       model should not be null
       model.id shouldBe modelId
       model.`object` shouldBe "model"
       model.ownedBy should not be empty
       ()
     }
-  }
 
-  "OpenAI Moderations API" should "moderate content successfully" taggedAs IntegrationTest in {
+  "OpenAI Moderations API" should "moderate content successfully" taggedAs IntegrationTest in
     withClient { client =>
-      //given
+      // given
       val harmlessText = "Hello, how are you today? This is a test message."
       val moderationBody = ModerationsBody(input = harmlessText)
 
-      //when
+      // when
       val moderation = client.createModeration(moderationBody)
 
-      //then
+      // then
       moderation should not be null
       moderation.id should not be empty
       moderation.model.value should not be empty
@@ -128,18 +126,17 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       moderation.results.head.categories should not be null
       ()
     }
-  }
 
-  it should "flag inappropriate content" taggedAs IntegrationTest in {
+  it should "flag inappropriate content" taggedAs IntegrationTest in
     withClient { client =>
-      //given
+      // given
       val inappropriateText = "I want to hurt someone badly"
       val moderationBody = ModerationsBody(input = inappropriateText)
 
-      //when
+      // when
       val moderation = client.createModeration(moderationBody)
 
-      //then
+      // then
       moderation should not be null
       moderation.results should not be empty
       // Note: We don't assert flagged=true as moderation results may vary
@@ -148,21 +145,20 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       moderation.results.head.categoryScores should not be null
       ()
     }
-  }
 
-  "OpenAI Embeddings API" should "create embeddings for text successfully" taggedAs IntegrationTest in {
+  "OpenAI Embeddings API" should "create embeddings for text successfully" taggedAs IntegrationTest in
     withClient { client =>
-      //given
+      // given
       val shortText = "test" // Minimal text to reduce cost
       val embeddingsBody = EmbeddingsBody(
         model = EmbeddingsModel.CustomEmbeddingsModel("text-embedding-3-small"), // Cheaper embedding model
         input = EmbeddingsInput.SingleInput(shortText)
       )
 
-      //when
+      // when
       val embeddings = client.createEmbeddings(embeddingsBody)
 
-      //then
+      // then
       embeddings should not be null
       embeddings.`object` shouldBe "list"
       embeddings.model.value should not be empty
@@ -174,11 +170,10 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       embeddings.usage.totalTokens should be > 0
       ()
     }
-  }
 
-  "OpenAI Chat Completions API" should "create a chat completion successfully" taggedAs IntegrationTest in {
+  "OpenAI Chat Completions API" should "create a chat completion successfully" taggedAs IntegrationTest in
     withClient { client =>
-      //given
+      // given
       val messages = Seq(
         Message.UserMessage(
           content = Content.TextContent("Hi") // Minimal message to reduce cost
@@ -190,10 +185,10 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
         maxTokens = Some(5) // Limit tokens to minimize cost
       )
 
-      //when
+      // when
       val response = client.createChatCompletion(chatBody)
 
-      //then
+      // then
       response should not be null
       response.id should not be empty
       response.`object` shouldBe "chat.completion"
@@ -206,13 +201,12 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       response.usage.totalTokens should be <= 20 // Should be very low due to our constraints
       ()
     }
-  }
 
   "OpenAI Error Handling" should "throw AuthenticationException for invalid API key" taggedAs IntegrationTest in {
-    //given
+    // given
     val invalidClient = OpenAISyncClient("invalid-api-key")
 
-    //when & then
+    // when & then
     val exception = intercept[OpenAIException] {
       invalidClient.getModels
     }
@@ -221,9 +215,9 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     ()
   }
 
-  it should "handle rate limiting gracefully" taggedAs IntegrationTest in {
+  it should "handle rate limiting gracefully" taggedAs IntegrationTest in
     withClient { client =>
-      //given
+      // given
       // This test verifies that the library properly handles rate limit responses
       // We'll make multiple rapid requests to potentially trigger rate limiting
       val chatBody = ChatBody(
@@ -232,7 +226,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
         maxTokens = Some(1) // Minimal to reduce cost
       )
 
-      //when & then
+      // when & then
       // Make several requests rapidly - if rate limited, should get proper exception
       val results = (1 to 3).map { _ =>
         Try(client.createChatCompletion(chatBody))
@@ -244,27 +238,25 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       // If any failed, they should fail with proper OpenAI exceptions
       results.collect { case Failure(ex) => ex }.foreach {
         case _: OpenAIException => // Expected - this is what we want to test
-        case other => fail(s"Unexpected exception type: ${other.getClass.getSimpleName}")
+        case other              => fail(s"Unexpected exception type: ${other.getClass.getSimpleName}")
       }
     }
-  }
 
-  "OpenAI Client Integration" should "work with custom request modifications" taggedAs IntegrationTest in {
+  "OpenAI Client Integration" should "work with custom request modifications" taggedAs IntegrationTest in
     withClient { client =>
-      //given
+      // given
       val customClient = client.customizeRequest(new sttp.openai.CustomizeOpenAIRequest {
         override def apply[A](request: sttp.client4.Request[Either[OpenAIException, A]]): sttp.client4.Request[Either[OpenAIException, A]] =
           request.header("X-Custom-Header", "integration-test")
       })
 
-      //when
+      // when
       val models = customClient.getModels
 
-      //then
+      // then
       models should not be null
       models.data should not be empty
       // The custom header should not interfere with the request
       ()
     }
-  }
 }

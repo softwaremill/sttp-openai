@@ -8,7 +8,7 @@ import sttp.openai.fixtures.ResponsesFixture
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
 import sttp.openai.requests.responses.ResponsesRequestBody.Format.JsonSchema
-import sttp.openai.requests.responses.ResponsesRequestBody.{PromptConfig => RequestPromptConfig, ReasoningConfig => RequestReasoningConfig, TextConfig => RequestTextConfig, Format => RequestFormat, _}
+import sttp.openai.requests.responses.ResponsesRequestBody.{Format => RequestFormat, PromptConfig => RequestPromptConfig, ReasoningConfig => RequestReasoningConfig, TextConfig => RequestTextConfig, _}
 import sttp.openai.requests.responses.ResponsesResponseBody._
 import ujson.{Obj, Str}
 
@@ -107,25 +107,29 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with input message containing text and image" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
-    import InputContentItem._
+      import Input._
+      import InputContentItem._
 
     // given
     val givenRequest = ResponsesRequestBody(
       model = Some("gpt-4.1"),
       input = Some(
-        Right(InputMessage(
-          content = List(
-            InputText("what is in this image?"),
-            InputImage(
-              detail = "auto", // default detail level
-              fileId = None,
-              imageUrl = Some("https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg")
-            )
-          ),
-          role = "user",
-          status = None
-        ) :: Nil)
+        Right(
+          InputMessage(
+            content = List(
+              InputText("what is in this image?"),
+              InputImage(
+                detail = "auto", // default detail level
+                fileId = None,
+                imageUrl = Some(
+                  "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
+                )
+              )
+            ),
+            role = "user",
+            status = None
+          ) :: Nil
+        )
       )
     )
 
@@ -137,29 +141,31 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     // then
     serializedJson shouldBe expectedJson
   }
-  
+
   "Given responses request with input message containing text and file" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
-    import InputContentItem._
+      import Input._
+      import InputContentItem._
 
     // given
     val givenRequest = ResponsesRequestBody(
       model = Some("gpt-4.1"),
       input = Some(
-        Right(InputMessage(
-          content = List(
-            InputText("what is in this file?"),
-            InputFile(
-              fileData = None,
-              fileId = None,
-              fileUrl = Some("https://www.berkshirehathaway.com/letters/2024ltr.pdf"),
-              filename = None
-            )
-          ),
-          role = "user",
-          status = None
-        ) :: Nil)
+        Right(
+          InputMessage(
+            content = List(
+              InputText("what is in this file?"),
+              InputFile(
+                fileData = None,
+                fileId = None,
+                fileUrl = Some("https://www.berkshirehathaway.com/letters/2024ltr.pdf"),
+                filename = None
+              )
+            ),
+            role = "user",
+            status = None
+          ) :: Nil
+        )
       )
     )
 
@@ -174,24 +180,28 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with file search tool call" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
+      import Input._
 
     // given
     val givenRequest = ResponsesRequestBody(
       model = Some("gpt-4.1"),
       input = Some(
-        Right(FileSearchToolCall(
-          id = "call_abc123",
-          queries = List("machine learning algorithms", "neural networks"),
-          status = "completed",
-          results = Some(List(
-            ujson.Obj(
-              "file_id" -> ujson.Str("file-abc123"),
-              "filename" -> ujson.Str("ml_algorithms.pdf"),
-              "content" -> ujson.Str("Neural networks are a subset of machine learning...")
+        Right(
+          FileSearchToolCall(
+            id = "call_abc123",
+            queries = List("machine learning algorithms", "neural networks"),
+            status = "completed",
+            results = Some(
+              List(
+                ujson.Obj(
+                  "file_id" -> ujson.Str("file-abc123"),
+                  "filename" -> ujson.Str("ml_algorithms.pdf"),
+                  "content" -> ujson.Str("Neural networks are a subset of machine learning...")
+                )
+              )
             )
-          ))
-        ) :: Nil)
+          ) :: Nil
+        )
       )
     )
 
@@ -206,18 +216,20 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with file search tool call in progress" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
+      import Input._
 
     // given
     val givenRequest = ResponsesRequestBody(
       model = Some("gpt-4.1"),
       input = Some(
-        Right(FileSearchToolCall(
-          id = "call_def456",
-          queries = List("python programming", "data analysis"),
-          status = "in_progress",
-          results = None
-        ) :: Nil)
+        Right(
+          FileSearchToolCall(
+            id = "call_def456",
+            queries = List("python programming", "data analysis"),
+            status = "in_progress",
+            results = None
+          ) :: Nil
+        )
       )
     )
 
@@ -231,10 +243,10 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   }
 
   "Given responses response with basic output message" should "be properly deserialized from Json" in {
-    
+
     // given
     val jsonResponse = ujson.read(ResponsesFixture.jsonResponseBasic)
-    
+
     // when
     val deserializedResponse: ResponsesResponseBody = SnakePickle.read[ResponsesResponseBody](jsonResponse)
 
@@ -249,7 +261,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     deserializedResponse.topP shouldBe Some(1.0)
     deserializedResponse.truncation shouldBe Some("disabled")
     deserializedResponse.metadata shouldBe Some(Map.empty)
-    
+
     // Check usage structure
     deserializedResponse.usage shouldBe defined
     val usage = deserializedResponse.usage.get
@@ -258,7 +270,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     usage.totalTokens shouldBe 380
     usage.inputTokensDetails shouldBe Some(InputTokensDetails(cachedTokens = 0))
     usage.outputTokensDetails shouldBe Some(OutputTokensDetails(reasoningTokens = Some(0)))
-    
+
     // Check the output structure
     deserializedResponse.output should have size 1
     val outputMessage = deserializedResponse.output.head.asInstanceOf[OutputItem.OutputMessage]
@@ -266,17 +278,17 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     outputMessage.role shouldBe "assistant"
     outputMessage.status shouldBe "completed"
     outputMessage.content should have size 1
-    
+
     val outputText = outputMessage.content.head.asInstanceOf[OutputContent.OutputText]
     outputText.text should include("The image depicts a scenic landscape")
     outputText.annotations shouldBe empty
   }
 
   "Given responses response with complex output items" should "be properly deserialized from Json" in {
-    
+
     // given
     val jsonResponse = ujson.read(ResponsesFixture.jsonResponseWithComplexOutput)
-    
+
     // when
     val deserializedResponse: ResponsesResponseBody = SnakePickle.read[ResponsesResponseBody](jsonResponse)
 
@@ -294,11 +306,13 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     deserializedResponse.topP shouldBe Some(0.9)
     deserializedResponse.truncation shouldBe Some("auto")
     deserializedResponse.user shouldBe Some("user123")
-    deserializedResponse.metadata shouldBe Some(Map(
-      "session_id" -> "session_123",
-      "experiment" -> "test_run"
-    ))
-    
+    deserializedResponse.metadata shouldBe Some(
+      Map(
+        "session_id" -> "session_123",
+        "experiment" -> "test_run"
+      )
+    )
+
     // Check usage structure
     deserializedResponse.usage shouldBe defined
     val usage2 = deserializedResponse.usage.get
@@ -307,38 +321,38 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     usage2.totalTokens shouldBe 650
     usage2.inputTokensDetails shouldBe Some(InputTokensDetails(cachedTokens = 100))
     usage2.outputTokensDetails shouldBe Some(OutputTokensDetails(reasoningTokens = Some(50)))
-    
+
     // Check reasoning config
     deserializedResponse.reasoning shouldBe defined
     deserializedResponse.reasoning.get.effort shouldBe Some("medium")
     deserializedResponse.reasoning.get.summary shouldBe Some("concise")
-    
+
     // Check output structure
     deserializedResponse.output should have size 3
-    
+
     // Check first output item (message)
     val outputMessage = deserializedResponse.output(0).asInstanceOf[OutputItem.OutputMessage]
     outputMessage.id shouldBe "msg_complex123"
     outputMessage.role shouldBe "assistant"
     outputMessage.status shouldBe "completed"
     outputMessage.content should have size 1
-    
+
     val outputText = outputMessage.content.head.asInstanceOf[OutputContent.OutputText]
     outputText.text shouldBe "I'll search for information about machine learning."
     outputText.annotations should have size 1
-    
+
     val citation = outputText.annotations.head.asInstanceOf[OutputContent.Annotation.FileCitation]
     citation.fileId shouldBe "file-123"
     citation.filename shouldBe "ml_guide.pdf"
     citation.index shouldBe 0
-    
+
     // Check second output item (file search tool call)
     val fileSearchCall = deserializedResponse.output(1).asInstanceOf[OutputItem.FileSearchToolCall]
     fileSearchCall.id shouldBe "call_search123"
     fileSearchCall.queries shouldBe List("machine learning", "neural networks")
     fileSearchCall.status shouldBe "completed"
     fileSearchCall.results shouldBe defined
-    
+
     // Check third output item (code interpreter tool call)
     val codeCall = deserializedResponse.output(2).asInstanceOf[OutputItem.CodeInterpreterToolCall]
     codeCall.id shouldBe "code_call123"
@@ -347,5 +361,5 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     codeCall.status shouldBe "completed"
     codeCall.outputs shouldBe defined
   }
-  
+
 }

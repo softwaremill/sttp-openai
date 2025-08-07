@@ -71,7 +71,7 @@ object ResponsesFixture {
       |  }],
       |  "model": "gpt-4.1"
       |}""".stripMargin
-      
+
   val jsonRequestWithInputFile: String =
     """{
       |  "input": [
