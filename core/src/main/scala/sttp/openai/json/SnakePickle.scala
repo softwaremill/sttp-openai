@@ -105,27 +105,27 @@ object SerializationHelpers {
     * @return
     *   A ReadWriter that flattens the object with the discriminator field
     */
-  def withFlattenedDiscriminator[T](discriminatorField: DiscriminatorField, discriminatorValue: String)(implicit
-      baseW: SnakePickle.Writer[T]
-  ): SnakePickle.Writer[T] =
-    SnakePickle
-      .writer[Value]
-      .comap { t =>
-        val baseJson = SnakePickle.writeJs(t)
-        // Filter out any $type fields and null values (from None options)
-        val cleanedJson = baseJson match {
-          case obj: Obj =>
-            val filtered = obj.obj.filterNot { case (key, value) =>
-              key == Str(SnakePickle.tagName) || value == ujson.Null
-            }
-            // Add the discriminator field to the filtered object
-            Obj.from(filtered ++ Map(discriminatorField.value -> Str(discriminatorValue)))
-          case other =>
-            // If it's not an object, create a new object with the discriminator and the value
-            Obj(discriminatorField.value -> Str(discriminatorValue), "value" -> other)
-        }
-        cleanedJson
-      }
+//  def withFlattenedDiscriminator[T](discriminatorField: DiscriminatorField, discriminatorValue: String)(implicit
+//      baseW: SnakePickle.Writer[T]
+//  ): SnakePickle.Writer[T] =
+//    SnakePickle
+//      .writer[Value]
+//      .comap { t =>
+//        val baseJson = SnakePickle.writeJs(t)
+//        // Filter out any $type fields and null values (from None options)
+//        val cleanedJson = baseJson match {
+//          case obj: Obj =>
+//            val filtered = obj.obj.filterNot { case (key, value) =>
+//              key == Str(SnakePickle.tagName) || value == ujson.Null
+//            }
+//            // Add the discriminator field to the filtered object
+//            Obj.from(filtered ++ Map(discriminatorField.value -> Str(discriminatorValue)))
+//          case other =>
+//            // If it's not an object, create a new object with the discriminator and the value
+//            Obj(discriminatorField.value -> Str(discriminatorValue), "value" -> other)
+//        }
+//        cleanedJson
+//      }
 
   def withFlattenedDiscriminatorReader[T](discriminatorField: DiscriminatorField, baseR: SnakePickle.Reader[T])(implicit
       classTag: scala.reflect.ClassTag[T]

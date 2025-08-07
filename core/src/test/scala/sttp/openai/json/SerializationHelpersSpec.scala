@@ -16,26 +16,26 @@ class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
   case class SimpleData(message: String) extends Core
   case class EmptyObject() extends Core
 
-  "withFlattenedDiscriminator" should "add discriminator field when writing object" in {
-    // given
-    val testObj = TestObject("test", 42, Some("optional"))
-    val discriminatorField = DiscriminatorField("type")
-    implicit val flattenedRW: SnakePickle.Writer[TestObject] =
-      SerializationHelpers.withFlattenedDiscriminator[TestObject](discriminatorField, "test_object")(SnakePickle.macroRW)
-
-    // when
-    val serializedJson = SnakePickle.writeJs(testObj)
-
-    // then
-    val expectedJson = Obj(
-      "type" -> Str("test_object"),
-      "name" -> Str("test"),
-      "value" -> Num(42),
-      "optional_field" -> Str("optional")
-    )
-    serializedJson shouldBe expectedJson
-  }
-
+//  "withFlattenedDiscriminator" should "add discriminator field when writing object" in {
+//    // given
+//    val testObj = TestObject("test", 42, Some("optional"))
+//    val discriminatorField = DiscriminatorField("type")
+//    implicit val flattenedRW: SnakePickle.Writer[TestObject] =
+//      SerializationHelpers.withFlattenedDiscriminator[TestObject](discriminatorField, "test_object")(SnakePickle.macroRW)
+//
+//    // when
+//    val serializedJson = SnakePickle.writeJs(testObj)
+//
+//    // then
+//    val expectedJson = Obj(
+//      "type" -> Str("test_object"),
+//      "name" -> Str("test"),
+//      "value" -> Num(42),
+//      "optional_field" -> Str("optional")
+//    )
+//    serializedJson shouldBe expectedJson
+//  }
+//
   it should "remove discriminator field when reading object" in {
     //given
     val inputJson = Obj(
