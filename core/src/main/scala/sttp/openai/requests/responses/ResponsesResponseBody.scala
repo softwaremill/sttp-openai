@@ -143,16 +143,9 @@ case class ResponsesResponseBody(
 
 object ResponsesResponseBody {
 
-  case class ErrorObject(
-      code: Option[String] = None,
-      message: String,
-      param: Option[String] = None,
-      `type`: Option[String] = None
-  )
+  case class ErrorObject(code: Option[String] = None, message: String, param: Option[String] = None, `type`: Option[String] = None)
 
-  case class IncompleteDetails(
-      reason: String
-  )
+  case class IncompleteDetails(reason: String)
 
   /** @param id
     *   The unique identifier of the prompt template to use.
@@ -162,11 +155,7 @@ object ResponsesResponseBody {
     * @param version
     *   Optional version of the prompt template.
     */
-  case class PromptConfig(
-      id: String,
-      variables: Option[Map[String, String]] = None,
-      version: Option[String] = None
-  )
+  case class PromptConfig(id: String, variables: Option[Map[String, String]] = None, version: Option[String] = None)
 
   /** @param effort
     *   o-series models only
@@ -182,70 +171,34 @@ object ResponsesResponseBody {
     *   A summary of the reasoning performed by the model. This can be useful for debugging and understanding the model's reasoning process.
     *   One of auto, concise, or detailed.
     */
-  case class ReasoningConfig(
-      effort: Option[String] = None,
-      generateSummary: Option[String] = None,
-      summary: Option[String] = None
-  )
+  case class ReasoningConfig(effort: Option[String] = None, generateSummary: Option[String] = None, summary: Option[String] = None)
 
   sealed trait OutputItem
   object OutputItem {
 
     @upickle.implicits.key("message")
-    case class OutputMessage(
-        content: List[OutputContent],
-        id: String,
-        role: String,
-        status: String
-    ) extends OutputItem
+    case class OutputMessage(content: List[OutputContent], id: String, role: String, status: String) extends OutputItem
 
     @upickle.implicits.key("file_search_call")
-    case class FileSearchToolCall(
-        id: String,
-        queries: List[String],
-        status: String,
-        results: Option[List[FileSearchResult]] = None
-    ) extends OutputItem
+    case class FileSearchToolCall(id: String, queries: List[String], status: String, results: Option[List[FileSearchResult]] = None)
+        extends OutputItem
 
     @upickle.implicits.key("function_call")
-    case class FunctionToolCall(
-        arguments: String,
-        callId: String,
-        name: String,
-        id: String,
-        status: String
-    ) extends OutputItem
+    case class FunctionToolCall(arguments: String, callId: String, name: String, id: String, status: String) extends OutputItem
 
     @upickle.implicits.key("web_search_call")
-    case class WebSearchToolCall(
-        action: Value,
-        id: String,
-        status: String
-    ) extends OutputItem
+    case class WebSearchToolCall(action: Value, id: String, status: String) extends OutputItem
 
     @upickle.implicits.key("computer_call")
-    case class ComputerToolCall(
-        action: Value,
-        callId: String,
-        id: String,
-        pendingSafetyChecks: List[PendingSafetyCheck],
-        status: String
-    ) extends OutputItem
+    case class ComputerToolCall(action: Value, callId: String, id: String, pendingSafetyChecks: List[PendingSafetyCheck], status: String)
+        extends OutputItem
 
     @upickle.implicits.key("reasoning")
-    case class Reasoning(
-        id: String,
-        summary: List[SummaryText],
-        encryptedContent: Option[String] = None,
-        status: Option[String] = None
-    ) extends OutputItem
+    case class Reasoning(id: String, summary: List[SummaryText], encryptedContent: Option[String] = None, status: Option[String] = None)
+        extends OutputItem
 
     @upickle.implicits.key("image_generation_call")
-    case class ImageGenerationCall(
-        id: String,
-        result: Option[String],
-        status: String
-    ) extends OutputItem
+    case class ImageGenerationCall(id: String, result: Option[String], status: String) extends OutputItem
 
     @upickle.implicits.key("code_interpreter_call")
     case class CodeInterpreterToolCall(
@@ -257,12 +210,7 @@ object ResponsesResponseBody {
     ) extends OutputItem
 
     @upickle.implicits.key("local_shell_call")
-    case class LocalShellCall(
-        action: LocalShellAction,
-        callId: String,
-        id: String,
-        status: String
-    ) extends OutputItem
+    case class LocalShellCall(action: LocalShellAction, callId: String, id: String, status: String) extends OutputItem
 
     @upickle.implicits.key("mcp_call")
     case class McpToolCall(
@@ -275,40 +223,17 @@ object ResponsesResponseBody {
     ) extends OutputItem
 
     @upickle.implicits.key("mcp_list_tools")
-    case class McpListTools(
-        id: String,
-        serverLabel: String,
-        tools: List[Value],
-        error: Option[String] = None
-    ) extends OutputItem
+    case class McpListTools(id: String, serverLabel: String, tools: List[Value], error: Option[String] = None) extends OutputItem
 
     @upickle.implicits.key("mcp_approval_request")
-    case class McpApprovalRequest(
-        arguments: String,
-        id: String,
-        name: String,
-        serverLabel: String
-    ) extends OutputItem
+    case class McpApprovalRequest(arguments: String, id: String, name: String, serverLabel: String) extends OutputItem
 
     // Helper types
-    case class PendingSafetyCheck(
-        code: String,
-        id: String,
-        message: String,
-        status: String
-    )
+    case class PendingSafetyCheck(code: String, id: String, message: String, status: String)
 
-    case class SummaryText(
-        text: String
-    )
+    case class SummaryText(text: String)
 
-    case class FileSearchResult(
-        attributes: Map[String, Value],
-        fileId: String,
-        filename: String,
-        score: Double,
-        text: String
-    )
+    case class FileSearchResult(attributes: Map[String, Value], fileId: String, filename: String, score: Double, text: String)
 
     case class LocalShellAction(
         command: List[String],
@@ -357,16 +282,10 @@ object ResponsesResponseBody {
   sealed trait OutputContent
   object OutputContent {
     @upickle.implicits.key("output_text")
-    case class OutputText(
-        annotations: List[Annotation],
-        text: String,
-        logprobs: Option[List[LogProb]] = None
-    ) extends OutputContent
+    case class OutputText(annotations: List[Annotation], text: String, logprobs: Option[List[LogProb]] = None) extends OutputContent
 
     @upickle.implicits.key("refusal")
-    case class Refusal(
-        refusal: String
-    ) extends OutputContent
+    case class Refusal(refusal: String) extends OutputContent
 
     sealed trait Annotation
     object Annotation {
@@ -461,9 +380,7 @@ object ResponsesResponseBody {
     * Setting to { "type": "json_object" } enables the older JSON mode, which ensures the message the model generates is valid JSON. Using
     * json_schema is preferred for models that support it.
     */
-  case class TextConfig(
-      format: Option[Format] = None
-  )
+  case class TextConfig(format: Option[Format] = None)
 
   /** @param inputTokens
     *   The number of input tokens.
@@ -487,16 +404,12 @@ object ResponsesResponseBody {
   /** @param cachedTokens
     *   The number of tokens that were retrieved from the cache. More on prompt caching.
     */
-  case class InputTokensDetails(
-      cachedTokens: Int
-  )
+  case class InputTokensDetails(cachedTokens: Int)
 
   /** @param reasoningTokens
     *   Tokens generated by the model for reasoning.
     */
-  case class OutputTokensDetails(
-      reasoningTokens: Option[Int] = None
-  )
+  case class OutputTokensDetails(reasoningTokens: Option[Int] = None)
 
   implicit val inputTokensDetailsR: SnakePickle.Reader[InputTokensDetails] = SnakePickle.macroR
   implicit val outputTokensDetailsR: SnakePickle.Reader[OutputTokensDetails] = SnakePickle.macroR
