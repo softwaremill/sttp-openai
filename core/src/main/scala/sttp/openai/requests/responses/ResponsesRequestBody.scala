@@ -1,13 +1,12 @@
 package sttp.openai.requests.responses
 
 import sttp.apispec.Schema
-import sttp.openai.json.SerializationHelpers.DiscriminatorField
-import sttp.openai.json.SnakePickle
+import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
 import sttp.openai.requests.responses.ResponsesRequestBody.Input
 import sttp.openai.requests.responses.ResponsesRequestBody.Input.OutputContentItem.OutputText.{Annotation, LogProb}
-import ujson.{Obj, Str, Value}
+import ujson.Value
 
 /** @param background
   *   Whether to run the model response in the background. Defaults to false.
@@ -110,8 +109,6 @@ object ResponsesRequestBody {
 
   sealed trait Input
   object Input {
-    private val discriminatorField = DiscriminatorField("type")
-
     sealed trait InputContentItem
     object InputContentItem {
       @upickle.implicits.key("input_text")
@@ -378,13 +375,11 @@ object ResponsesRequestBody {
 
     implicit private val schemaW: SnakePickle.Writer[Schema] = SchemaSupport.schemaRW
 
-    private val discriminatorField = DiscriminatorField("type")
     implicit val jsonSchemaW: SnakePickle.Writer[JsonSchema] = SnakePickle.macroW
 
-    implicit val textW: SnakePickle.Writer[Text.type] = SnakePickle.writer[Value].comap(_ => Obj(discriminatorField.value -> Str("text")))
+    implicit val textW: SnakePickle.Writer[Text.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter("text")
 
-    implicit val jsonObjectW: SnakePickle.Writer[JsonObject.type] =
-      SnakePickle.writer[Value].comap(_ => Obj(discriminatorField.value -> Str("json_object")))
+    implicit val jsonObjectW: SnakePickle.Writer[JsonObject.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter("json_object")
 
     implicit val formatW: SnakePickle.Writer[Format] = SnakePickle.writer[Value].comap {
       case text: Text.type             => SnakePickle.writeJs(text)

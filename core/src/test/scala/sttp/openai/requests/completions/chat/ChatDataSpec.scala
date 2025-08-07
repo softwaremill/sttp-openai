@@ -17,7 +17,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given delete chat completion response as Json" should "be properly deserialized to case class" in {
     import ChatRequestResponseData.DeleteChatCompletionResponse
-    import ChatRequestResponseData.DeleteChatCompletionResponse._
+      import ChatRequestResponseData.DeleteChatCompletionResponse._
 
     // given
     val jsonResponse = fixtures.ChatFixture.jsonDeleteChatCompletionResponse
@@ -33,7 +33,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given list chat response as Json" should "be properly deserialized to case class" in {
     import ChatRequestResponseData.ListChatResponse
-    import ChatRequestResponseData.ListChatResponse._
+      import ChatRequestResponseData.ListChatResponse._
 
     // given
     val jsonResponse = fixtures.ChatFixture.jsonListChatResponse
@@ -51,7 +51,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given list message response as Json" should "be properly deserialized to case class" in {
     import ChatRequestResponseData.ListMessageResponse._
-    import ChatRequestResponseData.{ListMessageResponse, Message}
+      import ChatRequestResponseData.{ListMessageResponse, Message}
 
     // given
     val jsonResponse = fixtures.ChatFixture.jsonListMessageResponse
@@ -82,7 +82,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given chat completions response as Json" should "be properly deserialized to case class" in {
     import ChatRequestResponseData.ChatResponse._
-    import ChatRequestResponseData._
+      import ChatRequestResponseData._
 
     // given
     val jsonResponse = fixtures.ChatFixture.jsonResponse
@@ -158,7 +158,7 @@ class ChatDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given completions request as case class" should "be properly serialized to Json" in {
     import ChatRequestBody._
-    import sttp.openai.requests.completions.chat.message._
+      import sttp.openai.requests.completions.chat.message._
 
     // given
     val givenRequest = ChatRequestBody.ChatBody(
