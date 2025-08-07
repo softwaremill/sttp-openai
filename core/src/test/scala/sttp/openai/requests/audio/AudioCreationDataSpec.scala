@@ -9,7 +9,7 @@ import sttp.openai.utils.JsonUtils
 class AudioCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given audio generation response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.audio.AudioResponseData.AudioResponse
-      import sttp.openai.requests.audio.AudioResponseData.AudioResponse._
+    import sttp.openai.requests.audio.AudioResponseData.AudioResponse._
 
     // given
     val jsonResponse = fixtures.AudioFixture.jsonResponse
