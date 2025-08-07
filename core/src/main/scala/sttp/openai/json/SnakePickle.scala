@@ -5,7 +5,7 @@ import ujson._
 /** An object that transforms all snake_case keys into camelCase [[https://com-lihaoyi.github.io/upickle/#CustomConfiguration]] */
 object SnakePickle extends upickle.AttributeTagged {
 
-  override def tagName: String = "$type"
+  override def tagName: String = "type"
 
   private def camelToSnake(s: String): String =
     s.replaceAll("([A-Z])", "#$1").split('#').map(_.toLowerCase).mkString("_")
@@ -15,12 +15,12 @@ object SnakePickle extends upickle.AttributeTagged {
 
   override def objectAttributeKeyWriteMap(s: CharSequence): String =
     camelToSnake(s.toString)
+//
+//  override def objectTypeKeyReadMap(s: CharSequence): String =
+//    SerializationHelpers.snakeToCamel(s.toString)
 
-  override def objectTypeKeyReadMap(s: CharSequence): String =
-    SerializationHelpers.snakeToCamel(s.toString)
-
-  override def objectTypeKeyWriteMap(s: CharSequence): String =
-    camelToSnake(s.toString)
+//  override def objectTypeKeyWriteMap(s: CharSequence): String =
+//    camelToSnake(s.toString)
 
   /** This is required in order to parse null values into Scala's Option */
   override implicit def OptionWriter[T: SnakePickle.Writer]: Writer[Option[T]] =
@@ -133,14 +133,15 @@ object SerializationHelpers {
     SnakePickle
       .reader[Value]
       .map { json =>
-        val className = classTag.runtimeClass.getSimpleName
-        // This is a workaround for AttributeTagged Reader limitations.
-        // While upickle supports different discriminator fields for different types,
-        // it defaults to using the class name as the discriminator value with no built-in way to customize it.
-        // Our approach uses a custom discriminator field alongside upickle's internal one.
-        // The read value can be ignored as validation happens at the sealed trait Reader level.
-        val jsonWithType = json.obj.addOne(SnakePickle.tagName -> Str(className))
-        SnakePickle.read[T](Obj(jsonWithType))(baseR)
+//        val className = classTag.runtimeClass.getSimpleName
+//        // This is a workaround for AttributeTagged Reader limitations.
+//        // While upickle supports different discriminator fields for different types,
+//        // it defaults to using the class name as the discriminator value with no built-in way to customize it.
+//        // Our approach uses a custom discriminator field alongside upickle's internal one.
+//        // The read discriminator value can be ignored as validation happens at the sealed trait Reader level.
+//        val jsonWithUpickleType = json.obj.addOne(SnakePickle.tagName -> Str(className))
+//        SnakePickle.read[T](Obj(jsonWithUpickleType))(baseR)
+        SnakePickle.read[T](json)(baseR)
       }
 
   def caseObjectWithDiscriminatorWriter[T](discriminatorField: DiscriminatorField, discriminatorValue: String): SnakePickle.Writer[T] =

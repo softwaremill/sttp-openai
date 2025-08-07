@@ -53,7 +53,6 @@ object ResponsesFixture {
   val jsonRequestWithInputMessage: String =
     """{
       |  "input": [{
-      |    "role": "user",
       |    "type": "message",
       |    "content": [
       |      {
@@ -62,30 +61,37 @@ object ResponsesFixture {
       |      },
       |      {
       |        "type": "input_image",
+      |        "file_id": null,
       |        "detail": "auto",
       |        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
       |      }
-      |    ]
+      |    ],
+      |    "role":"user",
+      |    "status":null
       |  }],
       |  "model": "gpt-4.1"
       |}""".stripMargin
       
   val jsonRequestWithInputFile: String =
     """{
-      |  "model": "gpt-4.1",
       |  "input": [
       |    {
-      |      "role": "user",
       |      "type": "message",
       |      "content": [
       |        {"type": "input_text", "text": "what is in this file?"},
       |        {
       |          "type": "input_file",
-      |          "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf"
+      |          "file_data":null,
+      |          "file_id":null,
+      |          "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+      |          "filename": null
       |        }
-      |      ]
+      |      ],
+      |      "role": "user",
+      |      "status":null
       |    }
-      |  ]
+      |  ],
+      |  "model": "gpt-4.1"
       |}""".stripMargin
 
   val jsonRequestWithFileSearchToolCall: String =

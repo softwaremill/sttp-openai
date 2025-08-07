@@ -11,6 +11,7 @@ import scala.reflect.ClassTag
 class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
 
   sealed trait Core
+  @upickle.implicits.key("test_object")
   case class TestObject(name: String, value: Int, optionalField: Option[String] = None) extends Core
   case class SimpleData(message: String) extends Core
   case class EmptyObject() extends Core
@@ -44,7 +45,7 @@ class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
       "optional_field" -> Str("optional")
     )
     val discriminatorField = DiscriminatorField("type")
-    implicit val flattenedRW: SnakePickle.Reader[TestObject] = SerializationHelpers.withFlattenedDiscriminatorReader[TestObject](discriminatorField, SnakePickle.macroRW)
+    implicit val flattenedRW: SnakePickle.Reader[TestObject] = SnakePickle.macroRW
 
     //when
     val deserializedObj = SnakePickle.read[TestObject](inputJson)
