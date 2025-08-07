@@ -35,21 +35,6 @@ object SnakePickle extends upickle.AttributeTagged {
 }
 
 object SerializationHelpers {
-  def snakeToCamel(s: String): String =
-    if (s.isEmpty) s
-    else {
-      val parts = s.split('_').filter(_.nonEmpty)
-      val startsWithUnderscore = s.startsWith("_")
-
-      parts.zipWithIndex.map { case (part, index) =>
-        if (index == 0 && !startsWithUnderscore) {
-          s"${part.head.toLower}${part.tail}"
-        } else {
-          s"${part.head.toUpper}${part.tail}"
-        }
-      }.mkString
-    }
-
   case class DiscriminatorField(value: String)
 
   /** Creates a ReadWriter for nested discriminator patterns where the object is wrapped in another object with a discriminator field
