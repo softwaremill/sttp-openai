@@ -36,7 +36,6 @@ class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
   it should "remove discriminator field when reading object" in {
     //given
     val inputJson = Obj(
-      "$type" -> Str("_TestObject"),
       "type" -> Str("test_object"),
       "name" -> Str("test"),
       "value" -> Num(42),
