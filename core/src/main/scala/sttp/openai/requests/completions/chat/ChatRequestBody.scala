@@ -1,7 +1,6 @@
 package sttp.openai.requests.completions.chat
 
 import sttp.apispec.Schema
-import sttp.openai.json.SerializationHelpers.DiscriminatorField
 import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.Stop
 import sttp.openai.requests.completions.chat.message.{Message, Tool, ToolChoice}
@@ -19,16 +18,15 @@ object ChatRequestBody {
 
     implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 
-    private val discriminatorField = DiscriminatorField("type")
     // Use SerializationHelpers to automatically create nested discriminator structure
     // This creates: {"type": "json_schema", "json_schema": {...actual JsonSchema object...}}
     implicit val jsonSchemaW: SnakePickle.Writer[JsonSchema] =
-      SerializationHelpers.withNestedDiscriminator(discriminatorField, "json_schema", "json_schema")(SnakePickle.macroW[JsonSchema])
+      SerializationHelpers.withNestedDiscriminator("json_schema", "json_schema")(SnakePickle.macroW[JsonSchema])
 
-    implicit val textW: SnakePickle.Writer[Text.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter(discriminatorField, "text")
+    implicit val textW: SnakePickle.Writer[Text.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter("text")
 
     implicit val jsonObjectW: SnakePickle.Writer[JsonObject.type] =
-      SerializationHelpers.caseObjectWithDiscriminatorWriter(discriminatorField, "json_object")
+      SerializationHelpers.caseObjectWithDiscriminatorWriter("json_object")
 
     implicit val responseFormatW: SnakePickle.Writer[ResponseFormat] = SnakePickle
       .writer[Value]

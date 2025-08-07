@@ -35,15 +35,11 @@ object SnakePickle extends upickle.AttributeTagged {
 }
 
 object SerializationHelpers {
-  case class DiscriminatorField(value: String)
-
   /** Creates a ReadWriter for nested discriminator patterns where the object is wrapped in another object with a discriminator field
     * pointing to the nested content.
     *
     * For example: {"type": "json_schema", "json_schema": {...actual object...}}
     *
-    * @param discriminatorField
-    *   The name of the field to add (e.g., "type")
     * @param discriminatorValue
     *   The value for the discriminator field (e.g., "json_schema")
     * @param nestedField
@@ -53,7 +49,7 @@ object SerializationHelpers {
     * @return
     *   A ReadWriter that wraps the object in the nested discriminator structure
     */
-  def withNestedDiscriminator[T](discriminatorField: DiscriminatorField, discriminatorValue: String, nestedField: String)(implicit
+  def withNestedDiscriminator[T](discriminatorValue: String, nestedField: String)(implicit
       baseRW: SnakePickle.Writer[T]
   ): SnakePickle.Writer[T] =
     SnakePickle
@@ -63,19 +59,19 @@ object SerializationHelpers {
         // Filter out tagName from nested case class
         val cleanedJson = baseJson match {
           case obj: Obj =>
-            val filtered = obj.obj.filterNot { case (key, value) =>
+            val filtered = obj.obj.filterNot { case (key, _) =>
               key == SnakePickle.tagName
             }
             Obj.from(filtered)
           case other => other
         }
         Obj(
-          discriminatorField.value -> discriminatorValue,
+          SnakePickle.tagName -> discriminatorValue,
           nestedField -> cleanedJson
         )
       }
 
-  def caseObjectWithDiscriminatorWriter[T](discriminatorField: DiscriminatorField, discriminatorValue: String): SnakePickle.Writer[T] =
-    SnakePickle.writer[Value].comap(_ => Obj(discriminatorField.value -> Str(discriminatorValue)))
+  def caseObjectWithDiscriminatorWriter[T](discriminatorValue: String): SnakePickle.Writer[T] =
+    SnakePickle.writer[Value].comap(_ => Obj(SnakePickle.tagName -> Str(discriminatorValue)))
 
 }
