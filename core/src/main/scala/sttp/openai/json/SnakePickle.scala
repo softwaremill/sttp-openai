@@ -8,8 +8,28 @@ object SnakePickle extends upickle.AttributeTagged {
     s.replaceAll("([A-Z])", "#$1").split('#').map(_.toLowerCase).mkString("_")
 
   private def snakeToCamel(s: String): String = {
-    val res = s.split("_", -1).map(x => s"${x(0).toUpper}${x.drop(1)}").mkString
-    s"${s(0).toLower}${res.drop(1)}"
+    if (s.isEmpty) return ""
+    
+    // Handle strings that start with underscore
+    if (s.startsWith("_")) {
+      // Remove leading underscore and process the rest
+      val withoutLeadingUnderscore = s.substring(1)
+      if (withoutLeadingUnderscore.isEmpty) return ""
+      
+      // For strings starting with underscore, capitalize the first letter
+      val parts = withoutLeadingUnderscore.split("_", -1)
+      val firstPart = if (parts(0).isEmpty) "" else s"${parts(0)(0).toUpper}${parts(0).drop(1)}"
+      val restParts = parts.drop(1).map(x => if (x.isEmpty) "" else s"${x(0).toUpper}${x.drop(1)}").mkString
+      
+      return firstPart + restParts
+    }
+    
+    // Normal case - no leading underscore
+    val parts = s.split("_", -1)
+    val firstPart = if (parts(0).isEmpty) "" else s"${parts(0)(0).toLower}${parts(0).drop(1)}"
+    val restParts = parts.drop(1).map(x => if (x.isEmpty) "" else s"${x(0).toUpper}${x.drop(1)}").mkString
+    
+    firstPart + restParts
   }
 
   override def objectAttributeKeyReadMap(s: CharSequence): String =
@@ -115,6 +135,12 @@ object SerializationHelpers {
         cleanedJson
       }
 
+  def withFlattenedDiscriminatorReader[T](discriminatorField: DiscriminatorField, discriminatorValue: String)(implicit
+      baseW: SnakePickle.Reader[T]
+  ): SnakePickle.Reader[T] =
+    SnakePickle
+      .reader[Value]
+      .map(json => json.transform(baseW))
   def caseObjectWithDiscriminatorWriter[T](discriminatorField: DiscriminatorField, discriminatorValue: String): SnakePickle.Writer[T] =
     SnakePickle.writer[Value].comap(_ => Obj(discriminatorField.value -> Str(discriminatorValue)))
 

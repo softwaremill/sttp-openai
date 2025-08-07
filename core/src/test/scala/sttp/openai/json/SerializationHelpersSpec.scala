@@ -33,25 +33,25 @@ class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
     serializedJson shouldBe expectedJson
   }
 
-//  it should "remove discriminator field when reading object" in {
-//    //given
-//    val inputJson = Obj(
-//      "$type" -> Str("_TestObject"),
-//      "type" -> Str("test_object"),
-//      "name" -> Str("test"),
-//      "value" -> Num(42),
-//      "optional_field" -> Str("optional")
-//    )
-//    val discriminatorField = DiscriminatorField("type")
-//    implicit val flattenedRW: SnakePickle.Writer[TestObject] = SerializationHelpers.withFlattenedDiscriminator[TestObject](discriminatorField, "test_object")(SnakePickle.macroRW)
-//
-//    //when
-//    val deserializedObj = SnakePickle.read[TestObject](inputJson)
-//
-//    //then
-//    val expectedObj = TestObject("test", 42, Some("optional"))
-//    deserializedObj shouldBe expectedObj
-//  }
+  it should "remove discriminator field when reading object" in {
+    //given
+    val inputJson = Obj(
+      "$type" -> Str("_TestObject"),
+      "type" -> Str("test_object"),
+      "name" -> Str("test"),
+      "value" -> Num(42),
+      "optional_field" -> Str("optional")
+    )
+    val discriminatorField = DiscriminatorField("type")
+    implicit val flattenedRW: SnakePickle.Reader[TestObject] = SerializationHelpers.withFlattenedDiscriminatorReader[TestObject](discriminatorField, "test_object")(SnakePickle.macroRW)
+
+    //when
+    val deserializedObj = SnakePickle.read[TestObject](inputJson)
+
+    //then
+    val expectedObj = TestObject("test", 42, Some("optional"))
+    deserializedObj shouldBe expectedObj
+  }
 
 //  it should "filter out null values from optional fields when writing" in {
 //    //given
