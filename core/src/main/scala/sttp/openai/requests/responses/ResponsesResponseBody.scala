@@ -4,7 +4,6 @@ import sttp.apispec.Schema
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
-import sttp.openai.requests.completions.{CompletionTokensDetails, PromptTokensDetails}
 import ujson.Value
 
 /** @param background
@@ -328,31 +327,31 @@ object ResponsesResponseBody {
       @upickle.implicits.key("image")
       case class Image(image: String) extends CodeInterpreterOutput
 
-      implicit val logsRW: SnakePickle.ReadWriter[Logs] = SnakePickle.macroRW
-      implicit val imageRW: SnakePickle.ReadWriter[Image] = SnakePickle.macroRW
-      implicit val codeInterpreterOutputRW: SnakePickle.ReadWriter[CodeInterpreterOutput] = SnakePickle.macroRW
+      implicit val logsRW: SnakePickle.Reader[Logs] = SnakePickle.macroR
+      implicit val imageRW: SnakePickle.Reader[Image] = SnakePickle.macroR
+      implicit val codeInterpreterOutputRW: SnakePickle.Reader[CodeInterpreterOutput] = SnakePickle.macroR
     }
 
-    // Implicit readers/writers for all output item types
-    implicit val pendingSafetyCheckRW: SnakePickle.ReadWriter[PendingSafetyCheck] = SnakePickle.macroRW
-    implicit val summaryTextRW: SnakePickle.ReadWriter[SummaryText] = SnakePickle.macroRW
-    implicit val fileSearchResultRW: SnakePickle.ReadWriter[FileSearchResult] = SnakePickle.macroRW
-    implicit val localShellActionRW: SnakePickle.ReadWriter[LocalShellAction] = SnakePickle.macroRW
+    // Implicit readers for all output item types
+    implicit val pendingSafetyCheckRW: SnakePickle.Reader[PendingSafetyCheck] = SnakePickle.macroR
+    implicit val summaryTextRW: SnakePickle.Reader[SummaryText] = SnakePickle.macroR
+    implicit val fileSearchResultRW: SnakePickle.Reader[FileSearchResult] = SnakePickle.macroR
+    implicit val localShellActionRW: SnakePickle.Reader[LocalShellAction] = SnakePickle.macroR
 
-    implicit val outputMessageRW: SnakePickle.ReadWriter[OutputMessage] = SnakePickle.macroRW
-    implicit val fileSearchToolCallRW: SnakePickle.ReadWriter[FileSearchToolCall] = SnakePickle.macroRW
-    implicit val functionToolCallRW: SnakePickle.ReadWriter[FunctionToolCall] = SnakePickle.macroRW
-    implicit val webSearchToolCallRW: SnakePickle.ReadWriter[WebSearchToolCall] = SnakePickle.macroRW
-    implicit val computerToolCallRW: SnakePickle.ReadWriter[ComputerToolCall] = SnakePickle.macroRW
-    implicit val reasoningRW: SnakePickle.ReadWriter[Reasoning] = SnakePickle.macroRW
-    implicit val imageGenerationCallRW: SnakePickle.ReadWriter[ImageGenerationCall] = SnakePickle.macroRW
-    implicit val codeInterpreterToolCallRW: SnakePickle.ReadWriter[CodeInterpreterToolCall] = SnakePickle.macroRW
-    implicit val localShellCallRW: SnakePickle.ReadWriter[LocalShellCall] = SnakePickle.macroRW
-    implicit val mcpToolCallRW: SnakePickle.ReadWriter[McpToolCall] = SnakePickle.macroRW
-    implicit val mcpListToolsRW: SnakePickle.ReadWriter[McpListTools] = SnakePickle.macroRW
-    implicit val mcpApprovalRequestRW: SnakePickle.ReadWriter[McpApprovalRequest] = SnakePickle.macroRW
+    implicit val outputMessageRW: SnakePickle.Reader[OutputMessage] = SnakePickle.macroR
+    implicit val fileSearchToolCallRW: SnakePickle.Reader[FileSearchToolCall] = SnakePickle.macroR
+    implicit val functionToolCallRW: SnakePickle.Reader[FunctionToolCall] = SnakePickle.macroR
+    implicit val webSearchToolCallRW: SnakePickle.Reader[WebSearchToolCall] = SnakePickle.macroR
+    implicit val computerToolCallRW: SnakePickle.Reader[ComputerToolCall] = SnakePickle.macroR
+    implicit val reasoningRW: SnakePickle.Reader[Reasoning] = SnakePickle.macroR
+    implicit val imageGenerationCallRW: SnakePickle.Reader[ImageGenerationCall] = SnakePickle.macroR
+    implicit val codeInterpreterToolCallRW: SnakePickle.Reader[CodeInterpreterToolCall] = SnakePickle.macroR
+    implicit val localShellCallRW: SnakePickle.Reader[LocalShellCall] = SnakePickle.macroR
+    implicit val mcpToolCallRW: SnakePickle.Reader[McpToolCall] = SnakePickle.macroR
+    implicit val mcpListToolsRW: SnakePickle.Reader[McpListTools] = SnakePickle.macroR
+    implicit val mcpApprovalRequestRW: SnakePickle.Reader[McpApprovalRequest] = SnakePickle.macroR
 
-    implicit val outputItemRW: SnakePickle.ReadWriter[OutputItem] = SnakePickle.macroRW
+    implicit val outputItemRW: SnakePickle.Reader[OutputItem] = SnakePickle.macroR
   }
 
   sealed trait OutputContent
@@ -384,21 +383,21 @@ object ResponsesResponseBody {
       @upickle.implicits.key("file_path")
       case class FilePath(fileId: String, index: Int) extends Annotation
 
-      implicit val fileCitationRW: SnakePickle.ReadWriter[FileCitation] = SnakePickle.macroRW
-      implicit val urlCitationRW: SnakePickle.ReadWriter[UrlCitation] = SnakePickle.macroRW
-      implicit val containerFileCitationRW: SnakePickle.ReadWriter[ContainerFileCitation] = SnakePickle.macroRW
-      implicit val filePathRW: SnakePickle.ReadWriter[FilePath] = SnakePickle.macroRW
-      implicit val annotationRW: SnakePickle.ReadWriter[Annotation] = SnakePickle.macroRW
+      implicit val fileCitationRW: SnakePickle.Reader[FileCitation] = SnakePickle.macroR
+      implicit val urlCitationRW: SnakePickle.Reader[UrlCitation] = SnakePickle.macroR
+      implicit val containerFileCitationRW: SnakePickle.Reader[ContainerFileCitation] = SnakePickle.macroR
+      implicit val filePathRW: SnakePickle.Reader[FilePath] = SnakePickle.macroR
+      implicit val annotationRW: SnakePickle.Reader[Annotation] = SnakePickle.macroR
     }
 
     case class LogProb(bytes: List[Byte], logprob: Double, token: String, topLogprobs: List[TopLogProb])
     case class TopLogProb(bytes: List[Byte], logprob: Double, token: String)
 
-    implicit val topLogProbRW: SnakePickle.ReadWriter[TopLogProb] = SnakePickle.macroRW
-    implicit val logProbRW: SnakePickle.ReadWriter[LogProb] = SnakePickle.macroRW
-    implicit val outputTextRW: SnakePickle.ReadWriter[OutputText] = SnakePickle.macroRW
-    implicit val refusalRW: SnakePickle.ReadWriter[Refusal] = SnakePickle.macroRW
-    implicit val outputContentRW: SnakePickle.ReadWriter[OutputContent] = SnakePickle.macroRW
+    implicit val topLogProbRW: SnakePickle.Reader[TopLogProb] = SnakePickle.macroR
+    implicit val logProbRW: SnakePickle.Reader[LogProb] = SnakePickle.macroR
+    implicit val outputTextRW: SnakePickle.Reader[OutputText] = SnakePickle.macroR
+    implicit val refusalRW: SnakePickle.Reader[Refusal] = SnakePickle.macroR
+    implicit val outputContentRW: SnakePickle.Reader[OutputContent] = SnakePickle.macroR
   }
 
   sealed trait Format
@@ -433,39 +432,27 @@ object ResponsesResponseBody {
     @upickle.implicits.key("json_schema")
     case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends Format
 
-    implicit val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
+    implicit val schemaRW: SnakePickle.Reader[Schema] = SchemaSupport.schemaRW
 
-    implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
-      .readwriter[ujson.Value]
-      .bimap(
-        _ => ujson.Obj("type" -> ujson.Str("text")),
-        _ => Text
-      )
+    implicit val textRW: SnakePickle.Reader[Text.type] = SnakePickle
+      .reader[ujson.Value]
+      .map(_ => Text)
 
-    implicit val jsonObjectRW: SnakePickle.ReadWriter[JsonObject.type] = SnakePickle
-      .readwriter[ujson.Value]
-      .bimap(
-        _ => ujson.Obj("type" -> ujson.Str("json_object")),
-        _ => JsonObject
-      )
+    implicit val jsonObjectRW: SnakePickle.Reader[JsonObject.type] = SnakePickle
+      .reader[ujson.Value]
+      .map(_ => JsonObject)
 
-    implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle.macroRW
+    implicit val jsonSchemaRW: SnakePickle.Reader[JsonSchema] = SnakePickle.macroR
 
-    implicit val formatRW: SnakePickle.ReadWriter[Format] = SnakePickle
-      .readwriter[ujson.Value]
-      .bimap(
-        {
-          case Text                   => SnakePickle.writeJs(Text)
-          case JsonObject             => SnakePickle.writeJs(JsonObject)
-          case jsonSchema: JsonSchema => SnakePickle.writeJs(jsonSchema)
-        },
-        json =>
-          json.obj.get("type").map(_.str) match {
-            case Some("text")        => Text
-            case Some("json_object") => JsonObject
-            case Some("json_schema") => SnakePickle.read[JsonSchema](json)
-            case other               => throw new RuntimeException(s"Unknown format type: $other")
-          }
+    implicit val formatRW: SnakePickle.Reader[Format] = SnakePickle
+      .reader[ujson.Value]
+      .map(json =>
+        json.obj.get("type").map(_.str) match {
+          case Some("text")        => Text
+          case Some("json_object") => JsonObject
+          case Some("json_schema") => SnakePickle.read[JsonSchema](json)
+          case other               => throw new RuntimeException(s"Unknown format type: $other")
+        }
       )
   }
 
@@ -519,28 +506,22 @@ object ResponsesResponseBody {
       reasoningTokens: Option[Int] = None
   )
 
-  implicit val inputTokensDetailsRW: SnakePickle.ReadWriter[InputTokensDetails] = SnakePickle.macroRW
-  implicit val outputTokensDetailsRW: SnakePickle.ReadWriter[OutputTokensDetails] = SnakePickle.macroRW
-  implicit val usageRW: SnakePickle.ReadWriter[Usage] = SnakePickle.macroRW
+  implicit val inputTokensDetailsRW: SnakePickle.Reader[InputTokensDetails] = SnakePickle.macroR
+  implicit val outputTokensDetailsRW: SnakePickle.Reader[OutputTokensDetails] = SnakePickle.macroR
+  implicit val usageRW: SnakePickle.Reader[Usage] = SnakePickle.macroR
 
-  implicit val instructionsRW: SnakePickle.ReadWriter[Either[String, List[String]]] = SnakePickle
-    .readwriter[ujson.Value]
-    .bimap[Either[String, List[String]]](
-      {
-        case Left(str) => ujson.Str(str)
-        case Right(list) => ujson.Arr.from(list.map(ujson.Str(_)))
-      },
-      {
-        case ujson.Str(str) => Left(str)
-        case ujson.Arr(arr) => Right(arr.map(_.str).toList)
-        case json => throw new RuntimeException(s"Expected string or array for instructions, got: $json")
-      }
-    )
+  implicit val instructionsRW: SnakePickle.Reader[Either[String, List[String]]] = SnakePickle
+    .reader[ujson.Value]
+    .map {
+      case ujson.Str(str) => Left(str)
+      case ujson.Arr(arr) => Right(arr.map(_.str).toList)
+      case json           => throw new RuntimeException(s"Expected string or array for instructions, got: $json")
+    }
 
-  implicit val promptConfigRW: SnakePickle.ReadWriter[PromptConfig] = SnakePickle.macroRW
-  implicit val reasoningConfigRW: SnakePickle.ReadWriter[ReasoningConfig] = SnakePickle.macroRW
-  implicit val textConfigRW: SnakePickle.ReadWriter[TextConfig] = SnakePickle.macroRW
-  implicit val errorObjectRW: SnakePickle.ReadWriter[ErrorObject] = SnakePickle.macroRW
-  implicit val incompleteDetailsRW: SnakePickle.ReadWriter[IncompleteDetails] = SnakePickle.macroRW
-  implicit val responsesResponseBodyRW: SnakePickle.ReadWriter[ResponsesResponseBody] = SnakePickle.macroRW
+  implicit val promptConfigRW: SnakePickle.Reader[PromptConfig] = SnakePickle.macroR
+  implicit val reasoningConfigRW: SnakePickle.Reader[ReasoningConfig] = SnakePickle.macroR
+  implicit val textConfigRW: SnakePickle.Reader[TextConfig] = SnakePickle.macroR
+  implicit val errorObjectRW: SnakePickle.Reader[ErrorObject] = SnakePickle.macroR
+  implicit val incompleteDetailsRW: SnakePickle.Reader[IncompleteDetails] = SnakePickle.macroR
+  implicit val responsesResponseBodyRW: SnakePickle.Reader[ResponsesResponseBody] = SnakePickle.macroR
 }
