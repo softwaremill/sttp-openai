@@ -60,11 +60,11 @@ object SerializationHelpers {
       .writer[Value]
       .comap { t =>
         val baseJson = SnakePickle.writeJs(t)
-        // Filter out any $type fields and null values (from None options)
+        // Filter out tagName from nested case class
         val cleanedJson = baseJson match {
           case obj: Obj =>
             val filtered = obj.obj.filterNot { case (key, value) =>
-              key.startsWith("$") || value == ujson.Null
+              key == SnakePickle.tagName
             }
             Obj.from(filtered)
           case other => other

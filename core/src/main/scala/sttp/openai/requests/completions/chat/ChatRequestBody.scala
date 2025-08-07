@@ -14,6 +14,7 @@ object ChatRequestBody {
   object ResponseFormat {
     case object Text extends ResponseFormat
     case object JsonObject extends ResponseFormat
+    @upickle.implicits.key("json_schema")
     case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends ResponseFormat
 
     implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW

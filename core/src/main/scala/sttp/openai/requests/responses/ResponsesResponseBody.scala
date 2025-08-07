@@ -73,7 +73,7 @@ import ujson.Value
   *   What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like
   *   0.2 will make it more focused and deterministic. We generally recommend altering this or top_p but not both.
   * @param text
-  *   Configuration options for a text response from the model. Can be plain text or structured JSON data.
+  *   ConfiguratJsonSchemaSpecion options for a text response from the model. Can be plain text or structured JSON data.
   * @param toolChoice
   *   How the model should select which tool (or tools) to use when generating a response. See the tools parameter to see how to specify
   *   which tools the model can call.

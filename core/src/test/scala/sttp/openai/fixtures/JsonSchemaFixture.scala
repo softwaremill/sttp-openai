@@ -6,12 +6,12 @@ object JsonSchemaFixture {
     """{
       |  "type": "json_schema",
       |  "json_schema": {
-      |    "name": "testString",
-      |    "strict": true,
-      |    "description": "description",
       |    "schema": {
       |      "type": "string"
-      |    }
+      |    },
+      |    "name": "testString",
+      |    "strict": true,
+      |    "description": "description"
       |  }
       |}""".stripMargin
 
@@ -22,7 +22,9 @@ object JsonSchemaFixture {
       |    "name": "testString",
       |    "schema": {
       |      "type": "string"
-      |    }
+      |    },
+      |    "description": null,
+      |    "strict": null
       |  }
       |}""".stripMargin
 
@@ -34,7 +36,8 @@ object JsonSchemaFixture {
       |    "strict": true,
       |    "schema": {
       |      "type": "number"
-      |    }
+      |    },
+      |    "description": null
       |  }
       |}""".stripMargin
 
@@ -43,6 +46,7 @@ object JsonSchemaFixture {
       |  "type": "json_schema",
       |  "json_schema": {
       |    "name": "testObject",
+      |    "description": null,
       |    "strict": true,
       |    "schema": {
       |      "additionalProperties": false,
@@ -68,6 +72,7 @@ object JsonSchemaFixture {
       |  "type": "json_schema",
       |  "json_schema": {
       |    "name": "testArray",
+      |    "description": null,
       |    "strict": true,
       |    "schema": {
       |      "type": "array",
