@@ -5,7 +5,7 @@ import ujson._
 /** An object that transforms all snake_case keys into camelCase [[https://com-lihaoyi.github.io/upickle/#CustomConfiguration]] */
 object SnakePickle extends upickle.AttributeTagged {
 
-  override def tagName: String = "type"
+  override def tagName: String = "$type"
 
   private def camelToSnake(s: String): String =
     s.replaceAll("([A-Z])", "#$1").split('#').map(_.toLowerCase).mkString("_")
@@ -116,7 +116,7 @@ object SerializationHelpers {
         val cleanedJson = baseJson match {
           case obj: Obj =>
             val filtered = obj.obj.filterNot { case (key, value) =>
-              key.startsWith("$") || value == ujson.Null
+              key == Str(SnakePickle.tagName) || value == ujson.Null
             }
             // Add the discriminator field to the filtered object
             Obj.from(filtered ++ Map(discriminatorField.value -> Str(discriminatorValue)))
@@ -127,13 +127,19 @@ object SerializationHelpers {
         cleanedJson
       }
 
-  def withFlattenedDiscriminatorReader[T](discriminatorField: DiscriminatorField, discriminatorValue: String)(implicit
-      baseR: SnakePickle.Reader[T]
+  def withFlattenedDiscriminatorReader[T](discriminatorField: DiscriminatorField, baseR: SnakePickle.Reader[T])(implicit
+      classTag: scala.reflect.ClassTag[T]
   ): SnakePickle.Reader[T] =
     SnakePickle
       .reader[Value]
       .map { json =>
-        val jsonWithType = json.obj.addOne(discriminatorField.value -> Str("_" + discriminatorValue))
+        val className = classTag.runtimeClass.getSimpleName
+        // This is a workaround for AttributeTagged Reader limitations.
+        // While upickle supports different discriminator fields for different types,
+        // it defaults to using the class name as the discriminator value with no built-in way to customize it.
+        // Our approach uses a custom discriminator field alongside upickle's internal one.
+        // The read value can be ignored as validation happens at the sealed trait Reader level.
+        val jsonWithType = json.obj.addOne(SnakePickle.tagName -> Str(className))
         SnakePickle.read[T](Obj(jsonWithType))(baseR)
       }
 

@@ -6,6 +6,8 @@ import sttp.openai.json.SerializationHelpers.DiscriminatorField
 import sttp.openai.json.SnakePickle
 import ujson._
 
+import scala.reflect.ClassTag
+
 class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
 
   sealed trait Core
@@ -42,7 +44,7 @@ class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
       "optional_field" -> Str("optional")
     )
     val discriminatorField = DiscriminatorField("type")
-    implicit val flattenedRW: SnakePickle.Reader[TestObject] = SerializationHelpers.withFlattenedDiscriminatorReader[TestObject](discriminatorField, "test_object")(SnakePickle.macroRW)
+    implicit val flattenedRW: SnakePickle.Reader[TestObject] = SerializationHelpers.withFlattenedDiscriminatorReader[TestObject](discriminatorField, SnakePickle.macroRW)
 
     //when
     val deserializedObj = SnakePickle.read[TestObject](inputJson)
