@@ -11,7 +11,13 @@ import sttp.openai.requests.completions.chat.message.ToolResources
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.ToolOutput
-import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, MessageCreation, RunStepData, Usage}
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{
+  ListRunStepsResponse,
+  ListRunsResponse,
+  MessageCreation,
+  RunStepData,
+  Usage
+}
 import sttp.openai.utils.JsonUtils
 import ujson.{Arr, Obj, Str}
 
@@ -34,7 +40,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given create thread run response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
-      import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
+    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
 
     // given
     val jsonResponse = fixtures.ThreadRunsFixture.jsonCreateRunResponse
@@ -86,7 +92,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given create thread and run response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
-      import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
+    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
 
     // given
     val jsonResponse = fixtures.ThreadRunsFixture.jsonCreateThreadAndRunResponse
@@ -120,7 +126,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given list runs response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.runs.ThreadRunsResponseData.ListRunsResponse._
-      import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
+    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
 
     // given
     val jsonResponse = fixtures.ThreadRunsFixture.jsonListRunsResponse
@@ -236,7 +242,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given retrieve run response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
-      import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
+    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
 
     // given
     val jsonResponse = fixtures.ThreadRunsFixture.jsonRetrieveRunResponse
@@ -271,7 +277,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given retrieve run step response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunStepData
-      import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunStepData._
+    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunStepData._
 
     // given
     val jsonResponse = fixtures.ThreadRunsFixture.jsonRetrieveRunStepResponse
@@ -318,7 +324,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given modify run response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
-      import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
+    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
 
     // given
     val jsonResponse = fixtures.ThreadRunsFixture.jsonModifyRunResponse
@@ -373,7 +379,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given submit tool outputs to run response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
-      import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
+    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
 
     // given
     val jsonResponse = fixtures.ThreadRunsFixture.jsonSubmitToolOutputsResponse
@@ -427,7 +433,7 @@ class ThreadRunsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given cancel run response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData
-      import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
+    import sttp.openai.requests.threads.runs.ThreadRunsResponseData.RunData._
 
     // given
     val jsonResponse = fixtures.ThreadRunsFixture.jsonCancelRunResponse
