@@ -385,4 +385,45 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     codeCall.outputs shouldBe defined
   }
 
+  "Given responses request with computer tool call wait action" should "be properly serialized to Json" in {
+    import ResponsesRequestBody._
+    import Input._
+    import ComputerToolCall._
+
+    // given
+    val waitAction = Action.Wait()
+    val computerToolCall = ComputerToolCall(
+      action = waitAction,
+      callId = "call_wait_123",
+      id = "computer_call_wait_456",
+      pendingSafetyChecks = List.empty
+    )
+
+    val givenRequest = ResponsesRequestBody(
+      model = Some("gpt-4o"),
+      input = Some(Right(List(computerToolCall)))
+    )
+
+    val expectedJson = ujson.Obj(
+      "model" -> ujson.Str("gpt-4o"),
+      "input" -> ujson.Arr(
+        ujson.Obj(
+          "type" -> ujson.Str("computer_call"),
+          "action" -> ujson.Obj(
+            "type" -> ujson.Str("wait")
+          ),
+          "call_id" -> ujson.Str("call_wait_123"),
+          "id" -> ujson.Str("computer_call_wait_456"),
+          "pending_safety_checks" -> ujson.Arr()
+        )
+      )
+    )
+
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+
+    // then
+    serializedJson shouldBe expectedJson
+  }
+
 }

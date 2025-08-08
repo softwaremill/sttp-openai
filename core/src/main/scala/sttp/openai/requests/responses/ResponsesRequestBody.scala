@@ -206,13 +206,68 @@ object ResponsesRequestBody {
 
     object ComputerToolCall {
       case class PendingSafetyCheck(code: String, id: String, message: String, status: String)
+      sealed trait Action
+      object Action {
+        @upickle.implicits.key("click")
+        case class Click(button: String, x: Int, y: Int) extends Action
+
+        @upickle.implicits.key("double_click")
+        case class DoubleClick(x: Int, y: Int) extends Action
+
+        @upickle.implicits.key("drag")
+        case class Drag(path: List[Map[String, Int]]) extends Action
+
+        @upickle.implicits.key("keypress")
+        case class KeyPress(keys: List[String]) extends Action
+
+        @upickle.implicits.key("move")
+        case class Move(x: Int, y: Int) extends Action
+
+        @upickle.implicits.key("screenshot")
+        case class Screenshot() extends Action
+
+        @upickle.implicits.key("scroll")
+        case class Scroll(scrollX: Int, scrollY: Int, x: Int, y: Int) extends Action
+
+        @upickle.implicits.key("type")
+        case class Type(text: String) extends Action
+
+        @upickle.implicits.key("wait")
+        case class Wait() extends Action
+
+        implicit val clickW: SnakePickle.Writer[Click] = SnakePickle.macroW
+        implicit val doubleClickW: SnakePickle.Writer[DoubleClick] = SnakePickle.macroW
+        implicit val dragW: SnakePickle.Writer[Drag] = SnakePickle.macroW
+        implicit val keyPressW: SnakePickle.Writer[KeyPress] = SnakePickle.macroW
+        implicit val moveW: SnakePickle.Writer[Move] = SnakePickle.macroW
+        implicit val screenshotW: SnakePickle.Writer[Screenshot] = SnakePickle.macroW
+        implicit val scrollW: SnakePickle.Writer[Scroll] = SnakePickle.macroW
+        implicit val typeW: SnakePickle.Writer[Type] = SnakePickle.macroW
+        implicit val waitW: SnakePickle.Writer[Wait] = SnakePickle.macroW
+
+        implicit val actionW: SnakePickle.Writer[Action] = SnakePickle.writer[Value].comap {
+          case click: Click             => SnakePickle.writeJs(click)
+          case doubleClick: DoubleClick => SnakePickle.writeJs(doubleClick)
+          case drag: Drag               => SnakePickle.writeJs(drag)
+          case keyPress: KeyPress       => SnakePickle.writeJs(keyPress)
+          case move: Move               => SnakePickle.writeJs(move)
+          case screenshot: Screenshot   => SnakePickle.writeJs(screenshot)
+          case scroll: Scroll           => SnakePickle.writeJs(scroll)
+          case typeAction: Type         => SnakePickle.writeJs(typeAction)
+          case wait: Wait               => SnakePickle.writeJs(wait)
+        }
+      }
 
       implicit val pendingSafetyCheckW: SnakePickle.Writer[PendingSafetyCheck] = SnakePickle.macroW
     }
 
     @upickle.implicits.key("computer_call")
-    case class ComputerToolCall(action: Value, callId: String, id: String, pendingSafetyChecks: List[ComputerToolCall.PendingSafetyCheck])
-        extends Input
+    case class ComputerToolCall(
+        action: ComputerToolCall.Action,
+        callId: String,
+        id: String,
+        pendingSafetyChecks: List[ComputerToolCall.PendingSafetyCheck]
+    ) extends Input
 
     object ComputerToolCallOutput {
       case class ComputerScreenshot(fileId: Option[String] = None, imageUrl: Option[String] = None)
