@@ -116,7 +116,7 @@ object ResponsesFixture {
       |        {
       |          "file_id": "file-abc123",
       |          "filename": "ml_algorithms.pdf",
-      |          "content": "Neural networks are a subset of machine learning..."
+      |          "text": "Neural networks are a subset of machine learning..."
       |        }
       |      ]
       |    }

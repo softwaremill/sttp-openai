@@ -406,7 +406,7 @@ object ResponsesRequestBody {
       implicit private val schemaW: SnakePickle.Writer[Schema] = SchemaSupport.schemaRW
 
       case class Tool(inputSchema: Schema, name: String, annotations: Option[ujson.Value] = None, description: Option[String] = None)
-      
+
       implicit val toolW: SnakePickle.Writer[Tool] = SnakePickle.macroW
     }
 
