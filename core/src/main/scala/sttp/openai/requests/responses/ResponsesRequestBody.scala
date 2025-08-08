@@ -402,8 +402,16 @@ object ResponsesRequestBody {
     @upickle.implicits.key("local_shell_call_output")
     case class LocalShellCallOutput(id: String, output: String, status: Option[String] = None) extends Input
 
+    object McpListTools {
+      implicit private val schemaW: SnakePickle.Writer[Schema] = SchemaSupport.schemaRW
+
+      case class Tool(inputSchema: Schema, name: String, annotations: Option[ujson.Value] = None, description: Option[String] = None)
+      
+      implicit val toolW: SnakePickle.Writer[Tool] = SnakePickle.macroW
+    }
+
     @upickle.implicits.key("mcp_list_tools")
-    case class McpListTools(id: String, serverLabel: String, tools: List[Value], error: Option[String] = None) extends Input
+    case class McpListTools(id: String, serverLabel: String, tools: List[McpListTools.Tool], error: Option[String] = None) extends Input
 
     @upickle.implicits.key("mcp_approval_request")
     case class McpApprovalRequest(arguments: String, id: String, name: String, serverLabel: String) extends Input
