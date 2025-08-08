@@ -195,37 +195,92 @@ object ResponsesResponseBody {
         @upickle.implicits.key("find")
         case class Find(pattern: String, url: String) extends Action
 
-        implicit val searchRW: SnakePickle.ReadWriter[Search] = SnakePickle.macroRW
-        implicit val openPageRW: SnakePickle.ReadWriter[OpenPage] = SnakePickle.macroRW
-        implicit val findRW: SnakePickle.ReadWriter[Find] = SnakePickle.macroRW
+        implicit val searchR: SnakePickle.Reader[Search] = SnakePickle.macroR
+        implicit val openPageR: SnakePickle.Reader[OpenPage] = SnakePickle.macroR
+        implicit val findR: SnakePickle.Reader[Find] = SnakePickle.macroR
 
-        implicit val actionRW: SnakePickle.ReadWriter[Action] = SnakePickle
-          .readwriter[Value]
-          .bimap(
-            {
-              case search: Search     => SnakePickle.writeJs(search)
-              case openPage: OpenPage => SnakePickle.writeJs(openPage)
-              case find: Find         => SnakePickle.writeJs(find)
-            },
-            json => {
-              val typeField = json.obj.get("type").map(_.str)
-              typeField match {
-                case Some("search")    => SnakePickle.read[Search](json)
-                case Some("open_page") => SnakePickle.read[OpenPage](json)
-                case Some("find")      => SnakePickle.read[Find](json)
-                case _                 => throw new IllegalArgumentException(s"Unknown action type: $typeField")
-              }
-            }
-          )
+        implicit val actionR: SnakePickle.Reader[Action] = SnakePickle.reader[Value].map { json =>
+          val typeField = json.obj.get("type").map(_.str)
+          typeField match {
+            case Some("search")    => SnakePickle.read[Search](json)
+            case Some("open_page") => SnakePickle.read[OpenPage](json)
+            case Some("find")      => SnakePickle.read[Find](json)
+            case _                 => throw new IllegalArgumentException(s"Unknown action type: $typeField")
+          }
+        }
       }
     }
 
     @upickle.implicits.key("web_search_call")
     case class WebSearchToolCall(action: WebSearchToolCall.Action, id: String, status: String) extends OutputItem
 
+    object ComputerToolCall {
+      sealed trait Action
+
+      object Action {
+        @upickle.implicits.key("click")
+        case class Click(button: String, x: Int, y: Int) extends Action
+
+        @upickle.implicits.key("double_click")
+        case class DoubleClick(x: Int, y: Int) extends Action
+
+        @upickle.implicits.key("drag")
+        case class Drag(path: List[Map[String, Int]]) extends Action
+
+        @upickle.implicits.key("keypress")
+        case class KeyPress(keys: List[String]) extends Action
+
+        @upickle.implicits.key("move")
+        case class Move(x: Int, y: Int) extends Action
+
+        @upickle.implicits.key("screenshot")
+        case class Screenshot() extends Action
+
+        @upickle.implicits.key("scroll")
+        case class Scroll(scrollX: Int, scrollY: Int, x: Int, y: Int) extends Action
+
+        @upickle.implicits.key("type")
+        case class Type(text: String) extends Action
+
+        @upickle.implicits.key("wait")
+        case class Wait() extends Action
+
+        implicit val clickR: SnakePickle.Reader[Click] = SnakePickle.macroR
+        implicit val doubleClickR: SnakePickle.Reader[DoubleClick] = SnakePickle.macroR
+        implicit val dragR: SnakePickle.Reader[Drag] = SnakePickle.macroR
+        implicit val keyPressR: SnakePickle.Reader[KeyPress] = SnakePickle.macroR
+        implicit val moveR: SnakePickle.Reader[Move] = SnakePickle.macroR
+        implicit val screenshotR: SnakePickle.Reader[Screenshot] = SnakePickle.macroR
+        implicit val scrollR: SnakePickle.Reader[Scroll] = SnakePickle.macroR
+        implicit val typeR: SnakePickle.Reader[Type] = SnakePickle.macroR
+        implicit val waitR: SnakePickle.Reader[Wait] = SnakePickle.macroR
+
+        implicit val actionR: SnakePickle.Reader[Action] = SnakePickle.reader[Value].map { json =>
+          val typeField = json.obj.get("type").map(_.str)
+          typeField match {
+            case Some("click")        => SnakePickle.read[Click](json)
+            case Some("double_click") => SnakePickle.read[DoubleClick](json)
+            case Some("drag")         => SnakePickle.read[Drag](json)
+            case Some("keypress")     => SnakePickle.read[KeyPress](json)
+            case Some("move")         => SnakePickle.read[Move](json)
+            case Some("screenshot")   => SnakePickle.read[Screenshot](json)
+            case Some("scroll")       => SnakePickle.read[Scroll](json)
+            case Some("type")         => SnakePickle.read[Type](json)
+            case Some("wait")         => SnakePickle.read[Wait](json)
+            case _                    => throw new IllegalArgumentException(s"Unknown action type: $typeField")
+          }
+        }
+      }
+    }
+
     @upickle.implicits.key("computer_call")
-    case class ComputerToolCall(action: Value, callId: String, id: String, pendingSafetyChecks: List[PendingSafetyCheck], status: String)
-        extends OutputItem
+    case class ComputerToolCall(
+        action: ComputerToolCall.Action,
+        callId: String,
+        id: String,
+        pendingSafetyChecks: List[PendingSafetyCheck],
+        status: String
+    ) extends OutputItem
 
     @upickle.implicits.key("reasoning")
     case class Reasoning(id: String, summary: List[SummaryText], encryptedContent: Option[String] = None, status: Option[String] = None)
@@ -257,11 +312,11 @@ object ResponsesResponseBody {
     ) extends OutputItem
 
     object McpListTools {
-      implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
+      implicit private val schemaR: SnakePickle.Reader[Schema] = SchemaSupport.schemaRW
 
       case class Tool(inputSchema: Schema, name: String, annotations: Option[ujson.Value] = None, description: Option[String] = None)
 
-      implicit val toolRW: SnakePickle.ReadWriter[Tool] = SnakePickle.macroRW
+      implicit val toolR: SnakePickle.Reader[Tool] = SnakePickle.macroR
     }
 
     @upickle.implicits.key("mcp_list_tools")
