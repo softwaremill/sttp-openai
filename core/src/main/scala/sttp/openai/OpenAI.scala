@@ -35,7 +35,7 @@ import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
-import sttp.openai.requests.responses.{DeleteModelResponseResponse, GetResponseQueryParameters, ResponsesRequestBody, ResponsesResponseBody}
+import sttp.openai.requests.responses.{DeleteModelResponseResponse, GetResponseQueryParameters, InputItemsListResponseBody, ListInputItemsQueryParameters, ResponsesRequestBody, ResponsesResponseBody}
 import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
@@ -479,6 +479,31 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .post(openAIUris.cancelResponse(responseId))
       .response(asJson_parseErrors[ResponsesResponseBody])
+
+  /** Returns a list of input items for a given response.
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/input-items]]
+    *
+    * @param responseId
+    *   The ID of the response to retrieve input items for.
+    * @param queryParameters
+    *   Query parameters for pagination and filtering.
+    *
+    * @return
+    *   A list of input items for the response.
+    */
+  def listResponsesInputItems(
+      responseId: String,
+      queryParameters: ListInputItemsQueryParameters = ListInputItemsQueryParameters.empty
+  ): Request[Either[OpenAIException, InputItemsListResponseBody]] = {
+    val uri = openAIUris
+      .responseInputItems(responseId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[InputItemsListResponseBody])
+  }
 
   /** Returns a list of files that belong to the user's organization.
     *
@@ -1641,6 +1666,7 @@ private class OpenAIUris(val baseUri: Uri) {
 
   def response(responseId: String): Uri = Responses.addPath(responseId)
   def cancelResponse(responseId: String): Uri = response(responseId).addPath("cancel")
+  def responseInputItems(responseId: String): Uri = response(responseId).addPath("input_items")
 
   def thread(threadId: String): Uri = Threads.addPath(threadId)
   def threadMessages(threadId: String): Uri = Threads.addPath(threadId).addPath("messages")
