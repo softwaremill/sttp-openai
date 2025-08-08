@@ -1,10 +1,10 @@
 package sttp.openai.requests.responses
 
 import sttp.apispec.Schema
-import sttp.openai.json.{SerializationHelpers, SnakePickle}
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
-import ujson.Value
+import ujson.{Arr, Str, Value}
 
 /** @param background
   *   Whether to run the model response in the background. Learn more.
@@ -199,11 +199,7 @@ object ResponsesResponseBody {
         implicit val openPageR: SnakePickle.Reader[OpenPage] = SnakePickle.macroR
         implicit val findR: SnakePickle.Reader[Find] = SnakePickle.macroR
 
-        implicit val actionR: SnakePickle.Reader[Action] = SerializationHelpers.readerByType {
-          case "search"    => json => SnakePickle.read[Search](json)
-          case "open_page" => json => SnakePickle.read[OpenPage](json)
-          case "find"      => json => SnakePickle.read[Find](json)
-        }
+        implicit val actionR: SnakePickle.Reader[Action] = SnakePickle.macroR
       }
     }
 
@@ -251,17 +247,7 @@ object ResponsesResponseBody {
         implicit val typeR: SnakePickle.Reader[Type] = SnakePickle.macroR
         implicit val waitR: SnakePickle.Reader[Wait] = SnakePickle.macroR
 
-        implicit val actionR: SnakePickle.Reader[Action] = SerializationHelpers.readerByType {
-          case "click"        => json => SnakePickle.read[Click](json)
-          case "double_click" => json => SnakePickle.read[DoubleClick](json)
-          case "drag"         => json => SnakePickle.read[Drag](json)
-          case "keypress"     => json => SnakePickle.read[KeyPress](json)
-          case "move"         => json => SnakePickle.read[Move](json)
-          case "screenshot"   => json => SnakePickle.read[Screenshot](json)
-          case "scroll"       => json => SnakePickle.read[Scroll](json)
-          case "type"         => json => SnakePickle.read[Type](json)
-          case "wait"         => json => SnakePickle.read[Wait](json)
-        }
+        implicit val actionR: SnakePickle.Reader[Action] = SnakePickle.macroR
       }
     }
 
@@ -306,7 +292,7 @@ object ResponsesResponseBody {
     object McpListTools {
       implicit private val schemaR: SnakePickle.Reader[Schema] = SchemaSupport.schemaRW
 
-      case class Tool(inputSchema: Schema, name: String, annotations: Option[ujson.Value] = None, description: Option[String] = None)
+      case class Tool(inputSchema: Schema, name: String, annotations: Option[Value] = None, description: Option[String] = None)
 
       implicit val toolR: SnakePickle.Reader[Tool] = SnakePickle.macroR
     }
@@ -414,14 +400,16 @@ object ResponsesResponseBody {
       *
       * The type of response format being defined. Always text.
       */
-    case object Text extends Format
+    @upickle.implicits.key("text")
+    case class Text() extends Format
 
     /** JSON object response format. An older method of generating JSON responses. Using json_schema is recommended for models that support
       * it. Note that the model will not generate JSON without a system or user message instructing it to do so.
       *
       * The type of response format being defined. Always json_object.
       */
-    case object JsonObject extends Format
+    @upickle.implicits.key("json_object")
+    case class JsonObject() extends Format
 
     /** JSON Schema response format. Used to generate structured JSON responses. Learn more about Structured Outputs.
       *
@@ -442,17 +430,10 @@ object ResponsesResponseBody {
     implicit val schemaR: SnakePickle.Reader[Schema] = SchemaSupport.schemaRW
 
     implicit val jsonSchemaR: SnakePickle.Reader[JsonSchema] = SnakePickle.macroR
+    implicit val jsonObjectR: SnakePickle.Reader[JsonObject] = SnakePickle.macroR
+    implicit val textR: SnakePickle.Reader[Text] = SnakePickle.macroR
 
-    implicit val formatR: SnakePickle.Reader[Format] = SnakePickle
-      .reader[ujson.Value]
-      .map(json =>
-        json.obj.get("type").map(_.str) match {
-          case Some("text")        => Text
-          case Some("json_object") => JsonObject
-          case Some("json_schema") => SnakePickle.read[JsonSchema](json)
-          case other               => throw new RuntimeException(s"Unknown format type: $other")
-        }
-      )
+    implicit val formatR: SnakePickle.Reader[Format] = SnakePickle.macroR
   }
 
   /** @param format
@@ -504,10 +485,10 @@ object ResponsesResponseBody {
   implicit val usageR: SnakePickle.Reader[Usage] = SnakePickle.macroR
 
   implicit val instructionsR: SnakePickle.Reader[Either[String, List[String]]] = SnakePickle
-    .reader[ujson.Value]
+    .reader[Value]
     .map {
-      case ujson.Str(str) => Left(str)
-      case ujson.Arr(arr) => Right(arr.map(_.str).toList)
+              case Str(str) => Left(str)
+        case Arr(arr) => Right(arr.map(_.str).toList)
       case json           => throw new RuntimeException(s"Expected string or array for instructions, got: $json")
     }
 
