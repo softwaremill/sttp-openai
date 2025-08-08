@@ -17,7 +17,12 @@ import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, DeleteChatCompletionResponse, ListChatResponse, ListMessageResponse}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
+  ChatResponse,
+  DeleteChatCompletionResponse,
+  ListChatResponse,
+  ListMessageResponse
+}
 import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
@@ -42,7 +47,11 @@ import sttp.openai.requests.upload.{CompleteUploadRequestBody, UploadPartRespons
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, ListVectorStoreFilesResponse, VectorStoreFile}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
+  DeleteVectorStoreFileResponse,
+  ListVectorStoreFilesResponse,
+  VectorStoreFile
+}
 import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.{File, InputStream}
@@ -453,6 +462,23 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .delete(openAIUris.response(responseId))
       .response(asJson_parseErrors[DeleteModelResponseResponse])
+
+  /** Cancels a model response with the given ID.
+    *
+    * Only responses created with the background parameter set to true can be cancelled
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/cancel]]
+    *
+    * @param responseId
+    *   The ID of the Upload.
+    *
+    * @return
+    *   The Upload object with status cancelled.
+    */
+  def cancelResponse(responseId: String): Request[Either[OpenAIException, ResponsesResponseBody]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelResponse(responseId))
+      .response(asJson_parseErrors[ResponsesResponseBody])
 
   /** Returns a list of files that belong to the user's organization.
     *
