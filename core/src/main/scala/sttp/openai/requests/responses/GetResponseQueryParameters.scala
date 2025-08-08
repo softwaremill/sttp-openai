@@ -1,7 +1,5 @@
 package sttp.openai.requests.responses
 
-import sttp.openai.json.SnakePickle
-
 /** @param include
   *   Additional fields to include in the response. See the include parameter for Response creation for more information.
   * @param includeObfuscation
@@ -15,10 +13,10 @@ import sttp.openai.json.SnakePickle
   *   If set to true, the model response data will be streamed to the client as it is generated using server-sent events.
   */
 case class GetResponseQueryParameters(
-  include: Option[List[String]] = None,
-  includeObfuscation: Option[Boolean] = None,
-  startingAfter: Option[Int] = None,
-  stream: Option[Boolean] = None
+    include: Option[List[String]] = None,
+    includeObfuscation: Option[Boolean] = None,
+    startingAfter: Option[Int] = None,
+    stream: Option[Boolean] = None
 ) {
   def toMap: Map[String, String] = {
     val queryParams = include.map(list => "include" -> list.mkString(",")) ++
@@ -30,6 +28,5 @@ case class GetResponseQueryParameters(
 }
 
 object GetResponseQueryParameters {
-  
   val empty: GetResponseQueryParameters = GetResponseQueryParameters(None, None, None, None)
 }

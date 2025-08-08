@@ -8,13 +8,7 @@ import sttp.openai.fixtures.ResponsesFixture
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
 import sttp.openai.requests.responses.ResponsesRequestBody.Format.JsonSchema
-import sttp.openai.requests.responses.ResponsesRequestBody.{
-  Format => RequestFormat,
-  PromptConfig => RequestPromptConfig,
-  ReasoningConfig => RequestReasoningConfig,
-  TextConfig => RequestTextConfig,
-  _
-}
+import sttp.openai.requests.responses.ResponsesRequestBody.{Format => RequestFormat, PromptConfig => RequestPromptConfig, ReasoningConfig => RequestReasoningConfig, TextConfig => RequestTextConfig, _}
 import sttp.openai.requests.responses.ResponsesResponseBody._
 import ujson.{Obj, Str}
 
@@ -136,8 +130,8 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with input message containing text and image" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
-    import InputContentItem._
+      import Input._
+      import InputContentItem._
 
     // given
     val givenRequest = ResponsesRequestBody(
@@ -173,8 +167,8 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with input message containing text and file" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
-    import InputContentItem._
+      import Input._
+      import InputContentItem._
 
     // given
     val givenRequest = ResponsesRequestBody(
@@ -209,7 +203,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with file search tool call" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
+      import Input._
 
     // given
     val givenRequest = ResponsesRequestBody(
@@ -245,7 +239,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with file search tool call in progress" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
+      import Input._
 
     // given
     val givenRequest = ResponsesRequestBody(
