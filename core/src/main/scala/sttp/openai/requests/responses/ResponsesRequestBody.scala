@@ -69,7 +69,7 @@ import ujson.Value
 case class ResponsesRequestBody(
     background: Option[Boolean] = None,
     include: Option[List[String]] = None,
-    input: Option[Either[Input.Text, List[Input]]] = None,
+    input: Option[Either[String, List[Input]]] = None,
     instructions: Option[String] = None,
     maxOutputTokens: Option[Int] = None,
     maxToolCalls: Option[Int] = None,
@@ -195,8 +195,6 @@ object ResponsesRequestBody {
       }
     }
 
-    case class Text(text: String)
-
     @upickle.implicits.key("message")
     case class InputMessage(content: List[InputContentItem], role: String, status: Option[String]) extends Input
 
@@ -297,9 +295,7 @@ object ResponsesRequestBody {
     @upickle.implicits.key("item_reference")
     case class ItemReference(id: String) extends Input
 
-    implicit val textW: SnakePickle.Writer[Text] = SnakePickle.writer[Value].comap(t => ujson.Str(t.text))
-
-    implicit val textOrInputListW: SnakePickle.Writer[Either[Input.Text, List[Input]]] = SnakePickle.writer[Value].comap {
+    implicit val textOrInputListW: SnakePickle.Writer[Either[String, List[Input]]] = SnakePickle.writer[Value].comap {
       case Left(value)  => SnakePickle.writeJs(value)
       case Right(value) => SnakePickle.writeJs(value)
     }
