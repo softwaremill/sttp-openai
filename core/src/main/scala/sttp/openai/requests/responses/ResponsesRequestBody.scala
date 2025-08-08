@@ -384,8 +384,20 @@ object ResponsesRequestBody {
         status: String
     ) extends Input
 
+    object LocalShellCall {
+      case class Action(
+          command: List[String],
+          env: Map[String, String],
+          timeoutMs: Option[Int] = None,
+          user: Option[String] = None,
+          workingDirectory: Option[String] = None
+      )
+
+      implicit val actionW: SnakePickle.Writer[Action] = SnakePickle.macroW
+    }
+
     @upickle.implicits.key("local_shell_call")
-    case class LocalShellCall(action: Value, callId: String, id: String, status: String) extends Input
+    case class LocalShellCall(action: LocalShellCall.Action, callId: String, id: String, status: String) extends Input
 
     @upickle.implicits.key("local_shell_call_output")
     case class LocalShellCallOutput(id: String, output: String, status: Option[String] = None) extends Input
