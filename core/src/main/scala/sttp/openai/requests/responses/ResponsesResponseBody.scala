@@ -182,8 +182,46 @@ object ResponsesResponseBody {
     @upickle.implicits.key("function_call")
     case class FunctionToolCall(arguments: String, callId: String, name: String, id: String, status: String) extends OutputItem
 
+    object WebSearchToolCall {
+      sealed trait Action
+
+      object Action {
+        @upickle.implicits.key("search")
+        case class Search(query: String) extends Action
+
+        @upickle.implicits.key("open_page")
+        case class OpenPage(url: String) extends Action
+
+        @upickle.implicits.key("find")
+        case class Find(pattern: String, url: String) extends Action
+
+        implicit val searchRW: SnakePickle.ReadWriter[Search] = SnakePickle.macroRW
+        implicit val openPageRW: SnakePickle.ReadWriter[OpenPage] = SnakePickle.macroRW
+        implicit val findRW: SnakePickle.ReadWriter[Find] = SnakePickle.macroRW
+
+        implicit val actionRW: SnakePickle.ReadWriter[Action] = SnakePickle
+          .readwriter[Value]
+          .bimap(
+            {
+              case search: Search     => SnakePickle.writeJs(search)
+              case openPage: OpenPage => SnakePickle.writeJs(openPage)
+              case find: Find         => SnakePickle.writeJs(find)
+            },
+            json => {
+              val typeField = json.obj.get("type").map(_.str)
+              typeField match {
+                case Some("search")    => SnakePickle.read[Search](json)
+                case Some("open_page") => SnakePickle.read[OpenPage](json)
+                case Some("find")      => SnakePickle.read[Find](json)
+                case _                 => throw new IllegalArgumentException(s"Unknown action type: $typeField")
+              }
+            }
+          )
+      }
+    }
+
     @upickle.implicits.key("web_search_call")
-    case class WebSearchToolCall(action: Value, id: String, status: String) extends OutputItem
+    case class WebSearchToolCall(action: WebSearchToolCall.Action, id: String, status: String) extends OutputItem
 
     @upickle.implicits.key("computer_call")
     case class ComputerToolCall(action: Value, callId: String, id: String, pendingSafetyChecks: List[PendingSafetyCheck], status: String)
@@ -218,8 +256,17 @@ object ResponsesResponseBody {
         output: Option[String] = None
     ) extends OutputItem
 
+    object McpListTools {
+      implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
+
+      case class Tool(inputSchema: Schema, name: String, annotations: Option[ujson.Value] = None, description: Option[String] = None)
+
+      implicit val toolRW: SnakePickle.ReadWriter[Tool] = SnakePickle.macroRW
+    }
+
     @upickle.implicits.key("mcp_list_tools")
-    case class McpListTools(id: String, serverLabel: String, tools: List[Value], error: Option[String] = None) extends OutputItem
+    case class McpListTools(id: String, serverLabel: String, tools: List[McpListTools.Tool], error: Option[String] = None)
+        extends OutputItem
 
     @upickle.implicits.key("mcp_approval_request")
     case class McpApprovalRequest(arguments: String, id: String, name: String, serverLabel: String) extends OutputItem
