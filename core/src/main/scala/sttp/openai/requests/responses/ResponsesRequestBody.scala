@@ -452,9 +452,11 @@ object ResponsesRequestBody {
   sealed trait Format
 
   object Format {
-    case object Text extends Format
+    @upickle.implicits.key("text")
+    case class Text() extends Format
 
-    case object JsonObject extends Format
+    @upickle.implicits.key("json_object")
+    case class JsonObject() extends Format
 
     @upickle.implicits.key("json_schema")
     case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends Format
@@ -463,15 +465,11 @@ object ResponsesRequestBody {
 
     implicit val jsonSchemaW: SnakePickle.Writer[JsonSchema] = SnakePickle.macroW
 
-    implicit val textW: SnakePickle.Writer[Text.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter("text")
+    implicit val textW: SnakePickle.Writer[Text] = SnakePickle.macroW
 
-    implicit val jsonObjectW: SnakePickle.Writer[JsonObject.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter("json_object")
+    implicit val jsonObjectW: SnakePickle.Writer[JsonObject] = SnakePickle.macroW
 
-    implicit val formatW: SnakePickle.Writer[Format] = SnakePickle.writer[Value].comap {
-      case text: Text.type             => SnakePickle.writeJs(text)
-      case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
-      case jsonSchema: JsonSchema      => SnakePickle.writeJs(jsonSchema)
-    }
+    implicit val formatW: SnakePickle.Writer[Format] = SnakePickle.macroW
   }
   case class TextConfig(
       format: Option[Format] = None

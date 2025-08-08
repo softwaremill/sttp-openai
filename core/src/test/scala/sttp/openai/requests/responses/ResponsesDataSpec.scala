@@ -107,7 +107,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       model = Some("gpt-4o"),
       text = Some(
         RequestTextConfig(
-          format = Some(RequestFormat.Text)
+          format = Some(RequestFormat.Text())
         )
       )
     )
