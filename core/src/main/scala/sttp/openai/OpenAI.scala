@@ -1,6 +1,5 @@
 package sttp.openai
 
-import shapeless.syntax.std.product.productOps
 import sttp.capabilities.Streams
 import sttp.client4._
 import sttp.model.{Header, Uri}
@@ -18,12 +17,7 @@ import sttp.openai.requests.completions.CompletionsRequestBody.CompletionsBody
 import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse
 import sttp.openai.requests.completions.chat
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, UpdateChatCompletionRequestBody}
-import sttp.openai.requests.completions.chat.ChatRequestResponseData.{
-  ChatResponse,
-  DeleteChatCompletionResponse,
-  ListChatResponse,
-  ListMessageResponse
-}
+import sttp.openai.requests.completions.chat.ChatRequestResponseData.{ChatResponse, DeleteChatCompletionResponse, ListChatResponse, ListMessageResponse}
 import sttp.openai.requests.completions.chat.{ListMessagesQueryParameters => _}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.EmbeddingsBody
 import sttp.openai.requests.embeddings.EmbeddingsResponseBody.EmbeddingResponse
@@ -36,7 +30,7 @@ import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
-import sttp.openai.requests.responses.{GetResponseQueryParameters, ResponsesRequestBody, ResponsesResponseBody}
+import sttp.openai.requests.responses.{DeleteModelResponseResponse, GetResponseQueryParameters, ResponsesRequestBody, ResponsesResponseBody}
 import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
@@ -48,11 +42,7 @@ import sttp.openai.requests.upload.{CompleteUploadRequestBody, UploadPartRespons
 import sttp.openai.requests.vectorstore.VectorStoreRequestBody.{CreateVectorStoreBody, ModifyVectorStoreBody}
 import sttp.openai.requests.vectorstore.VectorStoreResponseData.{DeleteVectorStoreResponse, ListVectorStoresResponse, VectorStore}
 import sttp.openai.requests.vectorstore.file.VectorStoreFileRequestBody.{CreateVectorStoreFileBody, ListVectorStoreFilesBody}
-import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{
-  DeleteVectorStoreFileResponse,
-  ListVectorStoreFilesResponse,
-  VectorStoreFile
-}
+import sttp.openai.requests.vectorstore.file.VectorStoreFileResponseData.{DeleteVectorStoreFileResponse, ListVectorStoreFilesResponse, VectorStoreFile}
 import sttp.openai.requests.{admin, batch, finetuning}
 
 import java.io.{File, InputStream}
@@ -448,6 +438,21 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .get(uri)
       .response(asJson_parseErrors[ResponsesResponseBody])
   }
+
+  /** Deletes a model response with the given ID.
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/delete]]
+    *
+    * @param responseId
+    *   The ID of the chat completion to delete.
+    *
+    * @return
+    *   A deletion confirmation object.
+    */
+  def deleteModelResponse(responseId: String): Request[Either[OpenAIException, DeleteModelResponseResponse]] =
+    openAIAuthRequest
+      .delete(openAIUris.response(responseId))
+      .response(asJson_parseErrors[DeleteModelResponseResponse])
 
   /** Returns a list of files that belong to the user's organization.
     *
@@ -1609,6 +1614,7 @@ private class OpenAIUris(val baseUri: Uri) {
   def assistant(assistantId: String): Uri = Assistants.addPath(assistantId)
 
   def response(responseId: String): Uri = Responses.addPath(responseId)
+  def cancelResponse(responseId: String): Uri = response(responseId).addPath("cancel")
 
   def thread(threadId: String): Uri = Threads.addPath(threadId)
   def threadMessages(threadId: String): Uri = Threads.addPath(threadId).addPath("messages")

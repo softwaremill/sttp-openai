@@ -37,7 +37,7 @@ object SnakePickle extends upickle.AttributeTagged {
 object SerializationHelpers {
 
   /** Creates a ReadWriter for nested discriminator patterns where the object is wrapped in another object with a discriminator field
-    * pointing to the nested content.
+    * pointing to the nested content. Additionally, automatically added discriminator field is removed from the nested object.
     *
     * For example: {"type": "json_schema", "json_schema": {...actual object...}}
     *
