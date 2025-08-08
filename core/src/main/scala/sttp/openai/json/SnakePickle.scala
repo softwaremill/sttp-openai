@@ -75,4 +75,13 @@ object SerializationHelpers {
   def caseObjectWithDiscriminatorWriter[T](discriminatorValue: String): SnakePickle.Writer[T] =
     SnakePickle.writer[Value].comap(_ => Obj(SnakePickle.tagName -> Str(discriminatorValue)))
 
+  def readerByType[T](cases: PartialFunction[String, Value => T]): SnakePickle.Reader[T] =
+    SnakePickle.reader[Value].map { json =>
+      val typeField = json.obj.get(SnakePickle.tagName).map(_.str)
+      typeField match {
+        case Some(tpe) if cases.isDefinedAt(tpe) => cases(tpe)(json)
+        case _ => throw new IllegalArgumentException(s"Unknown ${SnakePickle.tagName} type: $typeField")
+      }
+    }
+
 }

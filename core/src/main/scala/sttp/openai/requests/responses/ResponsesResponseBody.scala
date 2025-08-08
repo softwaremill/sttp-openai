@@ -1,7 +1,7 @@
 package sttp.openai.requests.responses
 
 import sttp.apispec.Schema
-import sttp.openai.json.SnakePickle
+import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
 import ujson.Value
@@ -199,14 +199,10 @@ object ResponsesResponseBody {
         implicit val openPageR: SnakePickle.Reader[OpenPage] = SnakePickle.macroR
         implicit val findR: SnakePickle.Reader[Find] = SnakePickle.macroR
 
-        implicit val actionR: SnakePickle.Reader[Action] = SnakePickle.reader[Value].map { json =>
-          val typeField = json.obj.get("type").map(_.str)
-          typeField match {
-            case Some("search")    => SnakePickle.read[Search](json)
-            case Some("open_page") => SnakePickle.read[OpenPage](json)
-            case Some("find")      => SnakePickle.read[Find](json)
-            case _                 => throw new IllegalArgumentException(s"Unknown action type: $typeField")
-          }
+        implicit val actionR: SnakePickle.Reader[Action] = SerializationHelpers.readerByType {
+          case "search"    => json => SnakePickle.read[Search](json)
+          case "open_page" => json => SnakePickle.read[OpenPage](json)
+          case "find"      => json => SnakePickle.read[Find](json)
         }
       }
     }
@@ -255,20 +251,16 @@ object ResponsesResponseBody {
         implicit val typeR: SnakePickle.Reader[Type] = SnakePickle.macroR
         implicit val waitR: SnakePickle.Reader[Wait] = SnakePickle.macroR
 
-        implicit val actionR: SnakePickle.Reader[Action] = SnakePickle.reader[Value].map { json =>
-          val typeField = json.obj.get("type").map(_.str)
-          typeField match {
-            case Some("click")        => SnakePickle.read[Click](json)
-            case Some("double_click") => SnakePickle.read[DoubleClick](json)
-            case Some("drag")         => SnakePickle.read[Drag](json)
-            case Some("keypress")     => SnakePickle.read[KeyPress](json)
-            case Some("move")         => SnakePickle.read[Move](json)
-            case Some("screenshot")   => SnakePickle.read[Screenshot](json)
-            case Some("scroll")       => SnakePickle.read[Scroll](json)
-            case Some("type")         => SnakePickle.read[Type](json)
-            case Some("wait")         => SnakePickle.read[Wait](json)
-            case _                    => throw new IllegalArgumentException(s"Unknown action type: $typeField")
-          }
+        implicit val actionR: SnakePickle.Reader[Action] = SerializationHelpers.readerByType {
+          case "click"        => json => SnakePickle.read[Click](json)
+          case "double_click" => json => SnakePickle.read[DoubleClick](json)
+          case "drag"         => json => SnakePickle.read[Drag](json)
+          case "keypress"     => json => SnakePickle.read[KeyPress](json)
+          case "move"         => json => SnakePickle.read[Move](json)
+          case "screenshot"   => json => SnakePickle.read[Screenshot](json)
+          case "scroll"       => json => SnakePickle.read[Scroll](json)
+          case "type"         => json => SnakePickle.read[Type](json)
+          case "wait"         => json => SnakePickle.read[Wait](json)
         }
       }
     }

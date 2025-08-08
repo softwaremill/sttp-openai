@@ -127,11 +127,7 @@ object ResponsesRequestBody {
 
       implicit val inputFileW: SnakePickle.Writer[InputFile] = SnakePickle.macroW
 
-      implicit val inputContentItemW: SnakePickle.Writer[InputContentItem] = SnakePickle.writer[Value].comap {
-        case inputText: InputText   => SnakePickle.writeJs(inputText)
-        case inputImage: InputImage => SnakePickle.writeJs(inputImage)
-        case inputFile: InputFile   => SnakePickle.writeJs(inputFile)
-      }
+      implicit val inputContentItemW: SnakePickle.Writer[InputContentItem] = SnakePickle.macroW
     }
 
     sealed trait OutputContentItem
@@ -162,12 +158,7 @@ object ResponsesRequestBody {
 
           implicit val filePathW: SnakePickle.Writer[FilePath] = SnakePickle.macroW
 
-          implicit val annotationW: SnakePickle.Writer[Annotation] = SnakePickle.writer[Value].comap {
-            case fileCitation: FileCitation                   => SnakePickle.writeJs(fileCitation)
-            case urlCitation: UrlCitation                     => SnakePickle.writeJs(urlCitation)
-            case containerFileCitation: ContainerFileCitation => SnakePickle.writeJs(containerFileCitation)
-            case filePath: FilePath                           => SnakePickle.writeJs(filePath)
-          }
+          implicit val annotationW: SnakePickle.Writer[Annotation] = SnakePickle.macroW
         }
 
         case class TopLogProb(bytes: List[Byte], logprob: Double, token: String)
@@ -189,10 +180,7 @@ object ResponsesRequestBody {
 
       implicit val refusalW: SnakePickle.Writer[Refusal] = SnakePickle.macroW
 
-      implicit val outputContentItemW: SnakePickle.Writer[OutputContentItem] = SnakePickle.writer[Value].comap {
-        case outputText: OutputText => SnakePickle.writeJs(outputText)
-        case refusal: Refusal       => SnakePickle.writeJs(refusal)
-      }
+      implicit val outputContentItemW: SnakePickle.Writer[OutputContentItem] = SnakePickle.macroW
     }
 
     @upickle.implicits.key("message")
@@ -262,17 +250,7 @@ object ResponsesRequestBody {
         implicit val typeW: SnakePickle.Writer[Type] = SnakePickle.macroW
         implicit val waitW: SnakePickle.Writer[Wait] = SnakePickle.macroW
 
-        implicit val actionW: SnakePickle.Writer[Action] = SnakePickle.writer[Value].comap {
-          case click: Click             => SnakePickle.writeJs(click)
-          case doubleClick: DoubleClick => SnakePickle.writeJs(doubleClick)
-          case drag: Drag               => SnakePickle.writeJs(drag)
-          case keyPress: KeyPress       => SnakePickle.writeJs(keyPress)
-          case move: Move               => SnakePickle.writeJs(move)
-          case screenshot: Screenshot   => SnakePickle.writeJs(screenshot)
-          case scroll: Scroll           => SnakePickle.writeJs(scroll)
-          case typeAction: Type         => SnakePickle.writeJs(typeAction)
-          case wait: Wait               => SnakePickle.writeJs(wait)
-        }
+        implicit val actionW: SnakePickle.Writer[Action] = SnakePickle.macroW
       }
 
       implicit val pendingSafetyCheckW: SnakePickle.Writer[PendingSafetyCheck] = SnakePickle.macroW
@@ -320,11 +298,7 @@ object ResponsesRequestBody {
         implicit val openPageW: SnakePickle.Writer[OpenPage] = SnakePickle.macroW
         implicit val findW: SnakePickle.Writer[Find] = SnakePickle.macroW
 
-        implicit val actionW: SnakePickle.Writer[Action] = SnakePickle.writer[Value].comap {
-          case search: Search     => SnakePickle.writeJs(search)
-          case openPage: OpenPage => SnakePickle.writeJs(openPage)
-          case find: Find         => SnakePickle.writeJs(find)
-        }
+        implicit val actionW: SnakePickle.Writer[Action] = SnakePickle.macroW
       }
     }
 
@@ -368,10 +342,7 @@ object ResponsesRequestBody {
 
         implicit val logsW: SnakePickle.Writer[Logs] = SnakePickle.macroW
         implicit val imageW: SnakePickle.Writer[Image] = SnakePickle.macroW
-        implicit val outputW: SnakePickle.Writer[Output] = SnakePickle.writer[Value].comap {
-          case logs: Logs   => SnakePickle.writeJs(logs)
-          case image: Image => SnakePickle.writeJs(image)
-        }
+        implicit val outputW: SnakePickle.Writer[Output] = SnakePickle.macroW
       }
     }
 
@@ -474,26 +445,7 @@ object ResponsesRequestBody {
 
     implicit val itemReferenceW: SnakePickle.Writer[ItemReference] = SnakePickle.macroW
 
-    implicit val inputW: SnakePickle.Writer[Input] = SnakePickle.writer[Value].comap {
-      case inputMessage: InputMessage                       => SnakePickle.writeJs(inputMessage)
-      case outputMessage: OutputMessage                     => SnakePickle.writeJs(outputMessage)
-      case fileSearchToolCall: FileSearchToolCall           => SnakePickle.writeJs(fileSearchToolCall)
-      case computerToolCall: ComputerToolCall               => SnakePickle.writeJs(computerToolCall)
-      case computerToolCallOutput: ComputerToolCallOutput   => SnakePickle.writeJs(computerToolCallOutput)
-      case webSearchToolCall: WebSearchToolCall             => SnakePickle.writeJs(webSearchToolCall)
-      case functionToolCall: FunctionToolCall               => SnakePickle.writeJs(functionToolCall)
-      case functionToolCallOutput: FunctionToolCallOutput   => SnakePickle.writeJs(functionToolCallOutput)
-      case reasoning: Reasoning                             => SnakePickle.writeJs(reasoning)
-      case imageGenerationCall: ImageGenerationCall         => SnakePickle.writeJs(imageGenerationCall)
-      case codeInterpreterToolCall: CodeInterpreterToolCall => SnakePickle.writeJs(codeInterpreterToolCall)
-      case localShellCall: LocalShellCall                   => SnakePickle.writeJs(localShellCall)
-      case localShellCallOutput: LocalShellCallOutput       => SnakePickle.writeJs(localShellCallOutput)
-      case mcpListTools: McpListTools                       => SnakePickle.writeJs(mcpListTools)
-      case mcpApprovalRequest: McpApprovalRequest           => SnakePickle.writeJs(mcpApprovalRequest)
-      case mcpApprovalResponse: McpApprovalResponse         => SnakePickle.writeJs(mcpApprovalResponse)
-      case mcpToolCall: McpToolCall                         => SnakePickle.writeJs(mcpToolCall)
-      case itemReference: ItemReference                     => SnakePickle.writeJs(itemReference)
-    }
+    implicit val inputW: SnakePickle.Writer[Input] = SnakePickle.macroW
 
   }
 
