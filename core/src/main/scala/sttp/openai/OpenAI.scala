@@ -1,5 +1,6 @@
 package sttp.openai
 
+import shapeless.syntax.std.product.productOps
 import sttp.capabilities.Streams
 import sttp.client4._
 import sttp.model.{Header, Uri}
@@ -35,7 +36,7 @@ import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
-import sttp.openai.requests.responses.{ResponsesRequestBody, ResponsesResponseBody}
+import sttp.openai.requests.responses.{GetResponseQueryParameters, ResponsesRequestBody, ResponsesResponseBody}
 import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
@@ -406,11 +407,47 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
       .delete(openAIUris.chatCompletion(completionId))
       .response(asJson_parseErrors[DeleteChatCompletionResponse])
 
+  /** Creates a model response.
+    *
+    * Provide text or image inputs to generate text or JSON outputs. Have the model call your own custom code or use built-in tools like web
+    * search or file search to use your own data as input for the model's response.
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/create]]
+    *
+    * @param requestBody
+    *   Model response request body.
+    *
+    * @return
+    *   Returns a Response object.
+    */
   def createModelResponse(requestBody: ResponsesRequestBody): Request[Either[OpenAIException, ResponsesResponseBody]] =
     openAIAuthRequest
       .post(openAIUris.Responses)
       .body(asJson(requestBody))
       .response(asJson_parseErrors[ResponsesResponseBody])
+
+  /** Retrieves a model response with the given ID.
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/get]]
+    *
+    * @param responseId
+    *   The ID of the response to retrieve.
+    *
+    * @return
+    *   The Response object matching the specified ID.
+    */
+  def getModelResponse(
+      responseId: String,
+      queryParameters: GetResponseQueryParameters
+  ): Request[Either[OpenAIException, ResponsesResponseBody]] = {
+    val uri = openAIUris
+      .response(responseId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ResponsesResponseBody])
+  }
 
   /** Returns a list of files that belong to the user's organization.
     *
@@ -1570,6 +1607,8 @@ private class OpenAIUris(val baseUri: Uri) {
   def model(modelId: String): Uri = Models.addPath(modelId)
 
   def assistant(assistantId: String): Uri = Assistants.addPath(assistantId)
+
+  def response(responseId: String): Uri = Responses.addPath(responseId)
 
   def thread(threadId: String): Uri = Threads.addPath(threadId)
   def threadMessages(threadId: String): Uri = Threads.addPath(threadId).addPath("messages")

@@ -1,6 +1,15 @@
 package sttp.openai.fixtures
 
 object ResponsesFixture {
+
+  val jsonGetResponseQueryParameters: String =
+    """{
+      |  "include": ["code_interpreter_call.outputs", "message.output_text.logprobs"],
+      |  "include_obfuscation": false,
+      |  "starting_after": 42,
+      |  "stream": true
+      |}""".stripMargin
+
   val jsonRequest: String =
     """{
       |  "background": false,

@@ -20,6 +20,29 @@ import ujson.{Obj, Str}
 
 class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
+  "Given GetResponseQueryParameters with all fields" should "be properly converted to Map" in {
+    // given
+    val queryParams = GetResponseQueryParameters(
+      include = Some(List("code_interpreter_call.outputs", "message.output_text.logprobs")),
+      includeObfuscation = Some(false),
+      startingAfter = Some(42),
+      stream = Some(true)
+    )
+
+    val expectedMap = Map(
+      "include" -> "code_interpreter_call.outputs,message.output_text.logprobs",
+      "include_obfuscation" -> "false",
+      "starting_after" -> "42",
+      "stream" -> "true"
+    )
+
+    // when
+    val resultMap = queryParams.toMap
+
+    // then
+    resultMap shouldBe expectedMap
+  }
+
   "Given responses request as case class" should "be properly serialized to Json" in {
 
     // given
