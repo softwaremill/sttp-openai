@@ -201,8 +201,25 @@ object ResponsesRequestBody {
     @upickle.implicits.key("message")
     case class OutputMessage(content: List[OutputContentItem], id: String, role: String, status: String) extends Input
 
+    object FileSearchToolCall {
+      case class FileSearchResult(
+          attributes: Option[Map[String, String]] = None,
+          fileId: Option[String] = None,
+          filename: Option[String] = None,
+          score: Option[Double] = None,
+          text: Option[String] = None
+      )
+
+      implicit val fileSearchResultW: SnakePickle.Writer[FileSearchResult] = SnakePickle.macroW
+    }
+
     @upickle.implicits.key("file_search_call")
-    case class FileSearchToolCall(id: String, queries: List[String], status: String, results: Option[List[Value]] = None) extends Input
+    case class FileSearchToolCall(
+        id: String,
+        queries: List[String],
+        status: String,
+        results: Option[List[FileSearchToolCall.FileSearchResult]] = None
+    ) extends Input
 
     object ComputerToolCall {
       case class PendingSafetyCheck(code: String, id: String, message: String, status: String)
@@ -271,21 +288,48 @@ object ResponsesRequestBody {
 
     object ComputerToolCallOutput {
       case class ComputerScreenshot(fileId: Option[String] = None, imageUrl: Option[String] = None)
+      case class AcknowledgedSafetyCheck(id: String, message: Option[String] = None, code: Option[String] = None)
 
       implicit val computerScreenshotW: SnakePickle.Writer[ComputerScreenshot] = SnakePickle.macroW
+      implicit val acknowledgedSafetyCheckW: SnakePickle.Writer[AcknowledgedSafetyCheck] = SnakePickle.macroW
     }
 
     @upickle.implicits.key("computer_call_output")
     case class ComputerToolCallOutput(
         callId: String,
         output: ComputerToolCallOutput.ComputerScreenshot,
-        acknowledgedSafetyChecks: Option[List[Value]] = None,
+        acknowledgedSafetyChecks: Option[List[ComputerToolCallOutput.AcknowledgedSafetyCheck]] = None,
         id: Option[String] = None,
         status: Option[String] = None
     ) extends Input
 
+    object WebSearchToolCall {
+      sealed trait Action
+
+      object Action {
+        @upickle.implicits.key("search")
+        case class Search(query: String) extends Action
+
+        @upickle.implicits.key("open_page")
+        case class OpenPage(url: String) extends Action
+
+        @upickle.implicits.key("find")
+        case class Find(pattern: String, url: String) extends Action
+
+        implicit val searchW: SnakePickle.Writer[Search] = SnakePickle.macroW
+        implicit val openPageW: SnakePickle.Writer[OpenPage] = SnakePickle.macroW
+        implicit val findW: SnakePickle.Writer[Find] = SnakePickle.macroW
+
+        implicit val actionW: SnakePickle.Writer[Action] = SnakePickle.writer[Value].comap {
+          case search: Search     => SnakePickle.writeJs(search)
+          case openPage: OpenPage => SnakePickle.writeJs(openPage)
+          case find: Find         => SnakePickle.writeJs(find)
+        }
+      }
+    }
+
     @upickle.implicits.key("web_search_call")
-    case class WebSearchToolCall(action: Value, id: String, status: String) extends Input
+    case class WebSearchToolCall(action: WebSearchToolCall.Action, id: String, status: String) extends Input
 
     @upickle.implicits.key("function_call")
     case class FunctionToolCall(arguments: String, callId: String, name: String, id: Option[String] = None, status: Option[String] = None)
@@ -312,12 +356,31 @@ object ResponsesRequestBody {
     @upickle.implicits.key("image_generation_call")
     case class ImageGenerationCall(id: String, result: Option[String], status: String) extends Input
 
+    object CodeInterpreterToolCall {
+      sealed trait Output
+
+      object Output {
+        @upickle.implicits.key("logs")
+        case class Logs(logs: String) extends Output
+
+        @upickle.implicits.key("image")
+        case class Image(url: String) extends Output
+
+        implicit val logsW: SnakePickle.Writer[Logs] = SnakePickle.macroW
+        implicit val imageW: SnakePickle.Writer[Image] = SnakePickle.macroW
+        implicit val outputW: SnakePickle.Writer[Output] = SnakePickle.writer[Value].comap {
+          case logs: Logs   => SnakePickle.writeJs(logs)
+          case image: Image => SnakePickle.writeJs(image)
+        }
+      }
+    }
+
     @upickle.implicits.key("code_interpreter_call")
     case class CodeInterpreterToolCall(
         code: Option[String],
         containerId: String,
         id: String,
-        outputs: Option[List[Value]] = None,
+        outputs: Option[List[CodeInterpreterToolCall.Output]] = None,
         status: String
     ) extends Input
 

@@ -204,6 +204,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given responses request with file search tool call" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
       import Input._
+      import FileSearchToolCall._
 
     // given
     val givenRequest = ResponsesRequestBody(
@@ -216,10 +217,10 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
             status = "completed",
             results = Some(
               List(
-                ujson.Obj(
-                  "file_id" -> ujson.Str("file-abc123"),
-                  "filename" -> ujson.Str("ml_algorithms.pdf"),
-                  "content" -> ujson.Str("Neural networks are a subset of machine learning...")
+                FileSearchResult(
+                  fileId = Some("file-abc123"),
+                  filename = Some("ml_algorithms.pdf"),
+                  text = Some("Neural networks are a subset of machine learning...")
                 )
               )
             )
