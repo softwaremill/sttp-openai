@@ -330,7 +330,7 @@ object ResponsesResponseBody {
 
     case class SummaryText(text: String)
 
-    case class FileSearchResult(attributes: Map[String, Value], fileId: String, filename: String, score: Double, text: String)
+    case class FileSearchResult(attributes: Map[String, String], fileId: String, filename: String, score: Double, text: String)
 
     case class LocalShellAction(
         command: List[String],
