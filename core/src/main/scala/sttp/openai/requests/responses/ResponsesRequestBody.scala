@@ -1,7 +1,7 @@
 package sttp.openai.requests.responses
 
 import sttp.apispec.Schema
-import sttp.openai.json.{SerializationHelpers, SnakePickle}
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
 import sttp.openai.requests.responses.ResponsesRequestBody.Input

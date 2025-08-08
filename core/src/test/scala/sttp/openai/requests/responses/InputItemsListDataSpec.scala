@@ -8,7 +8,7 @@ import sttp.openai.requests.responses.InputItemsListResponseBody.InputItem
 class InputItemsListDataSpec extends AnyFlatSpec with Matchers {
 
   "InputItemsListResponseBody" should "deserialize simple input message correctly" in {
-    //given
+    // given
     val jsonResponse =
       """{
         |  "object": "list",
@@ -31,10 +31,10 @@ class InputItemsListDataSpec extends AnyFlatSpec with Matchers {
         |  "has_more": false
         |}""".stripMargin
 
-    //when
+    // when
     val deserializedResponse = SnakePickle.read[InputItemsListResponseBody](jsonResponse)
 
-    //then
+    // then
     deserializedResponse.`object` shouldBe "list"
     deserializedResponse.firstId shouldBe "msg_abc123"
     deserializedResponse.lastId shouldBe "msg_abc123"

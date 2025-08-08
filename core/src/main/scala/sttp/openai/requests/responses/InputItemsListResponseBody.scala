@@ -30,7 +30,7 @@ object InputItemsListResponseBody {
 
   sealed trait InputItem
   object InputItem {
-    
+
     sealed trait InputContent
     object InputContent {
       @upickle.implicits.key("input_text")
@@ -40,7 +40,12 @@ object InputItemsListResponseBody {
       case class InputImage(detail: String, fileId: Option[String] = None, imageUrl: Option[String] = None) extends InputContent
 
       @upickle.implicits.key("input_file")
-      case class InputFile(fileData: Option[String] = None, fileId: Option[String] = None, fileUrl: Option[String] = None, filename: Option[String] = None) extends InputContent
+      case class InputFile(
+          fileData: Option[String] = None,
+          fileId: Option[String] = None,
+          fileUrl: Option[String] = None,
+          filename: Option[String] = None
+      ) extends InputContent
 
       implicit val inputTextR: SnakePickle.Reader[InputText] = SnakePickle.macroR
       implicit val inputImageR: SnakePickle.Reader[InputImage] = SnakePickle.macroR
@@ -59,7 +64,8 @@ object InputItemsListResponseBody {
         case class UrlCitation(endIndex: Int, startIndex: Int, title: String, url: String) extends Annotation
 
         @upickle.implicits.key("container_file_citation")
-        case class ContainerFileCitation(containerId: String, endIndex: Int, fileId: String, filename: String, startIndex: Int) extends Annotation
+        case class ContainerFileCitation(containerId: String, endIndex: Int, fileId: String, filename: String, startIndex: Int)
+            extends Annotation
 
         @upickle.implicits.key("file_path")
         case class FilePath(fileId: String, index: Int) extends Annotation
@@ -87,11 +93,17 @@ object InputItemsListResponseBody {
       implicit val outputContentR: SnakePickle.Reader[OutputContent] = SnakePickle.macroR
     }
 
-    case class FileSearchResult(attributes: Option[Map[String, String]] = None, fileId: Option[String] = None, filename: Option[String] = None, score: Option[Double] = None, text: Option[String] = None)
+    case class FileSearchResult(
+        attributes: Option[Map[String, String]] = None,
+        fileId: Option[String] = None,
+        filename: Option[String] = None,
+        score: Option[Double] = None,
+        text: Option[String] = None
+    )
 
     object ComputerToolCall {
       case class PendingSafetyCheck(code: String, id: String, message: String)
-      
+
       sealed trait Action
       object Action {
         @upickle.implicits.key("click")
@@ -133,7 +145,7 @@ object InputItemsListResponseBody {
       case class ComputerScreenshot(fileId: String, imageUrl: String)
 
       case class AcknowledgedSafetyCheck(id: String, code: Option[String] = None, message: Option[String] = None)
-      
+
       implicit val computerScreenshotR: SnakePickle.Reader[ComputerScreenshot] = SnakePickle.macroR
       implicit val acknowledgedSafetyCheckR: SnakePickle.Reader[AcknowledgedSafetyCheck] = SnakePickle.macroR
     }
@@ -157,15 +169,21 @@ object InputItemsListResponseBody {
 
     object LocalShellCall {
       @upickle.implicits.key("exec")
-      case class Action(command: List[String], env: Map[String, String], timeoutMs: Option[Int] = None, user: Option[String] = None, workingDirectory: Option[String] = None)
-      
+      case class Action(
+          command: List[String],
+          env: Map[String, String],
+          timeoutMs: Option[Int] = None,
+          user: Option[String] = None,
+          workingDirectory: Option[String] = None
+      )
+
       implicit val actionR: SnakePickle.Reader[Action] = SnakePickle.macroR
     }
 
     object McpListTools {
       implicit private val schemaR: SnakePickle.Reader[Schema] = SchemaSupport.schemaRW
       case class Tool(inputSchema: Schema, name: String, annotations: Option[Value] = None, description: Option[String] = None)
-      
+
       implicit val toolR: SnakePickle.Reader[Tool] = SnakePickle.macroR
     }
 
@@ -190,13 +208,26 @@ object InputItemsListResponseBody {
     case class OutputMessage(content: List[OutputContent], id: String, role: String, status: String) extends InputItem
 
     @upickle.implicits.key("file_search_call")
-    case class FileSearchToolCall(id: String, queries: List[String], status: String, results: Option[List[FileSearchResult]] = None) extends InputItem
+    case class FileSearchToolCall(id: String, queries: List[String], status: String, results: Option[List[FileSearchResult]] = None)
+        extends InputItem
 
     @upickle.implicits.key("computer_call")
-    case class ComputerToolCall(action: ComputerToolCall.Action, callId: String, id: String, pendingSafetyChecks: List[ComputerToolCall.PendingSafetyCheck], status: String) extends InputItem
+    case class ComputerToolCall(
+        action: ComputerToolCall.Action,
+        callId: String,
+        id: String,
+        pendingSafetyChecks: List[ComputerToolCall.PendingSafetyCheck],
+        status: String
+    ) extends InputItem
 
     @upickle.implicits.key("computer_call_output")
-    case class ComputerToolCallOutput(callId: String, id: String, output: ComputerToolCallOutput.ComputerScreenshot, acknowledgedSafetyChecks: Option[List[ComputerToolCallOutput.AcknowledgedSafetyCheck]] = None, status: String) extends InputItem
+    case class ComputerToolCallOutput(
+        callId: String,
+        id: String,
+        output: ComputerToolCallOutput.ComputerScreenshot,
+        acknowledgedSafetyChecks: Option[List[ComputerToolCallOutput.AcknowledgedSafetyCheck]] = None,
+        status: String
+    ) extends InputItem
 
     @upickle.implicits.key("web_search_call")
     case class WebSearchToolCall(action: WebSearchToolCall.Action, id: String, status: String) extends InputItem
@@ -211,7 +242,13 @@ object InputItemsListResponseBody {
     case class ImageGenerationCall(id: String, result: Option[String], status: String) extends InputItem
 
     @upickle.implicits.key("code_interpreter_call")
-    case class CodeInterpreterToolCall(code: Option[String], containerId: String, id: String, outputs: Option[List[CodeInterpreterToolCall.Output]] = None, status: String) extends InputItem
+    case class CodeInterpreterToolCall(
+        code: Option[String],
+        containerId: String,
+        id: String,
+        outputs: Option[List[CodeInterpreterToolCall.Output]] = None,
+        status: String
+    ) extends InputItem
 
     @upickle.implicits.key("local_shell_call")
     case class LocalShellCall(action: LocalShellCall.Action, callId: String, id: String, status: String) extends InputItem
@@ -229,7 +266,14 @@ object InputItemsListResponseBody {
     case class McpApprovalResponse(approvalRequestId: String, approve: Boolean, id: String, reason: Option[String] = None) extends InputItem
 
     @upickle.implicits.key("mcp_tool_call")
-    case class McpToolCall(arguments: String, id: String, name: String, serverLabel: String, error: Option[String] = None, output: Option[String] = None) extends InputItem
+    case class McpToolCall(
+        arguments: String,
+        id: String,
+        name: String,
+        serverLabel: String,
+        error: Option[String] = None,
+        output: Option[String] = None
+    ) extends InputItem
 
     implicit val fileSearchResultR: SnakePickle.Reader[FileSearchResult] = SnakePickle.macroR
     implicit val inputMessageR: SnakePickle.Reader[InputMessage] = SnakePickle.macroR

@@ -388,8 +388,8 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with computer tool call wait action" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
-    import ComputerToolCall._
+      import Input._
+      import ComputerToolCall._
 
     // given
     val waitAction = Action.Wait()
