@@ -85,13 +85,14 @@ This makes the tests CI/CD friendly.
   - Rate limiting behavior
   - Proper exception types and messages
 
-### 6. Responses API (`createModelResponse`, `getModelResponse`, `deleteModelResponse`)
+### 6. Responses API (`createModelResponse`, `getModelResponse`, `listResponsesInputItems`, `deleteModelResponse`)
 - **Cost**: LOW (~$0.001 per test run)
 - **Coverage**: Complete Responses API lifecycle
 - **What it tests**:
   - Creates response with minimal input ("Hi")
   - Uses `gpt-4o-mini` (cheapest model)
   - Retrieves response by ID (stateful API)
+  - Lists input items to validate conversation state
   - Deletes response for cleanup
   - Validates response structure and usage statistics
 

@@ -11,7 +11,7 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatComp
 import sttp.openai.requests.completions.chat.message.{Content, Message}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.{EmbeddingsBody, EmbeddingsInput, EmbeddingsModel}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
-import sttp.openai.requests.responses.{GetResponseQueryParameters, ResponsesRequestBody}
+import sttp.openai.requests.responses.{GetResponseQueryParameters, ListInputItemsQueryParameters, ResponsesRequestBody}
 
 // Suppress warnings for unused assertions - these are test assertions that verify behavior
 //noinspection ScalaUnusedSymbol
@@ -192,7 +192,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       ()
     }
 
-  "OpenAI Responses API" should "create, retrieve, and delete a model response successfully" taggedAs IntegrationTest in
+  "OpenAI Responses API" should "create, retrieve, list input items, and delete a model response successfully" taggedAs IntegrationTest in
     withClient { client =>
       // given
       val requestBody = ResponsesRequestBody(
@@ -234,7 +234,31 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       retrievedResponse.model shouldBe createdResponse.model
       retrievedResponse.createdAt shouldBe createdResponse.createdAt
 
-      // when - Step 3: Delete response
+      // when - Step 3: List input items for the response
+      val inputItems = client.listResponsesInputItems(
+        createdResponse.id,
+        ListInputItemsQueryParameters.empty
+      )
+
+      // then - Validate input items listing
+      inputItems should not be null
+      inputItems.`object` shouldBe "list"
+      inputItems.data should not be empty
+      
+      // Should contain the original user input message with our text "Hi"
+      val userInputMessage = inputItems.data.find(_.isInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputMessage])
+      userInputMessage should be(defined)
+      
+      val inputMessage = userInputMessage.get.asInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputMessage]
+      inputMessage.role shouldBe "user"
+      
+      // Validate that the input content contains our original text "Hi"
+      val textContent = inputMessage.content.find(_.isInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputContent.InputText])
+      textContent should be(defined)
+      val inputText = textContent.get.asInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputContent.InputText]
+      inputText.text shouldBe "Hi"
+
+      // when - Step 4: Delete response
       val deleteResult = client.deleteModelResponse(createdResponse.id)
 
       // then - Validate deletion

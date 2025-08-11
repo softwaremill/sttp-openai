@@ -47,7 +47,7 @@ if [ -n "${OPENAI_API_KEY}" ]; then
     echo "  • Moderations API (FREE) - Content moderation"  
     echo "  • Embeddings API (~$0.0001) - Text embeddings"
     echo "  • Chat Completions API (~$0.001) - Chat with minimal tokens"
-    echo "  • Responses API (~$0.001) - Complete lifecycle (create/retrieve/delete)"
+    echo "  • Responses API (~$0.001) - Complete lifecycle (create/retrieve/list inputs/delete)"
     echo "  • Error handling - Authentication and rate limiting"
     echo "  • Client customization - Request modification"
 else
@@ -58,7 +58,7 @@ else
     echo "  • Moderations API (FREE) - Content moderation"  
     echo "  • Embeddings API (~$0.0001) - Text embeddings"
     echo "  • Chat Completions API (~$0.001) - Chat with minimal tokens"
-    echo "  • Responses API (~$0.001) - Complete lifecycle (create/retrieve/delete)"
+    echo "  • Responses API (~$0.001) - Complete lifecycle (create/retrieve/list inputs/delete)"
     echo "  • Error handling - Authentication and rate limiting"
     echo "  • Client customization - Request modification"
 fi
