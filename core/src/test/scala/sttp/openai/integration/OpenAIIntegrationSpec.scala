@@ -28,10 +28,8 @@ import scala.util.{Failure, Try}
   * sbt "testOnly *OpenAIIntegrationSpec"
   * }}}
   *
-  * Or run with sbt and skip if no API key is provided:
-  * {{{
-  * sbt "testOnly *OpenAIIntegrationSpec" -Dtest.integration.skip=true
-  * }}}
+  * If OPENAI_API_KEY is not defined, all tests will be skipped (not failed).
+  * This makes the tests CI/CD friendly.
   */
 class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll with Eventually {
 
@@ -39,19 +37,12 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     PatienceConfig(timeout = Span(30, Seconds), interval = Span(500, Millis))
 
   private var clientOpt: Option[OpenAISyncClient] = None
-  private val skipIntegrationTests = sys.props.get("test.integration.skip").contains("true")
+  private val hasApiKey = sys.env.get("OPENAI_API_KEY").exists(_.nonEmpty)
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (!skipIntegrationTests) {
-      val apiKey = sys.env.get("OPENAI_API_KEY") match {
-        case Some(key) if key.nonEmpty => key
-        case _ =>
-          fail(
-            "OPENAI_API_KEY environment variable is required for integration tests. " +
-              "Set it with your OpenAI API key or skip tests with -Dtest.integration.skip=true"
-          )
-      }
+    if (hasApiKey) {
+      val apiKey = sys.env("OPENAI_API_KEY")
       clientOpt = Some(OpenAISyncClient(apiKey))
     }
   }
@@ -62,8 +53,8 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
   }
 
   private def withClient[T](test: OpenAISyncClient => T): T = {
-    if (skipIntegrationTests) {
-      cancel("Integration tests skipped")
+    if (!hasApiKey) {
+      cancel("OPENAI_API_KEY not defined - skipping integration test")
     }
     clientOpt match {
       case Some(client) => test(client)
