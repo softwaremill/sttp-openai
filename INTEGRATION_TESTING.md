@@ -38,10 +38,9 @@ sbt "testOnly *OpenAIIntegrationSpec"
 sbt "testOnly *OpenAIIntegrationSpec -- -n integration"
 ```
 
-#### Skip integration tests (for CI/CD without API keys):
-```bash
-sbt "testOnly *OpenAIIntegrationSpec" -Dtest.integration.skip=true
-```
+#### Skip integration tests (when no API key is available):
+If `OPENAI_API_KEY` is not set, all tests will be automatically skipped (not failed).
+This makes the tests CI/CD friendly.
 
 ## Test Coverage
 
@@ -86,7 +85,17 @@ sbt "testOnly *OpenAIIntegrationSpec" -Dtest.integration.skip=true
   - Rate limiting behavior
   - Proper exception types and messages
 
-### 6. Client Customization
+### 6. Responses API (`createModelResponse`, `getModelResponse`, `deleteModelResponse`)
+- **Cost**: LOW (~$0.001 per test run)
+- **Coverage**: Complete Responses API lifecycle
+- **What it tests**:
+  - Creates response with minimal input ("Hi")
+  - Uses `gpt-4o-mini` (cheapest model)
+  - Retrieves response by ID (stateful API)
+  - Deletes response for cleanup
+  - Validates response structure and usage statistics
+
+### 7. Client Customization
 - **Cost**: FREE (uses Models API)
 - **Coverage**: Request customization functionality
 - **What it tests**:
@@ -96,12 +105,13 @@ sbt "testOnly *OpenAIIntegrationSpec" -Dtest.integration.skip=true
 
 ## Cost Estimation
 
-**Total estimated cost per complete test run**: ~$0.002 (less than 1 cent)
+**Total estimated cost per complete test run**: ~$0.003 (less than 1 cent)
 
 - Models API: $0.000 (free)
 - Moderations API: $0.000 (free)
 - Embeddings API: ~$0.0001 (1 token)
 - Chat Completions: ~$0.001 (minimal tokens)
+- Responses API: ~$0.001 (minimal tokens)
 - Error handling: $0.000 (failed requests)
 
 ## Test Design Principles
@@ -121,13 +131,14 @@ sbt "testOnly *OpenAIIntegrationSpec" -Dtest.integration.skip=true
 - Tests actual error conditions
 
 ### 4. **CI/CD Friendly**
-- Can be skipped when API key is not available
-- Clear error messages when misconfigured
+- Automatically skipped when API key is not available (no failures)
+- Clear messages when tests are skipped
 - Fast execution (< 30 seconds total)
 
 ## Troubleshooting
 
-### "OPENAI_API_KEY environment variable is required"
+### "OPENAI_API_KEY not defined - skipping integration test"
+This is normal behavior when no API key is set. To run tests:
 Set your API key: `export OPENAI_API_KEY=your-key`
 
 ### Rate limiting errors
@@ -154,8 +165,6 @@ When adding new integration tests, follow these guidelines:
 2. **Use minimal inputs** to reduce costs
 3. **Set strict limits** on output tokens
 4. **Tag tests** with `IntegrationTest`
-5. **Use BDD structure** (given/when/then) [[memory:4640845]]
-6. **Validate inputs** in dedicated methods rather than `require` statements [[memory:4575678]]
 
 Example:
 ```scala
@@ -181,14 +190,3 @@ private def validateResult(result: ResponseType): Unit = {
   // Validate structure and content
 }
 ```
-
-## Benefits of This Approach
-
-1. **Real API Testing**: Tests actual HTTP interactions, not mocks
-2. **Cost Efficient**: Total cost < $0.01 per run
-3. **Comprehensive Coverage**: Tests major API categories
-4. **CI/CD Ready**: Can be skipped or included in build pipelines
-5. **Quick Feedback**: Fast execution for rapid development cycles
-6. **Error Validation**: Tests real error conditions and handling
-
-This integration test suite gives you confidence that your sttp-openai library works correctly with the real OpenAI API while keeping costs minimal.
