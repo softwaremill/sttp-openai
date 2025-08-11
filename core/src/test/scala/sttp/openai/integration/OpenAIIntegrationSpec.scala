@@ -29,7 +29,6 @@ import scala.util.{Failure, Try}
   * }}}
   *
   * If OPENAI_API_KEY is not defined, all tests will be skipped (not failed).
-  * This makes the tests CI/CD friendly.
   */
 class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll with Eventually {
 
@@ -37,12 +36,11 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     PatienceConfig(timeout = Span(30, Seconds), interval = Span(500, Millis))
 
   private var clientOpt: Option[OpenAISyncClient] = None
-  private val hasApiKey = sys.env.get("OPENAI_API_KEY").exists(_.nonEmpty)
+  private val maybeApiKey: Option[String] = sys.env.get("OPENAI_API_KEY")
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (hasApiKey) {
-      val apiKey = sys.env("OPENAI_API_KEY")
+    maybeApiKey.foreach { apiKey =>
       clientOpt = Some(OpenAISyncClient(apiKey))
     }
   }
@@ -53,7 +51,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
   }
 
   private def withClient[T](test: OpenAISyncClient => T): T = {
-    if (!hasApiKey) {
+    if (maybeApiKey.isEmpty) {
       cancel("OPENAI_API_KEY not defined - skipping integration test")
     }
     clientOpt match {
@@ -212,9 +210,9 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       createdResponse.model should not be empty
       createdResponse.status shouldBe "completed"
       createdResponse.output should not be empty
-      createdResponse.output.head should be (a[sttp.openai.requests.responses.ResponsesResponseBody.OutputItem.OutputMessage])
+      createdResponse.output.head should be(a[sttp.openai.requests.responses.ResponsesResponseBody.OutputItem.OutputMessage])
       createdResponse.createdAt should be > 0L
-      
+
       // Verify that usage is reported (helpful for cost tracking)
       createdResponse.usage should not be null
       createdResponse.usage.foreach { usage =>
