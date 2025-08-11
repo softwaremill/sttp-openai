@@ -25,7 +25,6 @@ Add the following dependency:
 
 sttp-openai is available for Scala 2.13 and Scala 3
 
-
 ## Project content
 
 OpenAI API Official Documentation https://platform.openai.com/docs/api-reference/completions
@@ -465,7 +464,8 @@ object Main extends App {
     ResponseFormat.JsonSchema(
       name = "mathReasoning",
       strict = Some(true),
-      schema = Some(jsonSchema)
+      schema = Some(jsonSchema),
+      description = None
     )
 
   val bodyMessages: Seq[Message] = Seq(
