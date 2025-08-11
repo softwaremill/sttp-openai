@@ -244,18 +244,22 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       inputItems should not be null
       inputItems.`object` shouldBe "list"
       inputItems.data should not be empty
-      
+
       // Should contain the original user input message with our text "Hi"
-      val userInputMessage = inputItems.data.find(_.isInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputMessage])
+      val userInputMessage =
+        inputItems.data.find(_.isInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputMessage])
       userInputMessage should be(defined)
-      
+
       val inputMessage = userInputMessage.get.asInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputMessage]
       inputMessage.role shouldBe "user"
-      
+
       // Validate that the input content contains our original text "Hi"
-      val textContent = inputMessage.content.find(_.isInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputContent.InputText])
+      val textContent = inputMessage.content.find(
+        _.isInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputContent.InputText]
+      )
       textContent should be(defined)
-      val inputText = textContent.get.asInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputContent.InputText]
+      val inputText =
+        textContent.get.asInstanceOf[sttp.openai.requests.responses.InputItemsListResponseBody.InputItem.InputContent.InputText]
       inputText.text shouldBe "Hi"
 
       // when - Step 4: Delete response
