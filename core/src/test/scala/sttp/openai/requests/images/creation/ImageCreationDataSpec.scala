@@ -31,7 +31,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     givenResponse.value shouldBe expectedResponse
   }
 
-  "Given create image request as case class" should "be properly serialized to Json" in {
+  "Given a fully populated ImageCreationBody" should "serialize to full JSON correctly" in {
     import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody._
     import sttp.openai.requests.images.creation.ImageCreationRequestBody._
 
@@ -54,6 +54,37 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     )
 
     val jsonRequest = ujson.read(fixtures.ImageCreationFixture.jsonRequest)
+
+    // when
+    val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)
+
+    // then
+    serializedJson shouldBe jsonRequest
+  }
+
+  "Given an ImageCreationBody with optional fields set to None" should "serialize without those fields" in {
+    import sttp.openai.requests.images.creation.ImageCreationRequestBody.ImageCreationBody._
+    import sttp.openai.requests.images.creation.ImageCreationRequestBody._
+
+    // given
+    val givenRequest: ImageCreationBody = ImageCreationBody(
+      "cute fish", // prompt
+      Some("transparent"), // background
+      "dall-e-3", // model
+      None, // moderation
+      Some(1), // n
+      Some(80), // outputCompression
+      Some("png"), // outputFormat
+      None, // partialImages
+      Some("high"), // quality
+      Some(Size.Large), // size
+      Some(ResponseFormat.URL), // responseFormat
+      Some(false), // stream
+      Some("vivid"), // style
+      Some("user1") // user
+    )
+
+    val jsonRequest = ujson.read(fixtures.ImageCreationFixture.jsonRequestWithSomeOptionalsSetToNone)
 
     // when
     val serializedJson: ujson.Value = SnakePickle.writeJs(givenRequest)

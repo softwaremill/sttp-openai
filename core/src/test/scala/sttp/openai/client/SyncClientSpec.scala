@@ -8,9 +8,9 @@ import sttp.client4.testing.ResponseStub
 import sttp.model.StatusCode
 import sttp.model.StatusCode._
 import sttp.openai.OpenAIExceptions.OpenAIException
-import sttp.openai.{CustomizeOpenAIRequest, OpenAISyncClient}
 import sttp.openai.fixtures.ErrorFixture
 import sttp.openai.requests.models.ModelsResponseData._
+import sttp.openai.{CustomizeOpenAIRequest, OpenAISyncClient}
 
 import java.util.concurrent.atomic.AtomicReference
 

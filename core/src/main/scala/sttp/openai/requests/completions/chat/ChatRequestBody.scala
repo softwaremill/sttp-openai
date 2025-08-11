@@ -1,7 +1,7 @@
 package sttp.openai.requests.completions.chat
 
 import sttp.apispec.Schema
-import sttp.openai.json.SnakePickle
+import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.Stop
 import sttp.openai.requests.completions.chat.message.{Message, Tool, ToolChoice}
 import ujson._
@@ -13,67 +13,29 @@ object ChatRequestBody {
   object ResponseFormat {
     case object Text extends ResponseFormat
     case object JsonObject extends ResponseFormat
-    case class JsonSchema(name: String, strict: Boolean, schema: Schema) extends ResponseFormat
-    object JsonSchema {
-      private case class InternalRepr(json_schema: JsonSchema)
+    @upickle.implicits.key("json_schema")
+    case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends ResponseFormat
 
-      private object InternalRepr {
-        implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
+    implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 
-        implicit private val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle
-          .readwriter[Value]
-          .bimap(
-            s => Obj("name" -> s.name, "strict" -> s.strict, "schema" -> SnakePickle.writeJs(s.schema)),
-            v => {
-              val o = v.obj
-              JsonSchema(
-                name = o("name").str,
-                strict = o("strict").bool,
-                schema = SnakePickle.read[Schema](o("schema"))
-              )
-            }
-          )
+    // Use SerializationHelpers to automatically create nested discriminator structure
+    // This creates: {"type": "json_schema", "json_schema": {...actual JsonSchema object...}}
+    implicit val jsonSchemaW: SnakePickle.Writer[JsonSchema] =
+      SerializationHelpers.withNestedDiscriminator("json_schema", "json_schema")(SnakePickle.macroW[JsonSchema])
 
-        implicit val internalReprRW: SnakePickle.ReadWriter[InternalRepr] = SnakePickle.macroRW
+    implicit val textW: SnakePickle.Writer[Text.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter("text")
+
+    implicit val jsonObjectW: SnakePickle.Writer[JsonObject.type] =
+      SerializationHelpers.caseObjectWithDiscriminatorWriter("json_object")
+
+    implicit val responseFormatW: SnakePickle.Writer[ResponseFormat] = SnakePickle
+      .writer[Value]
+      .comap {
+        case text: Text.type             => SnakePickle.writeJs(text)
+        case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
+        case jsonSchema: JsonSchema      => SnakePickle.writeJs(jsonSchema)
       }
 
-      implicit val jsonSchemaRW: SnakePickle.ReadWriter[JsonSchema] = SnakePickle
-        .readwriter[Value]
-        .bimap[JsonSchema](
-          s => Obj(SnakePickle.writeJs(InternalRepr(s)).obj.addOne("type" -> "json_schema")),
-          v => SnakePickle.read[InternalRepr](v).json_schema
-        )
-    }
-
-    implicit val textRW: SnakePickle.ReadWriter[Text.type] = SnakePickle
-      .readwriter[Value]
-      .bimap[Text.type](
-        _ => Obj("type" -> "text"),
-        _ => Text
-      )
-
-    implicit val jsonObjectRW: SnakePickle.ReadWriter[JsonObject.type] = SnakePickle
-      .readwriter[Value]
-      .bimap[JsonObject.type](
-        _ => Obj("type" -> "json_object"),
-        _ => JsonObject
-      )
-
-    implicit val responseFormatRW: SnakePickle.ReadWriter[ResponseFormat] = SnakePickle
-      .readwriter[Value]
-      .bimap[ResponseFormat](
-        {
-          case text: Text.type             => SnakePickle.writeJs(text)
-          case jsonObject: JsonObject.type => SnakePickle.writeJs(jsonObject)
-          case jsonSchema: JsonSchema      => SnakePickle.writeJs(jsonSchema)
-        },
-        json =>
-          json("type").str match {
-            case "text"        => SnakePickle.read[Text.type](json)
-            case "json_object" => SnakePickle.read[JsonObject.type](json)
-            case "json_schema" => SnakePickle.read[JsonSchema](json)
-          }
-      )
   }
 
   /** @param messages

@@ -6,11 +6,25 @@ object JsonSchemaFixture {
     """{
       |  "type": "json_schema",
       |  "json_schema": {
-      |    "name": "testString",
-      |    "strict": true,
       |    "schema": {
       |      "type": "string"
-      |    }
+      |    },
+      |    "name": "testString",
+      |    "strict": true,
+      |    "description": "description"
+      |  }
+      |}""".stripMargin
+
+  val stringSchemaWithoutStrictField: String =
+    """{
+      |  "type": "json_schema",
+      |  "json_schema": {
+      |    "name": "testString",
+      |    "schema": {
+      |      "type": "string"
+      |    },
+      |    "description": null,
+      |    "strict": null
       |  }
       |}""".stripMargin
 
@@ -22,7 +36,8 @@ object JsonSchemaFixture {
       |    "strict": true,
       |    "schema": {
       |      "type": "number"
-      |    }
+      |    },
+      |    "description": null
       |  }
       |}""".stripMargin
 
@@ -31,6 +46,7 @@ object JsonSchemaFixture {
       |  "type": "json_schema",
       |  "json_schema": {
       |    "name": "testObject",
+      |    "description": null,
       |    "strict": true,
       |    "schema": {
       |      "additionalProperties": false,
@@ -56,6 +72,7 @@ object JsonSchemaFixture {
       |  "type": "json_schema",
       |  "json_schema": {
       |    "name": "testArray",
+      |    "description": null,
       |    "strict": true,
       |    "schema": {
       |      "type": "array",

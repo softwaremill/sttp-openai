@@ -53,9 +53,9 @@ class CompletionsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
   }
 
   "Given ollama completions response as Json" should "be properly deserialized to case class" in {
-    import sttp.openai.requests.completions.CompletionsResponseData._
-    import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse._
     import sttp.openai.requests.completions.CompletionsRequestBody.CompletionModel.CustomCompletionModel
+    import sttp.openai.requests.completions.CompletionsResponseData.CompletionsResponse._
+    import sttp.openai.requests.completions.CompletionsResponseData._
 
     // given
     val jsonResponse = fixtures.CompletionsFixture.ollamaPromptResponse

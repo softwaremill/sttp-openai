@@ -53,12 +53,12 @@ object ChatFixture {
       |          }
       |        },
       |        {
-      |          "id": "tool_id_2",
       |          "type": "function",
       |          "function": {
       |            "arguments": "args",
       |            "name": "Fish"
-      |          }
+      |          },
+      |          "id": "tool_id_2"
       |        }
       |      ]
       |    },

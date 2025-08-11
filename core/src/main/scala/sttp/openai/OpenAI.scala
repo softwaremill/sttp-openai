@@ -35,6 +35,7 @@ import sttp.openai.requests.images.variations.ImageVariationsConfig
 import sttp.openai.requests.models.ModelsResponseData.{DeletedModelData, ModelData, ModelsResponse}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
 import sttp.openai.requests.moderations.ModerationsResponseData.ModerationData
+import sttp.openai.requests.responses._
 import sttp.openai.requests.threads.QueryParameters
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.ThreadsResponseData.{DeleteThreadResponse, ThreadData}
@@ -404,6 +405,105 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
     openAIAuthRequest
       .delete(openAIUris.chatCompletion(completionId))
       .response(asJson_parseErrors[DeleteChatCompletionResponse])
+
+  /** Creates a model response.
+    *
+    * Provide text or image inputs to generate text or JSON outputs. Have the model call your own custom code or use built-in tools like web
+    * search or file search to use your own data as input for the model's response.
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/create]]
+    *
+    * @param requestBody
+    *   Model response request body.
+    *
+    * @return
+    *   Returns a Response object.
+    */
+  def createModelResponse(requestBody: ResponsesRequestBody): Request[Either[OpenAIException, ResponsesResponseBody]] =
+    openAIAuthRequest
+      .post(openAIUris.Responses)
+      .body(asJson(requestBody))
+      .response(asJson_parseErrors[ResponsesResponseBody])
+
+  /** Retrieves a model response with the given ID.
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/get]]
+    *
+    * @param responseId
+    *   The ID of the response to retrieve.
+    *
+    * @return
+    *   The Response object matching the specified ID.
+    */
+  def getModelResponse(
+      responseId: String,
+      queryParameters: GetResponseQueryParameters
+  ): Request[Either[OpenAIException, ResponsesResponseBody]] = {
+    val uri = openAIUris
+      .response(responseId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[ResponsesResponseBody])
+  }
+
+  /** Deletes a model response with the given ID.
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/delete]]
+    *
+    * @param responseId
+    *   The ID of the chat completion to delete.
+    *
+    * @return
+    *   A deletion confirmation object.
+    */
+  def deleteModelResponse(responseId: String): Request[Either[OpenAIException, DeleteModelResponseResponse]] =
+    openAIAuthRequest
+      .delete(openAIUris.response(responseId))
+      .response(asJson_parseErrors[DeleteModelResponseResponse])
+
+  /** Cancels a model response with the given ID.
+    *
+    * Only responses created with the background parameter set to true can be cancelled
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/cancel]]
+    *
+    * @param responseId
+    *   The ID of the Upload.
+    *
+    * @return
+    *   The Upload object with status cancelled.
+    */
+  def cancelResponse(responseId: String): Request[Either[OpenAIException, ResponsesResponseBody]] =
+    openAIAuthRequest
+      .post(openAIUris.cancelResponse(responseId))
+      .response(asJson_parseErrors[ResponsesResponseBody])
+
+  /** Returns a list of input items for a given response.
+    *
+    * [[https://platform.openai.com/docs/api-reference/responses/input-items]]
+    *
+    * @param responseId
+    *   The ID of the response to retrieve input items for.
+    * @param queryParameters
+    *   Query parameters for pagination and filtering.
+    *
+    * @return
+    *   A list of input items for the response.
+    */
+  def listResponsesInputItems(
+      responseId: String,
+      queryParameters: ListInputItemsQueryParameters = ListInputItemsQueryParameters.empty
+  ): Request[Either[OpenAIException, InputItemsListResponseBody]] = {
+    val uri = openAIUris
+      .responseInputItems(responseId)
+      .withParams(queryParameters.toMap)
+
+    openAIAuthRequest
+      .get(uri)
+      .response(asJson_parseErrors[InputItemsListResponseBody])
+  }
 
   /** Returns a list of files that belong to the user's organization.
     *
@@ -1533,6 +1633,7 @@ private class OpenAIUris(val baseUri: Uri) {
   val Translations: Uri = audioBase.addPath("translations")
   val Speech: Uri = audioBase.addPath("speech")
   val VariationsImage: Uri = imageBase.addPath("variations")
+  val Responses: Uri = uri"$baseUri/responses"
 
   val Assistants: Uri = uri"$baseUri/assistants"
   val Threads: Uri = uri"$baseUri/threads"
@@ -1562,6 +1663,10 @@ private class OpenAIUris(val baseUri: Uri) {
   def model(modelId: String): Uri = Models.addPath(modelId)
 
   def assistant(assistantId: String): Uri = Assistants.addPath(assistantId)
+
+  def response(responseId: String): Uri = Responses.addPath(responseId)
+  def cancelResponse(responseId: String): Uri = response(responseId).addPath("cancel")
+  def responseInputItems(responseId: String): Uri = response(responseId).addPath("input_items")
 
   def thread(threadId: String): Uri = Threads.addPath(threadId)
   def threadMessages(threadId: String): Uri = Threads.addPath(threadId).addPath("messages")
