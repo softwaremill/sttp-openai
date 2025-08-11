@@ -11,6 +11,7 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatComp
 import sttp.openai.requests.completions.chat.message.{Content, Message}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.{EmbeddingsBody, EmbeddingsInput, EmbeddingsModel}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
+import sttp.openai.requests.responses.{GetResponseQueryParameters, ResponsesRequestBody}
 
 // Suppress warnings for unused assertions - these are test assertions that verify behavior
 //noinspection ScalaUnusedSymbol
@@ -199,6 +200,59 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       response.usage should not be null
       response.usage.totalTokens should be > 0
       response.usage.totalTokens should be <= 20 // Should be very low due to our constraints
+      ()
+    }
+
+  "OpenAI Responses API" should "create, retrieve, and delete a model response successfully" taggedAs IntegrationTest in
+    withClient { client =>
+      // given
+      val requestBody = ResponsesRequestBody(
+        model = Some("gpt-4o-mini"), // Using the cheapest available model
+        input = Some(Left("Hi")) // Simple text input to minimize cost
+      )
+
+      // when - Step 1: Create response
+      val createdResponse = client.createModelResponse(requestBody)
+
+      // then - Validate creation
+      createdResponse should not be null
+      createdResponse.id should not be empty
+      createdResponse.`object` shouldBe "response"
+      createdResponse.model should not be empty
+      createdResponse.status shouldBe "completed"
+      createdResponse.output should not be empty
+      createdResponse.output.head should be (a[sttp.openai.requests.responses.ResponsesResponseBody.OutputItem.OutputMessage])
+      createdResponse.createdAt should be > 0L
+      
+      // Verify that usage is reported (helpful for cost tracking)
+      createdResponse.usage should not be null
+      createdResponse.usage.foreach { usage =>
+        usage.totalTokens should be > 0
+      }
+
+      // when - Step 2: Retrieve response by ID
+      val retrievedResponse = client.getModelResponse(
+        createdResponse.id,
+        GetResponseQueryParameters()
+      )
+
+      // then - Validate retrieval
+      retrievedResponse should not be null
+      retrievedResponse.id shouldBe createdResponse.id
+      retrievedResponse.`object` shouldBe "response"
+      retrievedResponse.status shouldBe "completed"
+      retrievedResponse.output should not be empty
+      retrievedResponse.model shouldBe createdResponse.model
+      retrievedResponse.createdAt shouldBe createdResponse.createdAt
+
+      // when - Step 3: Delete response
+      val deleteResult = client.deleteModelResponse(createdResponse.id)
+
+      // then - Validate deletion
+      deleteResult should not be null
+      deleteResult.deleted shouldBe true
+      deleteResult.id shouldBe createdResponse.id
+      deleteResult.`object` shouldBe "response.deleted"
       ()
     }
 
