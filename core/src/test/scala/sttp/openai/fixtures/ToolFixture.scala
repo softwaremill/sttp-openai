@@ -4,6 +4,7 @@ object ToolFixture {
 
   val jsonToolCall: String =
     """{
+      |  "type": "function",
       |  "description": "Books a flight for a passenger with full details",
       |  "name": "book_flight",
       |  "parameters": {
@@ -52,6 +53,7 @@ object ToolFixture {
 
   val jsonToolCallStrictTrue: String =
     """{
+      |  "type": "function",
       |  "description": "Return greeting",
       |  "name": "greet",
       |  "parameters": {
@@ -62,6 +64,7 @@ object ToolFixture {
 
   val jsonSchematizedToolCallStrictTrue: String =
     """{
+      |  "type": "function",
       |  "description": "Books a flight for a passenger with full details",
       |  "name": "book_flight",
       |  "parameters": {

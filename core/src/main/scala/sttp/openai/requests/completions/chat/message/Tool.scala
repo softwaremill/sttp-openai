@@ -1,6 +1,5 @@
 package sttp.openai.requests.completions.chat.message
 
-import sttp.apispec.Schema
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
@@ -23,6 +22,7 @@ object Tool {
     *   When set to `true`, [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs) validation will be enforced by
     *   the OpenAI API. Defaults to `None`, meaning the field is omitted in the outgoing JSON.
     */
+  @upickle.implicits.key("function")
   case class FunctionTool(
       description: String,
       name: String,
@@ -30,85 +30,37 @@ object Tool {
       strict: Option[Boolean] = None
   ) extends Tool
 
-  /** With this class we are not forced to provide Json Schema by hand. It will be automatically generated based on the type `T`. Please
-    * refer to readme for example of usage.
-    *
-    * @param description
-    *   A description of what the function does.
-    * @param name
-    *   The name of the function to be called.
-    * @param parameters
-    *   The Tapir derived [[sttp.apispec.Schema]] for the function parameters.
-    * @param strict
-    *   Optional strict flag (see [[FunctionTool.strict]]).
-    */
-  case class SchematizedFunctionTool(
-      description: String,
-      name: String,
-      parameters: Schema,
-      strict: Option[Boolean] = None
-  ) extends Tool
+  object FunctionTool {
+    /** Create a FunctionTool with schema automatically generated from type T.
+      * This provides the same convenience as SchematizedFunctionTool but keeps the Tool trait clean.
+      *
+      * @param description A description of what the function does.
+      * @param name The name of the function to be called.
+      * @tparam T The type to generate schema from.
+      * @return A FunctionTool with auto-generated schema.
+      */
+    def withSchema[T: TSchema](description: String, name: String): FunctionTool = {
+      val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
+      val schemaJson = SnakePickle.writeJs(schema)(SchemaSupport.schemaRW)
+      FunctionTool(description, name, schemaJson.obj.toMap, None)
+    }
 
-  object SchematizedFunctionTool {
-    def apply[T: TSchema](description: String, name: String): SchematizedFunctionTool =
-      new SchematizedFunctionTool(
-        description,
-        name,
-        TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true),
-        None
-      )
-
-    def apply[T: TSchema](description: String, name: String, strict: Option[Boolean]): SchematizedFunctionTool =
-      new SchematizedFunctionTool(
-        description,
-        name,
-        TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true),
-        strict
-      )
+    /** Create a FunctionTool with schema automatically generated from type T and strict flag.
+      *
+      * @param description A description of what the function does.
+      * @param name The name of the function to be called.
+      * @param strict When set to true, Structured Outputs validation will be enforced.
+      * @tparam T The type to generate schema from.
+      * @return A FunctionTool with auto-generated schema and strict flag.
+      */
+    def withSchema[T: TSchema](description: String, name: String, strict: Option[Boolean]): FunctionTool = {
+      val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
+      val schemaJson = SnakePickle.writeJs(schema)(SchemaSupport.schemaRW)
+      FunctionTool(description, name, schemaJson.obj.toMap, strict)
+    }
   }
 
-  implicit val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
-
-  implicit val schematizedFunctionToolRW: SnakePickle.ReadWriter[SchematizedFunctionTool] = SnakePickle
-    .readwriter[Value]
-    .bimap[SchematizedFunctionTool](
-      functionTool => {
-        val obj = Obj(
-          "description" -> functionTool.description,
-          "name" -> functionTool.name,
-          "parameters" -> SnakePickle.writeJs(functionTool.parameters)
-        )
-        functionTool.strict.foreach(flag => obj("strict") = Bool(flag))
-        obj
-      },
-      json => {
-        val strictOpt = json.obj.get("strict").map(_.bool)
-        SchematizedFunctionTool(
-          json("description").str,
-          json("name").str,
-          SnakePickle.read[Schema](json("parameters")),
-          strictOpt
-        )
-      }
-    )
-
-  implicit val functionToolRW: SnakePickle.ReadWriter[FunctionTool] = SnakePickle
-    .readwriter[Value]
-    .bimap[FunctionTool](
-      functionTool => {
-        val obj = Obj(
-          "description" -> functionTool.description,
-          "name" -> functionTool.name,
-          "parameters" -> functionTool.parameters
-        )
-        functionTool.strict.foreach(flag => obj("strict") = Bool(flag))
-        obj
-      },
-      json => {
-        val strictOpt = json.obj.get("strict").map(_.bool)
-        FunctionTool(json("description").str, json("name").str, json("parameters").obj.toMap, strictOpt)
-      }
-    )
+  implicit val functionToolRW: SnakePickle.ReadWriter[FunctionTool] = SnakePickle.macroRW
 
   /** Code interpreter tool
     *
@@ -126,8 +78,6 @@ object Tool {
     .readwriter[Value]
     .bimap[Tool](
       {
-        case schematizedFunctionTool: SchematizedFunctionTool =>
-          Obj("type" -> "function", "function" -> SnakePickle.writeJs(schematizedFunctionTool))
         case functionTool: FunctionTool =>
           Obj("type" -> "function", "function" -> SnakePickle.writeJs(functionTool))
         case CodeInterpreterTool =>
