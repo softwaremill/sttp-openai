@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import sttp.apispec.{Schema, SchemaType}
 import sttp.openai.fixtures.ResponsesFixture
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.completions.chat.message.{Tool, ToolChoice}
+import sttp.openai.requests.completions.chat.message.Tool
 import sttp.openai.requests.responses.ResponsesRequestBody.Format.JsonSchema
 import sttp.openai.requests.responses.ResponsesRequestBody.{
   Format => RequestFormat,
@@ -16,7 +16,8 @@ import sttp.openai.requests.responses.ResponsesRequestBody.{
   _
 }
 import sttp.openai.requests.responses.ResponsesResponseBody._
-import sttp.openai.requests.responses.ResponsesResponseBody.ToolChoice.ToolChoiceObject
+import sttp.openai.requests.responses.ToolChoice
+import sttp.openai.requests.responses.ToolChoice.ToolChoiceObject
 import ujson.{Obj, Str}
 
 class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
@@ -89,7 +90,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
           )
         )
       ),
-      toolChoice = Some(ToolChoice.ToolAuto),
+      toolChoice = Some(ToolChoice.ToolChoiceMode.Auto),
       tools = Some(List(Tool.CodeInterpreterTool)),
       topLogprobs = Some(5),
       topP = Some(0.9),

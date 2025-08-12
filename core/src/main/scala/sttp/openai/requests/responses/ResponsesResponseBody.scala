@@ -4,6 +4,7 @@ import sttp.apispec.Schema
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.completions.chat.message.Tool
+import sttp.openai.requests.responses.ToolChoice
 import ujson.{Arr, Obj, Str, Value}
 
 /** @param background
@@ -130,7 +131,7 @@ case class ResponsesResponseBody(
     status: String,
     temperature: Option[Double] = None,
     text: Option[ResponsesResponseBody.TextConfig] = None,
-    toolChoice: Option[ResponsesResponseBody.ToolChoice] = None,
+    toolChoice: Option[ToolChoice] = None,
     tools: Option[List[Tool]] = None,
     topLogprobs: Option[Int] = None,
     topP: Option[Double] = None,
@@ -168,79 +169,6 @@ object ResponsesResponseBody {
     *   One of auto, concise, or detailed.
     */
   case class ReasoningConfig(effort: Option[String] = None, generateSummary: Option[String] = None, summary: Option[String] = None)
-
-  sealed trait ToolChoice
-  object ToolChoice {
-    sealed trait ToolChoiceMode extends ToolChoice
-    object ToolChoiceMode {
-      case object NoneChoice extends ToolChoiceMode
-      case object Auto extends ToolChoiceMode
-      case object Required extends ToolChoiceMode
-    }
-
-    sealed trait ToolChoiceObject extends ToolChoice
-    object ToolChoiceObject {
-      object AllowedTools {
-        sealed trait ToolDefinition
-        object ToolDefinition {
-          @upickle.implicits.key("function")
-          case class Function(name: String) extends ToolDefinition
-          @upickle.implicits.key("mcp")
-          case class Mcp(serverLabel: String) extends ToolDefinition
-          @upickle.implicits.key("image_generation")
-          case class ImageGeneration() extends ToolDefinition
-
-          implicit val functionR: SnakePickle.Reader[Function] = SnakePickle.macroR
-          implicit val mcpR: SnakePickle.Reader[Mcp] = SnakePickle.macroR
-          implicit val imageGenerationR: SnakePickle.Reader[ImageGeneration] = SnakePickle.macroR
-          implicit val toolDefinitionR: SnakePickle.Reader[ToolDefinition] = SnakePickle.macroR
-        }
-      }
-
-      @upickle.implicits.key("allowed_tools")
-      case class AllowedTools(mode: String, tools: List[AllowedTools.ToolDefinition]) extends ToolChoiceObject
-      @upickle.implicits.key("file_search")
-      case class FileSearch() extends ToolChoiceObject
-      @upickle.implicits.key("web_search_preview")
-      case class WebSearchPreview() extends ToolChoiceObject
-      @upickle.implicits.key("computer_use_preview")
-      case class ComputerUsePreview() extends ToolChoiceObject
-      @upickle.implicits.key("code_interpreter")
-      case class CodeInterpreter() extends ToolChoiceObject
-      @upickle.implicits.key("image_generation")
-      case class ImageGeneration() extends ToolChoiceObject
-      @upickle.implicits.key("function")
-      case class Function(name: String) extends ToolChoiceObject
-      @upickle.implicits.key("mcp")
-      case class Mcp(serverLabel: String, name: Option[String] = None) extends ToolChoiceObject
-      @upickle.implicits.key("custom")
-      case class Custom(name: String) extends ToolChoiceObject
-
-      implicit val allowedToolsR: SnakePickle.Reader[AllowedTools] = SnakePickle.macroR
-      implicit val fileSearchR: SnakePickle.Reader[FileSearch] = SnakePickle.macroR
-      implicit val webSearchPreviewR: SnakePickle.Reader[WebSearchPreview] = SnakePickle.macroR
-      implicit val computerUsePreviewR: SnakePickle.Reader[ComputerUsePreview] = SnakePickle.macroR
-      implicit val codeInterpreterR: SnakePickle.Reader[CodeInterpreter] = SnakePickle.macroR
-      implicit val imageGenerationR: SnakePickle.Reader[ImageGeneration] = SnakePickle.macroR
-      implicit val functionR: SnakePickle.Reader[Function] = SnakePickle.macroR
-      implicit val mcpR: SnakePickle.Reader[Mcp] = SnakePickle.macroR
-      implicit val customR: SnakePickle.Reader[Custom] = SnakePickle.macroR
-      implicit val toolChoiceObjectR: SnakePickle.Reader[ToolChoiceObject] = SnakePickle.macroR
-    }
-
-    implicit val toolChoiceModeR: SnakePickle.Reader[ToolChoiceMode] = SnakePickle.reader[String].map[ToolChoiceMode] {
-      case "none"     => ToolChoiceMode.NoneChoice
-      case "auto"     => ToolChoiceMode.Auto
-      case "required" => ToolChoiceMode.Required
-      case other      => throw new Exception(s"Unknown tool choice mode: $other")
-    }
-
-    implicit val toolChoiceR: SnakePickle.Reader[ToolChoice] = SnakePickle.reader[ujson.Value].map[ToolChoice] {
-      case str: ujson.Str => SnakePickle.read[ToolChoiceMode](str)
-      case obj: ujson.Obj => SnakePickle.read[ToolChoiceObject](obj)
-      case v              => throw new Exception(s"Invalid tool choice format: $v")
-    }
-  }
 
   sealed trait InputItem
   object InputItem {
