@@ -16,6 +16,7 @@ import sttp.openai.requests.responses.ResponsesRequestBody.{
   _
 }
 import sttp.openai.requests.responses.ResponsesResponseBody._
+import sttp.openai.requests.responses.ResponsesResponseBody.ToolChoice.ToolChoiceObject
 import ujson.{Obj, Str}
 
 class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
@@ -431,6 +432,44 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // then
     serializedJson shouldBe expectedJson
+  }
+
+  "Given responses response with tool_choice set to allowed_tools" should "be properly deserialized from Json" in {
+    // given
+    val jsonResponse = ujson.read(ResponsesFixture.jsonResponseWithAllowedToolsChoice)
+
+    // when
+    val deserializedResponse: ResponsesResponseBody = SnakePickle.read[ResponsesResponseBody](jsonResponse)
+
+    // then
+    deserializedResponse.id shouldBe "resp_tool_choice_123"
+    deserializedResponse.model shouldBe "gpt-4o"
+    deserializedResponse.status shouldBe "completed"
+    
+    // Check tool_choice structure
+    deserializedResponse.toolChoice shouldBe defined
+    val toolChoice = deserializedResponse.toolChoice.get
+    toolChoice shouldBe a[ToolChoiceObject.AllowedTools]
+    
+    val allowedTools = toolChoice.asInstanceOf[ToolChoiceObject.AllowedTools]
+    allowedTools.mode shouldBe "auto"
+    allowedTools.tools should have size 3
+    
+    // Check first tool (function)
+    val functionTool = allowedTools.tools(0)
+    functionTool shouldBe a[ToolChoiceObject.AllowedTools.ToolDefinition.Function]
+    val function = functionTool.asInstanceOf[ToolChoiceObject.AllowedTools.ToolDefinition.Function]
+    function.name shouldBe "get_weather"
+    
+    // Check second tool (mcp)
+    val mcpTool = allowedTools.tools(1)
+    mcpTool shouldBe a[ToolChoiceObject.AllowedTools.ToolDefinition.Mcp]
+    val mcp = mcpTool.asInstanceOf[ToolChoiceObject.AllowedTools.ToolDefinition.Mcp]
+    mcp.serverLabel shouldBe "deepwiki"
+    
+    // Check third tool (image_generation)
+    val imageGenTool = allowedTools.tools(2)
+    imageGenTool shouldBe a[ToolChoiceObject.AllowedTools.ToolDefinition.ImageGeneration]
   }
 
 }

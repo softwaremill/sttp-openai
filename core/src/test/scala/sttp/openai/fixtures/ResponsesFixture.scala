@@ -296,4 +296,31 @@ object ResponsesFixture {
       |    "experiment": "test_run"
       |  }
       |}""".stripMargin
+
+  val jsonResponseWithAllowedToolsChoice: String =
+    """{
+      |  "id": "resp_tool_choice_123",
+      |  "object": "response",
+      |  "created_at": 1741476779,
+      |  "model": "gpt-4o",
+      |  "status": "completed",
+      |  "tool_choice": {
+      |    "type": "allowed_tools",
+      |    "mode": "auto",
+      |    "tools": [
+      |      {
+      |        "type": "function",
+      |        "name": "get_weather"
+      |      },
+      |      {
+      |        "type": "mcp",
+      |        "server_label": "deepwiki"
+      |      },
+      |      {
+      |        "type": "image_generation"
+      |      }
+      |    ]
+      |  },
+      |  "output": []
+      |}""".stripMargin
 }
