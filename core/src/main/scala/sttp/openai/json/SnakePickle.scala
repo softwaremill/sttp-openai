@@ -74,4 +74,10 @@ object SerializationHelpers {
 
   def caseObjectWithDiscriminatorWriter[T](discriminatorValue: String): SnakePickle.Writer[T] =
     SnakePickle.writer[Value].comap(_ => Obj(SnakePickle.tagName -> Str(discriminatorValue)))
+
+  def stringCaseObject[T](value: String): SnakePickle.Writer[T] =
+    SnakePickle
+      .writer[Value]
+      .comap(_ => Str(value))
+
 }
