@@ -112,4 +112,12 @@ object ToolFixture {
       |  "strict": true
       |}""".stripMargin
 
+  val jsonCustomTool: String =
+    """{
+      |  "type": "custom",
+      |  "custom": {
+      |    "name": "my_custom_tool"
+      |  }
+      |}""".stripMargin
+
 }

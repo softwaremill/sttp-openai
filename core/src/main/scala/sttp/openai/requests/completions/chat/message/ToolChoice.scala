@@ -24,8 +24,13 @@ object ToolChoice {
     case object Auto extends Mode
     case object Required extends Mode
     sealed trait Mode
+    implicit val modeRW: SnakePickle.Writer[Mode] = SnakePickle.writer[Value].comap[Mode]({
+      case Auto => Str("auto")
+      case Required => Str("required")
+    })
+
   }
-  case class AllowedTools(mode: AllowedTools.Mode, tools: List[Tool])
+  case class AllowedTools(mode: AllowedTools.Mode, tools: List[Tool]) extends ToolChoice
 
   // Utility function to reduce boilerplate for simple string-based case objects
   private def stringCaseObject[T](value: String): SnakePickle.Writer[T] =
@@ -40,14 +45,11 @@ object ToolChoice {
 
   implicit val toolFunctionRW: SnakePickle.Writer[ToolFunction] =
     SerializationHelpers.withNestedDiscriminator("function", "function")(SnakePickle.macroW)
+  implicit val allowedToolsRW: SnakePickle.Writer[AllowedTools] =
+    SerializationHelpers.withNestedDiscriminator("allowed_tools", "allowed_tools")(SnakePickle.macroW)
 
-  // Add missing ReadWriter for CustomTool
-  implicit val customToolRW: SnakePickle.ReadWriter[CustomTool] = SnakePickle
-    .readwriter[Value]
-    .bimap[CustomTool](
-      customTool => Obj("type" -> "custom", "name" -> customTool.name),
-      json => CustomTool(json.obj("name").str)
-    )
+  implicit val customToolRW: SnakePickle.Writer[CustomTool] =
+    SerializationHelpers.withNestedDiscriminator("custom", "custom")(SnakePickle.macroW)
 
   implicit val toolChoiceRW: SnakePickle.Writer[ToolChoice] = SnakePickle
     .writer[Value]
@@ -57,6 +59,7 @@ object ToolChoice {
       case toolRequired: ToolRequired.type => SnakePickle.writeJs(toolRequired)
       case toolFunction: ToolFunction      => SnakePickle.writeJs(toolFunction)
       case customTool: CustomTool          => SnakePickle.writeJs(customTool)
+      case allowedTools: AllowedTools      => SnakePickle.writeJs(allowedTools)
     }
 
 }

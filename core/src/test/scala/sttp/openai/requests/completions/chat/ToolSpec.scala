@@ -61,9 +61,21 @@ class ToolSpec extends AnyFlatSpec with Matchers with EitherValues {
     serialized shouldBe expectedJson
 
     val deserialized = SnakePickle.read[FunctionTool](expectedJson)
-    // Ensure strict flag is preserved
     deserialized.strict should contain(true)
-    // Ensure serialisation after deserialization matches expected JSON (round-trip)
     SnakePickle.writeJs(deserialized) shouldBe expectedJson
+  }
+
+  "Given CustomTool" should "serialize properly" in {
+    import sttp.openai.requests.completions.chat.message.ToolChoice.CustomTool
+    
+    // given
+    val customTool = CustomTool(name = "my_custom_tool")
+    val expectedJson = ujson.read(ToolFixture.jsonCustomTool)
+
+    // when
+    val serialized = SnakePickle.writeJs(customTool)
+    
+    // then
+    serialized shouldBe expectedJson
   }
 }
