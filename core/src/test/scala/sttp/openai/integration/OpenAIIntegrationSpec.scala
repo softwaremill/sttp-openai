@@ -4,7 +4,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatest.{BeforeAndAfterAll, Tag}
+import org.scalatest.BeforeAndAfterAll
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
@@ -60,9 +60,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     }
   }
 
-  object IntegrationTest extends Tag("integration")
-
-  "OpenAI Models API" should "list available models successfully" taggedAs IntegrationTest in
+  "OpenAI Models API" should "list available models successfully" in
     withClient { client =>
       // given
       // No setup needed - getModels is a free endpoint
@@ -82,7 +80,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       ()
     }
 
-  it should "retrieve a specific model successfully" taggedAs IntegrationTest in
+  it should "retrieve a specific model successfully" in
     withClient { client =>
       // given
       val modelId = "gpt-4o-mini" // A commonly available model
@@ -98,7 +96,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       ()
     }
 
-  "OpenAI Moderations API" should "moderate content successfully" taggedAs IntegrationTest in
+  "OpenAI Moderations API" should "moderate content successfully" in
     withClient { client =>
       // given
       val harmlessText = "Hello, how are you today? This is a test message."
@@ -117,7 +115,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       ()
     }
 
-  it should "flag inappropriate content" taggedAs IntegrationTest in
+  it should "flag inappropriate content" in
     withClient { client =>
       // given
       val inappropriateText = "I want to hurt someone badly"
@@ -136,7 +134,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       ()
     }
 
-  "OpenAI Embeddings API" should "create embeddings for text successfully" taggedAs IntegrationTest in
+  "OpenAI Embeddings API" should "create embeddings for text successfully" in
     withClient { client =>
       // given
       val shortText = "test" // Minimal text to reduce cost
@@ -161,7 +159,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       ()
     }
 
-  "OpenAI Chat Completions API" should "create a chat completion successfully" taggedAs IntegrationTest in
+  "OpenAI Chat Completions API" should "create a chat completion successfully" in
     withClient { client =>
       // given
       val messages = Seq(
@@ -192,7 +190,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       ()
     }
 
-  "OpenAI Responses API" should "create, retrieve, list input items, and delete a model response successfully" taggedAs IntegrationTest in
+  "OpenAI Responses API" should "create, retrieve, list input items, and delete a model response successfully" in
     withClient { client =>
       // given
       val requestBody = ResponsesRequestBody(
@@ -273,7 +271,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       ()
     }
 
-  "OpenAI Error Handling" should "throw AuthenticationException for invalid API key" taggedAs IntegrationTest in {
+  "OpenAI Error Handling" should "throw AuthenticationException for invalid API key" in {
     // given
     val invalidClient = OpenAISyncClient("invalid-api-key")
 
@@ -286,7 +284,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     ()
   }
 
-  it should "handle rate limiting gracefully" taggedAs IntegrationTest in
+  it should "handle rate limiting gracefully" in
     withClient { client =>
       // given
       // This test verifies that the library properly handles rate limit responses
@@ -313,7 +311,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       }
     }
 
-  "OpenAI Client Integration" should "work with custom request modifications" taggedAs IntegrationTest in
+  "OpenAI Client Integration" should "work with custom request modifications" in
     withClient { client =>
       // given
       val customClient = client.customizeRequest(new sttp.openai.CustomizeOpenAIRequest {

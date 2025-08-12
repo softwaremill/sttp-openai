@@ -38,7 +38,8 @@ object ToolChoice {
 
   implicit val toolRequiredRW: SnakePickle.Writer[ToolRequired.type] = stringCaseObject("required")
 
-  implicit val toolFunctionRW: SnakePickle.Writer[ToolFunction] = SerializationHelpers.withNestedDiscriminator("function", "function")(SnakePickle.macroW)
+  implicit val toolFunctionRW: SnakePickle.Writer[ToolFunction] =
+    SerializationHelpers.withNestedDiscriminator("function", "function")(SnakePickle.macroW)
 
   // Add missing ReadWriter for CustomTool
   implicit val customToolRW: SnakePickle.ReadWriter[CustomTool] = SnakePickle
@@ -50,16 +51,12 @@ object ToolChoice {
 
   implicit val toolChoiceRW: SnakePickle.Writer[ToolChoice] = SnakePickle
     .writer[Value]
-    .comap[ToolChoice](
-      {
-        case toolAuto: ToolAuto.type        => SnakePickle.writeJs(toolAuto)
-        case toolNone: ToolNone.type        => SnakePickle.writeJs(toolNone)
-        case toolRequired: ToolRequired.type => SnakePickle.writeJs(toolRequired)
-        case toolFunction: ToolFunction     => SnakePickle.writeJs(toolFunction)
-        case customTool: CustomTool         => SnakePickle.writeJs(customTool)
-      }
-
-    )
-
+    .comap[ToolChoice] {
+      case toolAuto: ToolAuto.type         => SnakePickle.writeJs(toolAuto)
+      case toolNone: ToolNone.type         => SnakePickle.writeJs(toolNone)
+      case toolRequired: ToolRequired.type => SnakePickle.writeJs(toolRequired)
+      case toolFunction: ToolFunction      => SnakePickle.writeJs(toolFunction)
+      case customTool: CustomTool          => SnakePickle.writeJs(customTool)
+    }
 
 }

@@ -21,19 +21,12 @@ if [ -z "${OPENAI_API_KEY}" ]; then
     echo "  2. Or pass as argument: ./run-integration-tests.sh your-key-here"
     echo ""
     echo "📝 Note: Without API key, all integration tests will be skipped (not failed)"
-    echo "This is CI/CD friendly behavior."
     echo ""
     echo "Proceeding with tests (they will be skipped)..."
     echo ""
 fi
 
 echo "🧪 Running sttp-openai integration tests..."
-if [ -n "${OPENAI_API_KEY}" ]; then
-    echo "📊 Estimated cost: ~$0.003 (less than 1 cent)"
-else
-    echo "📊 Cost: FREE (tests will be skipped)"
-fi
-echo ""
 
 # Run the integration tests
 sbt "testOnly *OpenAIIntegrationSpec"
@@ -41,24 +34,6 @@ sbt "testOnly *OpenAIIntegrationSpec"
 echo ""
 if [ -n "${OPENAI_API_KEY}" ]; then
     echo "✅ Integration tests completed!"
-    echo ""
-    echo "Tests covered:"
-    echo "  • Models API (FREE) - List and retrieve models"
-    echo "  • Moderations API (FREE) - Content moderation"  
-    echo "  • Embeddings API (~$0.0001) - Text embeddings"
-    echo "  • Chat Completions API (~$0.001) - Chat with minimal tokens"
-    echo "  • Responses API (~$0.001) - Complete lifecycle (create/retrieve/list inputs/delete)"
-    echo "  • Error handling - Authentication and rate limiting"
-    echo "  • Client customization - Request modification"
 else
-    echo "✅ Integration tests completed (all tests skipped)!"
-    echo ""
-    echo "Tests that would be covered with API key:"
-    echo "  • Models API (FREE) - List and retrieve models"
-    echo "  • Moderations API (FREE) - Content moderation"  
-    echo "  • Embeddings API (~$0.0001) - Text embeddings"
-    echo "  • Chat Completions API (~$0.001) - Chat with minimal tokens"
-    echo "  • Responses API (~$0.001) - Complete lifecycle (create/retrieve/list inputs/delete)"
-    echo "  • Error handling - Authentication and rate limiting"
-    echo "  • Client customization - Request modification"
+    echo "✅ Integration tests skipped (no API key provided)"
 fi
