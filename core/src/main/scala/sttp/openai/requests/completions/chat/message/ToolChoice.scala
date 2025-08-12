@@ -49,23 +49,16 @@ object ToolChoice {
     )
 
   implicit val toolChoiceRW: SnakePickle.Writer[ToolChoice] = SnakePickle
-    .readwriter[Value]
-    .bimap[ToolChoice](
+    .writer[Value]
+    .comap[ToolChoice](
       {
         case toolAuto: ToolAuto.type        => SnakePickle.writeJs(toolAuto)
         case toolNone: ToolNone.type        => SnakePickle.writeJs(toolNone)
         case toolRequired: ToolRequired.type => SnakePickle.writeJs(toolRequired)
         case toolFunction: ToolFunction     => SnakePickle.writeJs(toolFunction)
         case customTool: CustomTool         => SnakePickle.writeJs(customTool)
-      },
-      {
-        case json @ Str("none")     => SnakePickle.read[ToolNone.type](json)
-        case json @ Str("auto")     => SnakePickle.read[ToolAuto.type](json)
-        case json @ Str("required") => SnakePickle.read[ToolRequired.type](json)
-        case json: Obj if json.obj.contains("function") => SnakePickle.read[ToolFunction](json)
-        case json: Obj if json.obj.get("type").contains(Str("custom")) => SnakePickle.read[CustomTool](json)
-        case json => throw new IllegalArgumentException(s"Unknown tool choice format: $json")
       }
+
     )
 
 
