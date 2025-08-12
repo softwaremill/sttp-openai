@@ -691,7 +691,9 @@ object Main extends App {
 
 If you have a question, or hit a problem, feel free to post on our community https://softwaremill.community/c/open-source/
 
-Or, if you encounter a bug, something is unclear in the code or documentation, don’t hesitate and open an issue on GitHub.
+Or, if you encounter a bug, something is unclear in the code or documentation, don't hesitate and open an issue on GitHub.
+
+For running integration tests against the real OpenAI API, see [Integration Testing Guide](INTEGRATION_TESTING.md).
 
 ## Commercial Support
 
@@ -699,4 +701,4 @@ We offer commercial support for sttp and related technologies, as well as develo
 
 ## Copyright
 
-Copyright (C) 2023-2024 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
+Copyright (C) 2023-2025 SoftwareMill [https://softwaremill.com](https://softwaremill.com).

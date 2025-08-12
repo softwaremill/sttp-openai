@@ -45,25 +45,7 @@ class SyncClientSpec extends AnyFlatSpec with Matchers with EitherValues {
           id = "babbage",
           `object` = "model",
           created = 1649358449,
-          ownedBy = "openai",
-          permission = Seq(
-            ModelPermission(
-              id = "modelperm-49FUp5v084tBB49tC4z8LPH5",
-              `object` = "model_permission",
-              created = 1669085501,
-              allowCreateEngine = false,
-              allowSampling = true,
-              allowLogprobs = true,
-              allowSearchIndices = false,
-              allowView = true,
-              allowFineTuning = false,
-              organization = "*",
-              group = None,
-              isBlocking = false
-            )
-          ),
-          root = "babbage",
-          parent = None
+          ownedBy = "openai"
         )
       )
     )
