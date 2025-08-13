@@ -78,8 +78,7 @@ object SerializationHelpers {
     SnakePickle
       .reader[Value]
       .map { json =>
-        val a = json.obj.get(nestedField).map(_.obj.addOne(SnakePickle.tagName -> discriminatorValue))
-        a match {
+        json.obj.get(nestedField).map(_.obj.addOne(SnakePickle.tagName -> discriminatorValue)) match {
           case Some(modifiedJson) => SnakePickle.read(modifiedJson)
           case None               => throw MissingInnerObjectException(nestedField)
         }
@@ -95,6 +94,6 @@ object SerializationHelpers {
       .comap(_ => Str(value))
 
   private case class MissingInnerObjectException(nestedField: String)
-      extends Exception(s"Couldn't find nested object under field $nestedField")
+      extends Exception(s"Couldn't find nested object under field=[$nestedField]")
 
 }
