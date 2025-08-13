@@ -566,7 +566,7 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel.GPT4oMini
 import sttp.openai.requests.completions.chat.ToolCall.FunctionToolCall
 import sttp.openai.requests.completions.chat.message.Content.TextContent
-import sttp.openai.requests.completions.chat.message.Message.UserMessage
+import sttp.openai.requests.completions.chat.message.Message.{AssistantMessage, ToolMessage, UserMessage}
 import sttp.openai.requests.completions.chat.message.Tool.FunctionTool
 import sttp.tapir.generic.auto._
 
