@@ -566,7 +566,7 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel.GPT4oMini
 import sttp.openai.requests.completions.chat.ToolCall.FunctionToolCall
 import sttp.openai.requests.completions.chat.message.Content.TextContent
-import sttp.openai.requests.completions.chat.message.Message.{AssistantMessage, ToolMessage, UserMessage}
+import sttp.openai.requests.completions.chat.message.Message.UserMessage
 import sttp.openai.requests.completions.chat.message.Tool.FunctionTool
 import sttp.tapir.generic.auto._
 
@@ -600,8 +600,8 @@ object Main extends App {
     messages = initialRequestMessage,
     tools = Some(Seq(
       FunctionTool.withSchema[FlightDetails](
-        description = "Books a flight for a passenger with full details",
-        name = "book_flight"))
+        name = "book_flight",
+        description = Some("Books a flight for a passenger with full details")))
     )
   )
 
