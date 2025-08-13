@@ -100,7 +100,7 @@ object Tool {
       },
       json =>
         json("type").str match {
-          case "function"         => SnakePickle.read[FunctionTool](json("function"))
+          case "function"         => SnakePickle.read[FunctionTool](json)
           case "code_interpreter" => CodeInterpreterTool
           case "file_search"      => FileSearchTool
         }

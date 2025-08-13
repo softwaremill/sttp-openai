@@ -78,7 +78,8 @@ object SerializationHelpers {
     SnakePickle
       .reader[Value]
       .map { json =>
-        json.obj.get(nestedField).map(_.obj.addOne(SnakePickle.tagName -> discriminatorValue)) match {
+        val a = json.obj.get(nestedField).map(_.obj.addOne(SnakePickle.tagName -> discriminatorValue))
+        a match {
           case Some(modifiedJson) => SnakePickle.read(modifiedJson)
           case None               => throw MissingInnerObjectException(nestedField)
         }
