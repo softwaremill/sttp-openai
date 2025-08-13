@@ -78,7 +78,11 @@ object SerializationHelpers {
     SnakePickle
       .reader[Value]
       .map { json =>
-        SnakePickle.read(json)
+        json.obj.get(nestedField).map(_.obj.addOne(SnakePickle.tagName -> discriminatorValue)) match {
+          case Some(modifiedJson) => SnakePickle.read(modifiedJson)
+          case None               => throw MissingInnerObjectException(nestedField)
+        }
+
       }
 
   def caseObjectWithDiscriminatorWriter[T](discriminatorValue: String): SnakePickle.Writer[T] =
@@ -88,5 +92,8 @@ object SerializationHelpers {
     SnakePickle
       .writer[Value]
       .comap(_ => Str(value))
+
+  private case class MissingInnerObjectException(nestedField: String)
+      extends Exception(s"Couldn't find nested object under field $nestedField")
 
 }
