@@ -1,7 +1,7 @@
 package sttp.openai.requests.assistants
 
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.completions.chat.message.{Tool, ToolResources}
+import sttp.openai.requests.completions.chat.message.ToolResources
 
 object AssistantsResponseData {
 
