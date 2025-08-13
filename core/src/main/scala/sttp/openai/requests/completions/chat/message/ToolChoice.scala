@@ -37,11 +37,11 @@ object ToolChoice {
   implicit val toolRequiredRW: SnakePickle.Writer[ToolRequired.type] = SerializationHelpers.stringCaseObject("required")
 
   implicit val toolFunctionRW: SnakePickle.Writer[ToolFunction] =
-    SerializationHelpers.withNestedDiscriminator("function", "function")(SnakePickle.macroW)
+    SerializationHelpers.withNestedDiscriminatorWriter("function", "function")(SnakePickle.macroW)
   implicit val allowedToolsRW: SnakePickle.Writer[AllowedTools] =
-    SerializationHelpers.withNestedDiscriminator("allowed_tools", "allowed_tools")(SnakePickle.macroW)
+    SerializationHelpers.withNestedDiscriminatorWriter("allowed_tools", "allowed_tools")(SnakePickle.macroW)
   implicit val customToolRW: SnakePickle.Writer[CustomTool] =
-    SerializationHelpers.withNestedDiscriminator("custom", "custom")(SnakePickle.macroW)
+    SerializationHelpers.withNestedDiscriminatorWriter("custom", "custom")(SnakePickle.macroW)
 
   implicit val toolChoiceRW: SnakePickle.Writer[ToolChoice] = SnakePickle
     .writer[Value]

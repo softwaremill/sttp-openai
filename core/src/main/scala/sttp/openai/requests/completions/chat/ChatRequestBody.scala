@@ -21,7 +21,7 @@ object ChatRequestBody {
     // Use SerializationHelpers to automatically create nested discriminator structure
     // This creates: {"type": "json_schema", "json_schema": {...actual JsonSchema object...}}
     implicit val jsonSchemaW: SnakePickle.Writer[JsonSchema] =
-      SerializationHelpers.withNestedDiscriminator("json_schema", "json_schema")(SnakePickle.macroW[JsonSchema])
+      SerializationHelpers.withNestedDiscriminatorWriter("json_schema", "json_schema")(SnakePickle.macroW[JsonSchema])
 
     implicit val textW: SnakePickle.Writer[Text.type] = SerializationHelpers.caseObjectWithDiscriminatorWriter("text")
 

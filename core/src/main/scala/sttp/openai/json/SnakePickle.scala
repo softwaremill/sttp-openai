@@ -45,13 +45,13 @@ object SerializationHelpers {
     *   The value for the discriminator field (e.g., "json_schema")
     * @param nestedField
     *   The name of the field containing the nested object (e.g., "json_schema")
-    * @param baseRW
-    *   The base ReadWriter for the type T (typically SnakePickle.macroRW)
+    * @param baseW
+    *   The base Writer for the type T (typically SnakePickle.macroRW)
     * @return
-    *   A ReadWriter that wraps the object in the nested discriminator structure
+    *   A Writer that wraps the object in the nested discriminator structure
     */
-  def withNestedDiscriminator[T](discriminatorValue: String, nestedField: String)(implicit
-      baseRW: SnakePickle.Writer[T]
+  def withNestedDiscriminatorWriter[T](discriminatorValue: String, nestedField: String)(implicit
+      baseW: SnakePickle.Writer[T]
   ): SnakePickle.Writer[T] =
     SnakePickle
       .writer[Value]
@@ -70,6 +70,15 @@ object SerializationHelpers {
           SnakePickle.tagName -> discriminatorValue,
           nestedField -> cleanedJson
         )
+      }
+
+  def withNestedDiscriminatorReader[T](discriminatorValue: String, nestedField: String)(implicit
+      baseR: SnakePickle.Reader[T]
+  ): SnakePickle.Reader[T] =
+    SnakePickle
+      .reader[Value]
+      .map { json =>
+        SnakePickle.read(json)
       }
 
   def caseObjectWithDiscriminatorWriter[T](discriminatorValue: String): SnakePickle.Writer[T] =

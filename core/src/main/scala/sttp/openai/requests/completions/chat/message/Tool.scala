@@ -1,6 +1,6 @@
 package sttp.openai.requests.completions.chat.message
 
-import sttp.openai.json.SnakePickle
+import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
 import sttp.tapir.{Schema => TSchema}
@@ -70,7 +70,8 @@ object Tool {
     }
   }
 
-  implicit val functionToolRW: SnakePickle.ReadWriter[FunctionTool] = SnakePickle.macroRW
+  implicit val functionToolW: SnakePickle.Writer[FunctionTool] = SerializationHelpers.withNestedDiscriminatorWriter("function", "function")(SnakePickle.macroW)
+  implicit val functionToolR: SnakePickle.Reader[FunctionTool] = SerializationHelpers.withNestedDiscriminatorReader("function", "function")(SnakePickle.macroR)
 
   /** Code interpreter tool
     *
@@ -89,7 +90,7 @@ object Tool {
     .bimap[Tool](
       {
         case functionTool: FunctionTool =>
-          Obj("type" -> "function", "function" -> SnakePickle.writeJs(functionTool))
+          SnakePickle.writeJs(functionTool)
         case CodeInterpreterTool =>
           Obj("type" -> "code_interpreter")
         case FileSearchTool =>
