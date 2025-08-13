@@ -70,8 +70,10 @@ object Tool {
     }
   }
 
-  implicit val functionToolW: SnakePickle.Writer[FunctionTool] = SerializationHelpers.withNestedDiscriminatorWriter("function", "function")(SnakePickle.macroW)
-  implicit val functionToolR: SnakePickle.Reader[FunctionTool] = SerializationHelpers.withNestedDiscriminatorReader("function", "function")(SnakePickle.macroR)
+  implicit val functionToolW: SnakePickle.Writer[FunctionTool] =
+    SerializationHelpers.withNestedDiscriminatorWriter("function", "function")(SnakePickle.macroW)
+  implicit val functionToolR: SnakePickle.Reader[FunctionTool] =
+    SerializationHelpers.withNestedDiscriminatorReader("function", "function")(SnakePickle.macroR)
 
   /** Code interpreter tool
     *
