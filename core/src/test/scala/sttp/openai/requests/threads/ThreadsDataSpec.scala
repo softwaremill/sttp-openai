@@ -112,7 +112,7 @@ class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given create empty thread response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.ThreadsResponseData.ThreadData._
-      import sttp.openai.requests.threads.ThreadsResponseData._
+    import sttp.openai.requests.threads.ThreadsResponseData._
 
     // given
     val jsonResponse = fixtures.ThreadsFixture.jsonCreateEmptyThreadResponse
@@ -131,7 +131,7 @@ class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given create thread with messages and metadata response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.ThreadsResponseData.ThreadData._
-      import sttp.openai.requests.threads.ThreadsResponseData._
+    import sttp.openai.requests.threads.ThreadsResponseData._
 
     // given
     val jsonResponse = fixtures.ThreadsFixture.jsonCreateThreadWithMessagesAndMetadataResponse
@@ -151,7 +151,7 @@ class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given delete thread response as Json" should "be properly deserialized to case class" in {
     import sttp.openai.requests.threads.ThreadsResponseData.DeleteThreadResponse._
-      import sttp.openai.requests.threads.ThreadsResponseData._
+    import sttp.openai.requests.threads.ThreadsResponseData._
 
     // given
     val jsonResponse = fixtures.ThreadsFixture.jsonDeleteThreadResponse

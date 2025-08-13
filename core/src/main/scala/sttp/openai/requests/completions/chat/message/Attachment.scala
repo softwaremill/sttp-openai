@@ -1,8 +1,8 @@
 package sttp.openai.requests.completions.chat.message
 
 import sttp.openai.json.SnakePickle
-import ujson.{Obj, Value}
 import sttp.openai.requests.assistants.Tool
+import ujson.{Obj, Value}
 
 case class Attachment(fileId: Option[String] = None, tools: Option[Seq[Tool]] = None)
 
