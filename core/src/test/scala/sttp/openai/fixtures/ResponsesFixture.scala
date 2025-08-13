@@ -52,7 +52,7 @@ object ResponsesFixture {
       |    }
       |  },
       |  "tool_choice": "auto",
-      |  "tools": [{"type":"code_interpreter"}],
+      |  "tools": [{"type":"mcp","server_label":"label","server_url":"url"}],
       |  "top_logprobs": 5,
       |  "top_p": 0.9,
       |  "truncation": "disabled",

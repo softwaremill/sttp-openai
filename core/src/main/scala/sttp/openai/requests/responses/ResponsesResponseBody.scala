@@ -3,9 +3,7 @@ package sttp.openai.requests.responses
 import sttp.apispec.Schema
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.SchemaSupport
-import sttp.openai.requests.completions.chat.message.Tool
-import sttp.openai.requests.responses.ToolChoice
-import ujson.{Arr, Obj, Str, Value}
+import ujson.{Arr, Str, Value}
 
 /** @param background
   *   Whether to run the model response in the background. Learn more.
