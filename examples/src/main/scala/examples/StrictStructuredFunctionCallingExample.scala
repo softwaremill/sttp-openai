@@ -19,16 +19,16 @@ object StrictStructuredFunctionCallingExample extends App {
   val apiKey = sys.env.getOrElse("OPENAI_API_KEY", sys.error("OPENAI_API_KEY env variable not set"))
 
   val getNumberTool = FunctionTool(
-    description = "Convert given text to upper-case",
+    description = Some("Convert given text to upper-case"),
     name = "uppercase_text",
-    parameters = Map(
+    parameters = Some(Map(
       "type" -> Str("object"),
       "properties" -> Obj(
         "text" -> Obj("type" -> Str("number"))
       ),
       "required" -> Arr(Str("text")),
       "additionalProperties" -> Bool(false)
-    ),
+    )),
     strict = Some(true)
   )
 

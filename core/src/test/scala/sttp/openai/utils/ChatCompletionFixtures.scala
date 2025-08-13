@@ -38,17 +38,19 @@ object ChatCompletionFixtures {
 
   def tools: Seq[Tool] = {
     val function = FunctionTool(
-      description = "Random description",
+      description = Some("Random description"),
       name = "Random name",
-      parameters = Map(
-        "type" -> Str("function"),
-        "properties" -> Obj(
-          "location" -> Obj(
-            "type" -> "string",
-            "description" -> "The city and state e.g. San Francisco, CA"
-          )
-        ),
-        "required" -> Arr("location")
+      parameters = Some(
+        Map(
+          "type" -> Str("function"),
+          "properties" -> Obj(
+            "location" -> Obj(
+              "type" -> "string",
+              "description" -> "The city and state e.g. San Francisco, CA"
+            )
+          ),
+          "required" -> Arr("location")
+        )
       )
     )
 

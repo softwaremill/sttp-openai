@@ -12,22 +12,22 @@ object Tool {
 
   /** Function tool definition – supports structured outputs by allowing the optional `strict` flag.
     *
-    * @param description
-    *   A description of what the function does, used by the model to choose when and how to call the function.
     * @param name
     *   The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
+    * @param description
+    *   A description of what the function does, used by the model to choose when and how to call the function.
     * @param parameters
-    *   The parameters the functions accepts, described as a JSON Schema object.
+    *   The parameters the functions accepts, described as a JSON Schema object. Omitting parameters defines a function with an empty
+    *   parameter list.
     * @param strict
-    *   When set to `true`, [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs) validation will be enforced by
-    *   the OpenAI API. Defaults to `None`, meaning the field is omitted in the outgoing JSON.
+    *   Whether to enable strict schema adherence when generating the function call. Defaults to false.
     */
   @upickle.implicits.key("function")
   case class FunctionTool(
-      description: String,
       name: String,
-      parameters: Map[String, Value],
-      strict: Option[Boolean] = None
+      description: Option[String] = None,
+      parameters: Option[Map[String, Value]] = None,
+      strict: Option[Boolean] = Some(false)
   ) extends Tool
 
   object FunctionTool {
@@ -35,27 +35,27 @@ object Tool {
     /** Create a FunctionTool with schema automatically generated from type T. This provides the same convenience as SchematizedFunctionTool
       * but keeps the Tool trait clean.
       *
-      * @param description
-      *   A description of what the function does.
       * @param name
       *   The name of the function to be called.
+      * @param description
+      *   A description of what the function does.
       * @tparam T
       *   The type to generate schema from.
       * @return
       *   A FunctionTool with auto-generated schema.
       */
-    def withSchema[T: TSchema](description: String, name: String): FunctionTool = {
+    def withSchema[T: TSchema](name: String, description: Option[String] = None): FunctionTool = {
       val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
       val schemaJson = SnakePickle.writeJs(schema)(SchemaSupport.schemaRW)
-      FunctionTool(description, name, schemaJson.obj.toMap, None)
+      FunctionTool(name, description, Some(schemaJson.obj.toMap), Some(false))
     }
 
     /** Create a FunctionTool with schema automatically generated from type T and strict flag.
       *
-      * @param description
-      *   A description of what the function does.
       * @param name
       *   The name of the function to be called.
+      * @param description
+      *   A description of what the function does.
       * @param strict
       *   When set to true, Structured Outputs validation will be enforced.
       * @tparam T
@@ -63,10 +63,10 @@ object Tool {
       * @return
       *   A FunctionTool with auto-generated schema and strict flag.
       */
-    def withSchema[T: TSchema](description: String, name: String, strict: Option[Boolean]): FunctionTool = {
+    def withSchema[T: TSchema](name: String, description: Option[String], strict: Option[Boolean]): FunctionTool = {
       val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
       val schemaJson = SnakePickle.writeJs(schema)(SchemaSupport.schemaRW)
-      FunctionTool(description, name, schemaJson.obj.toMap, strict)
+      FunctionTool(name, description, Some(schemaJson.obj.toMap), strict)
     }
   }
 
@@ -75,17 +75,56 @@ object Tool {
   implicit val functionToolR: SnakePickle.Reader[FunctionTool] =
     SerializationHelpers.withNestedDiscriminatorReader("function", "function")(SnakePickle.macroR)
 
-  /** Code interpreter tool
-    *
-    * The type of tool being defined: code_interpreter
-    */
-  case object CodeInterpreterTool extends Tool
+  object CustomTool {
 
-  /** file_search tool
+    sealed trait Format
+
+    object Format {
+
+      /** Unconstrained free-form text.
+        */
+      @upickle.implicits.key("text")
+      case class Text() extends Format
+
+      /** A grammar defined by the user.
+        *
+        * @param definition
+        *   The grammar definition.
+        * @param syntax
+        *   The syntax of the grammar definition. One of lark or regex.
+        */
+      @upickle.implicits.key("grammar")
+      case class Grammar(
+          definition: String,
+          syntax: String
+      ) extends Format
+
+      implicit val textRW: SnakePickle.ReadWriter[Text] = SnakePickle.macroRW
+      implicit val grammarRW: SnakePickle.ReadWriter[Grammar] = SnakePickle.macroRW
+      implicit val formatRW: SnakePickle.ReadWriter[Format] = SnakePickle.macroRW
+    }
+  }
+
+  /** A custom tool that processes input using a specified format.
     *
-    * The type of tool being defined: file_search
+    * @param name
+    *   The name of the custom tool, used to identify it in tool calls.
+    * @param description
+    *   Optional description of the custom tool, used to provide more context.
+    * @param format
+    *   The input format for the custom tool. Default is unconstrained text.
     */
-  case object FileSearchTool extends Tool
+  @upickle.implicits.key("custom")
+  case class CustomTool(
+      name: String,
+      description: Option[String] = None,
+      format: Option[CustomTool.Format] = None
+  ) extends Tool
+
+  implicit val customToolW: SnakePickle.Writer[CustomTool] =
+    SerializationHelpers.withNestedDiscriminatorWriter("custom", "custom")(SnakePickle.macroW)
+  implicit val customToolR: SnakePickle.Reader[CustomTool] =
+    SerializationHelpers.withNestedDiscriminatorReader("custom", "custom")(SnakePickle.macroR)
 
   implicit val toolRW: SnakePickle.ReadWriter[Tool] = SnakePickle
     .readwriter[Value]
@@ -93,16 +132,13 @@ object Tool {
       {
         case functionTool: FunctionTool =>
           SnakePickle.writeJs(functionTool)
-        case CodeInterpreterTool =>
-          Obj("type" -> "code_interpreter")
-        case FileSearchTool =>
-          Obj("type" -> "file_search")
+        case customTool: CustomTool =>
+          SnakePickle.writeJs(customTool)
       },
       json =>
         json("type").str match {
-          case "function"         => SnakePickle.read[FunctionTool](json)
-          case "code_interpreter" => CodeInterpreterTool
-          case "file_search"      => FileSearchTool
+          case "function" => SnakePickle.read[FunctionTool](json)
+          case "custom"   => SnakePickle.read[CustomTool](json)
         }
     )
 }

@@ -16,7 +16,7 @@ class ToolSpec extends AnyFlatSpec with Matchers with EitherValues {
     import sttp.tapir.generic.auto._
     // given
     val functionTool = FunctionTool.withSchema[FlightDetails](
-      description = "Books a flight for a passenger with full details",
+      description = Some("Books a flight for a passenger with full details"),
       name = "book_flight"
     )
     val expectedJson = ujson.read(ToolFixture.jsonToolCall)
@@ -30,9 +30,9 @@ class ToolSpec extends AnyFlatSpec with Matchers with EitherValues {
     import sttp.openai.requests.completions.chat.message.Tool.FunctionTool
     // given
     val funcTool = FunctionTool(
-      description = "Return greeting",
+      description = Some("Return greeting"),
       name = "greet",
-      parameters = Map("type" -> ujson.Str("object")),
+      parameters = Some(Map("type" -> ujson.Str("object"))),
       strict = Some(true)
     )
 
@@ -50,7 +50,7 @@ class ToolSpec extends AnyFlatSpec with Matchers with EitherValues {
   "Given FunctionTool with schema and strict flag" should "serialize and deserialize properly" in {
     import sttp.tapir.generic.auto._
     val tool = FunctionTool.withSchema[FlightDetails](
-      description = "Books a flight for a passenger with full details",
+      description = Some("Books a flight for a passenger with full details"),
       name = "book_flight",
       strict = Some(true)
     )
