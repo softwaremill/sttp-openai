@@ -21,14 +21,16 @@ object StrictStructuredFunctionCallingExample extends App {
   val getNumberTool = FunctionTool(
     description = Some("Convert given text to upper-case"),
     name = "uppercase_text",
-    parameters = Some(Map(
-      "type" -> Str("object"),
-      "properties" -> Obj(
-        "text" -> Obj("type" -> Str("number"))
-      ),
-      "required" -> Arr(Str("text")),
-      "additionalProperties" -> Bool(false)
-    )),
+    parameters = Some(
+      Map(
+        "type" -> Str("object"),
+        "properties" -> Obj(
+          "text" -> Obj("type" -> Str("number"))
+        ),
+        "required" -> Arr(Str("text")),
+        "additionalProperties" -> Bool(false)
+      )
+    ),
     strict = Some(true)
   )
 
