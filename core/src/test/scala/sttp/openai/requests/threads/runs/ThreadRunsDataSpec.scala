@@ -11,7 +11,13 @@ import sttp.openai.requests.completions.chat.message.ToolResources
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.ToolOutput
-import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, MessageCreation, RunStepData, Usage}
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{
+  ListRunStepsResponse,
+  ListRunsResponse,
+  MessageCreation,
+  RunStepData,
+  Usage
+}
 import sttp.openai.utils.JsonUtils
 import ujson.{Arr, Obj, Str}
 
