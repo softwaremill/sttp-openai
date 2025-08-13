@@ -293,6 +293,13 @@ object ChatRequestBody {
             case e => throw new Exception(s"Could not deserialize: $e")
           }
       )
+    case object GPT5 extends ChatCompletionModel("gpt-5")
+
+    case object GPT5Mini extends ChatCompletionModel("gpt-5-mini")
+
+    case object GPT5Nano extends ChatCompletionModel("gpt-5-nano")
+
+    case object GPT5ChatLatest extends ChatCompletionModel("gpt-5-chat-latest")
 
     case object GPT4 extends ChatCompletionModel("gpt-4")
 
@@ -316,6 +323,10 @@ object ChatRequestBody {
 
     val values: Set[ChatCompletionModel] =
       Set(
+        GPT5,
+        GPT5Mini,
+        GPT5Nano,
+        GPT5ChatLatest,
         GPT4,
         GPT40314,
         GPT432k,
