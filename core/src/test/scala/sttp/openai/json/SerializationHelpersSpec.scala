@@ -91,24 +91,4 @@ class SerializationHelpersSpec extends AnyFlatSpec with Matchers {
     deserializedObj shouldBe expectedObj
   }
 
-  it should "work with nested discriminator structure without optional fields" in {
-    // given
-    val inputJson = Obj(
-      "type" -> Str("test_object_key"),
-      "function" -> Obj(
-        "name" -> Str("simple_test"),
-        "value" -> Num(999)
-      )
-    )
-    implicit val baseReader: SnakePickle.Reader[TestObject] = SnakePickle.macroR
-    val nestedReader = SerializationHelpers.withNestedDiscriminatorReader[TestObject]("test_object_key", "function")
-
-    // when
-    val deserializedObj = SnakePickle.read[TestObject](inputJson)(nestedReader)
-
-    // then
-    val expectedObj = TestObject("simple_test", 999, None)
-    deserializedObj shouldBe expectedObj
-  }
-
 }

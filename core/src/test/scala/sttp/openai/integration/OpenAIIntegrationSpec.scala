@@ -1,10 +1,10 @@
 package sttp.openai.integration
 
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatest.BeforeAndAfterAll
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
