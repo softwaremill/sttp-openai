@@ -31,13 +31,18 @@ object Tool {
   ) extends Tool
 
   object FunctionTool {
-    /** Create a FunctionTool with schema automatically generated from type T.
-      * This provides the same convenience as SchematizedFunctionTool but keeps the Tool trait clean.
+
+    /** Create a FunctionTool with schema automatically generated from type T. This provides the same convenience as SchematizedFunctionTool
+      * but keeps the Tool trait clean.
       *
-      * @param description A description of what the function does.
-      * @param name The name of the function to be called.
-      * @tparam T The type to generate schema from.
-      * @return A FunctionTool with auto-generated schema.
+      * @param description
+      *   A description of what the function does.
+      * @param name
+      *   The name of the function to be called.
+      * @tparam T
+      *   The type to generate schema from.
+      * @return
+      *   A FunctionTool with auto-generated schema.
       */
     def withSchema[T: TSchema](description: String, name: String): FunctionTool = {
       val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
@@ -47,11 +52,16 @@ object Tool {
 
     /** Create a FunctionTool with schema automatically generated from type T and strict flag.
       *
-      * @param description A description of what the function does.
-      * @param name The name of the function to be called.
-      * @param strict When set to true, Structured Outputs validation will be enforced.
-      * @tparam T The type to generate schema from.
-      * @return A FunctionTool with auto-generated schema and strict flag.
+      * @param description
+      *   A description of what the function does.
+      * @param name
+      *   The name of the function to be called.
+      * @param strict
+      *   When set to true, Structured Outputs validation will be enforced.
+      * @tparam T
+      *   The type to generate schema from.
+      * @return
+      *   A FunctionTool with auto-generated schema and strict flag.
       */
     def withSchema[T: TSchema](description: String, name: String, strict: Option[Boolean]): FunctionTool = {
       val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
