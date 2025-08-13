@@ -8,15 +8,8 @@ import sttp.openai.fixtures.ResponsesFixture
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.message.Tool
 import sttp.openai.requests.responses.ResponsesRequestBody.Format.JsonSchema
-import sttp.openai.requests.responses.ResponsesRequestBody.{
-  Format => RequestFormat,
-  PromptConfig => RequestPromptConfig,
-  ReasoningConfig => RequestReasoningConfig,
-  TextConfig => RequestTextConfig,
-  _
-}
+import sttp.openai.requests.responses.ResponsesRequestBody.{Format => RequestFormat, PromptConfig => RequestPromptConfig, ReasoningConfig => RequestReasoningConfig, TextConfig => RequestTextConfig, _}
 import sttp.openai.requests.responses.ResponsesResponseBody._
-import sttp.openai.requests.responses.ToolChoice
 import sttp.openai.requests.responses.ToolChoice.ToolChoiceObject
 import ujson.{Obj, Str}
 
@@ -138,8 +131,8 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with input message containing text and image" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
-    import InputContentItem._
+      import Input._
+      import InputContentItem._
 
     // given
     val givenRequest = ResponsesRequestBody(
@@ -175,8 +168,8 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with input message containing text and file" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
-    import InputContentItem._
+      import Input._
+      import InputContentItem._
 
     // given
     val givenRequest = ResponsesRequestBody(
@@ -211,8 +204,8 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with file search tool call" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
-    import FileSearchToolCall._
+      import Input._
+      import FileSearchToolCall._
 
     // given
     val givenRequest = ResponsesRequestBody(
@@ -248,7 +241,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with file search tool call in progress" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
+      import Input._
 
     // given
     val givenRequest = ResponsesRequestBody(
@@ -396,8 +389,8 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given responses request with computer tool call wait action" should "be properly serialized to Json" in {
     import ResponsesRequestBody._
-    import Input._
-    import ComputerToolCall._
+      import Input._
+      import ComputerToolCall._
 
     // given
     val waitAction = Action.Wait()
@@ -446,28 +439,28 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     deserializedResponse.id shouldBe "resp_tool_choice_123"
     deserializedResponse.model shouldBe "gpt-4o"
     deserializedResponse.status shouldBe "completed"
-    
+
     // Check tool_choice structure
     deserializedResponse.toolChoice shouldBe defined
     val toolChoice = deserializedResponse.toolChoice.get
     toolChoice shouldBe a[ToolChoiceObject.AllowedTools]
-    
+
     val allowedTools = toolChoice.asInstanceOf[ToolChoiceObject.AllowedTools]
     allowedTools.mode shouldBe "auto"
     allowedTools.tools should have size 3
-    
+
     // Check first tool (function)
     val functionTool = allowedTools.tools(0)
     functionTool shouldBe a[ToolChoiceObject.AllowedTools.ToolDefinition.Function]
     val function = functionTool.asInstanceOf[ToolChoiceObject.AllowedTools.ToolDefinition.Function]
     function.name shouldBe "get_weather"
-    
+
     // Check second tool (mcp)
     val mcpTool = allowedTools.tools(1)
     mcpTool shouldBe a[ToolChoiceObject.AllowedTools.ToolDefinition.Mcp]
     val mcp = mcpTool.asInstanceOf[ToolChoiceObject.AllowedTools.ToolDefinition.Mcp]
     mcp.serverLabel shouldBe "deepwiki"
-    
+
     // Check third tool (image_generation)
     val imageGenTool = allowedTools.tools(2)
     imageGenTool shouldBe a[ToolChoiceObject.AllowedTools.ToolDefinition.ImageGeneration]

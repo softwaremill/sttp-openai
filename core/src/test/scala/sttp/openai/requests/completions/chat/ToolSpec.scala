@@ -16,7 +16,7 @@ class ToolSpec extends AnyFlatSpec with Matchers with EitherValues {
     import sttp.tapir.generic.auto._
     // given
     val functionTool = FunctionTool.withSchema[FlightDetails](
-      description = "Books a flight for a passenger with full details", 
+      description = "Books a flight for a passenger with full details",
       name = "book_flight"
     )
     val expectedJson = ujson.read(ToolFixture.jsonToolCall)
@@ -67,14 +67,14 @@ class ToolSpec extends AnyFlatSpec with Matchers with EitherValues {
 
   "Given CustomTool" should "serialize properly" in {
     import sttp.openai.requests.completions.chat.message.ToolChoice.CustomTool
-    
+
     // given
     val customTool = CustomTool(name = "my_custom_tool")
     val expectedJson = ujson.read(ToolFixture.jsonCustomTool)
 
     // when
     val serialized = SnakePickle.writeJs(customTool)
-    
+
     // then
     serialized shouldBe expectedJson
   }
