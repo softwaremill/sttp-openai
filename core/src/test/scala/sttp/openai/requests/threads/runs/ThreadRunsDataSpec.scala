@@ -5,19 +5,13 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.openai.fixtures
 import sttp.openai.json.SnakePickle
-import sttp.openai.requests.completions.chat.message.Tool.{CodeInterpreterTool, FileSearchTool, FunctionTool}
+import sttp.openai.requests.assistants.Tool.{CodeInterpreterTool, FileSearchTool, FunctionTool}
 import sttp.openai.requests.completions.chat.message.ToolResource.CodeInterpreterToolResource
 import sttp.openai.requests.completions.chat.message.ToolResources
 import sttp.openai.requests.threads.ThreadsRequestBody.CreateThreadBody
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 import sttp.openai.requests.threads.runs.ThreadRunsRequestBody.ToolOutput
-import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{
-  ListRunStepsResponse,
-  ListRunsResponse,
-  MessageCreation,
-  RunStepData,
-  Usage
-}
+import sttp.openai.requests.threads.runs.ThreadRunsResponseData.{ListRunStepsResponse, ListRunsResponse, MessageCreation, RunStepData, Usage}
 import sttp.openai.utils.JsonUtils
 import ujson.{Arr, Obj, Str}
 
