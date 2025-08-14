@@ -551,7 +551,7 @@ In the example below I define such use case. User tries to book a flight, using 
 - User sends result from the function call to Assistant.
 - Assistant sends a final result to User.
 
-The key point here is introducing SchematizedFunctionTool class. With this class in place Json Schema can be automatically generated using TapirSchemaToJsonSchema functionality. All we need to do is to define case class with [Tapir Schema](https://tapir.softwaremill.com/en/latest/endpoint/schemas.html) defined for it.
+The key point here is using `FunctionTool.withSchema[T]` method. With this method, Json Schema can be automatically generated using TapirSchemaToJsonSchema functionality. All we need to do is to define case class with [Tapir Schema](https://tapir.softwaremill.com/en/latest/endpoint/schemas.html) defined for it.
 
 Another helpful feature is adding possibility to create ToolMessage object passing object instead of String, which will be automatically serialized to Json. All you have to do is just define SnakePickle.Writer for specific class.
 
@@ -567,7 +567,7 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.ChatCompletionModel
 import sttp.openai.requests.completions.chat.ToolCall.FunctionToolCall
 import sttp.openai.requests.completions.chat.message.Content.TextContent
 import sttp.openai.requests.completions.chat.message.Message.{AssistantMessage, ToolMessage, UserMessage}
-import sttp.openai.requests.completions.chat.message.Tool.SchematizedFunctionTool
+import sttp.openai.requests.completions.chat.message.Tool.FunctionTool
 import sttp.tapir.generic.auto._
 
 case class Passenger(name: String, age: Int)
@@ -594,14 +594,14 @@ object Main extends App {
 
   val initialRequestMessage = Seq(UserMessage(content = TextContent("I want to book a flight from London to Tokyo for Jane Doe, age 34")))
 
-  // Request created using SchematizedFunctionTool, all we need to do here is just define the type. The schema is automatically generated using a macro, available via the `sttp.tapir.generic.auto._` import.
+  // Request created using FunctionTool.withSchema, all we need to do here is just define the type. The schema is automatically generated using a macro, available via the `sttp.tapir.generic.auto._` import.
   val givenRequest = ChatBody(
     model = GPT4oMini,
     messages = initialRequestMessage,
     tools = Some(Seq(
-      SchematizedFunctionTool[FlightDetails](
-        description = "Books a flight for a passenger with full details",
-        name = "book_flight"))
+      FunctionTool.withSchema[FlightDetails](
+        name = "book_flight",
+        description = Some("Books a flight for a passenger with full details")))
     )
   )
 

@@ -6,8 +6,8 @@ import org.scalatest.matchers.should.Matchers
 import sttp.client4.IsOption._
 import sttp.openai.fixtures
 import sttp.openai.json.SnakePickle
+import sttp.openai.requests.assistants.Tool.{CodeInterpreterTool, FileSearchTool}
 import sttp.openai.requests.completions.chat.message.Attachment
-import sttp.openai.requests.completions.chat.message.Tool.{CodeInterpreterTool, FileSearchTool}
 import sttp.openai.requests.threads.messages.ThreadMessagesRequestBody.CreateMessage
 import sttp.openai.utils.JsonUtils
 class ThreadsDataSpec extends AnyFlatSpec with Matchers with EitherValues {

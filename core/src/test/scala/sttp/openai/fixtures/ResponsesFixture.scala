@@ -52,7 +52,7 @@ object ResponsesFixture {
       |    }
       |  },
       |  "tool_choice": "auto",
-      |  "tools": [{"type":"code_interpreter"}],
+      |  "tools": [{"type":"mcp","server_label":"label","server_url":"url"}],
       |  "top_logprobs": 5,
       |  "top_p": 0.9,
       |  "truncation": "disabled",
@@ -295,5 +295,32 @@ object ResponsesFixture {
       |    "session_id": "session_123",
       |    "experiment": "test_run"
       |  }
+      |}""".stripMargin
+
+  val jsonResponseWithAllowedToolsChoice: String =
+    """{
+      |  "id": "resp_tool_choice_123",
+      |  "object": "response",
+      |  "created_at": 1741476779,
+      |  "model": "gpt-4o",
+      |  "status": "completed",
+      |  "tool_choice": {
+      |    "type": "allowed_tools",
+      |    "mode": "auto",
+      |    "tools": [
+      |      {
+      |        "type": "function",
+      |        "name": "get_weather"
+      |      },
+      |      {
+      |        "type": "mcp",
+      |        "server_label": "deepwiki"
+      |      },
+      |      {
+      |        "type": "image_generation"
+      |      }
+      |    ]
+      |  },
+      |  "output": []
       |}""".stripMargin
 }
