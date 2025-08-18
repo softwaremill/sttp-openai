@@ -16,6 +16,7 @@ project/boot/
 project/plugins/project/
 
 .idea*
+.cursor
 
 # Metals
 .metals/
