@@ -5,6 +5,8 @@ import sttp.openai.json.SnakePickle
 import sttp.openai.requests.completions.chat.SchemaSupport
 import sttp.openai.requests.responses.ResponsesRequestBody.Input
 import sttp.openai.requests.responses.ResponsesRequestBody.Input.OutputContentItem.OutputText.{Annotation, LogProb}
+import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
+import sttp.tapir.{Schema => TSchema}
 import ujson.Value
 
 /** @param background
@@ -377,6 +379,27 @@ object ResponsesRequestBody {
 
       case class Tool(inputSchema: Schema, name: String, annotations: Option[ujson.Value] = None, description: Option[String] = None)
 
+      object Tool {
+
+        /** Create an MCP Tool with schema automatically generated from type T.
+          *
+          * @param name
+          *   The name of the tool.
+          * @param description
+          *   A description of the tool.
+          * @param annotations
+          *   Optional annotations for the tool.
+          * @tparam T
+          *   The type to generate schema from.
+          * @return
+          *   An MCP Tool with auto-generated input schema.
+          */
+        def withTapirSchema[T: TSchema](name: String, description: Option[String] = None, annotations: Option[ujson.Value] = None): Tool = {
+          val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
+          Tool(schema, name, annotations, description)
+        }
+      }
+
       implicit val toolW: SnakePickle.Writer[Tool] = SnakePickle.macroW
     }
 
@@ -459,6 +482,27 @@ object ResponsesRequestBody {
 
     @upickle.implicits.key("json_schema")
     case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends Format
+
+    object JsonSchema {
+
+      /** Create a JsonSchema format with schema automatically generated from type T.
+        *
+        * @param name
+        *   The name of the response format.
+        * @param description
+        *   A description of what the response format is for.
+        * @param strict
+        *   Whether to enable strict schema adherence.
+        * @tparam T
+        *   The type to generate schema from.
+        * @return
+        *   A JsonSchema format with auto-generated schema.
+        */
+      def withTapirSchema[T: TSchema](name: String, description: Option[String] = None, strict: Option[Boolean] = None): JsonSchema = {
+        val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
+        JsonSchema(name, strict, Some(schema), description)
+      }
+    }
 
     implicit private val schemaW: SnakePickle.Writer[Schema] = SchemaSupport.schemaRW
 
