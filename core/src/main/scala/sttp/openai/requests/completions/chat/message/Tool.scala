@@ -32,8 +32,7 @@ object Tool {
 
   object FunctionTool {
 
-    /** Create a FunctionTool with schema automatically generated from type T. This provides the same convenience as SchematizedFunctionTool
-      * but keeps the Tool trait clean.
+    /** Create a FunctionTool with schema automatically generated from type T.
       *
       * @param name
       *   The name of the function to be called.
