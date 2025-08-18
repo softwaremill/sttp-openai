@@ -4,6 +4,8 @@ import sttp.apispec.Schema
 import sttp.openai.json.{SerializationHelpers, SnakePickle}
 import sttp.openai.requests.completions.Stop
 import sttp.openai.requests.completions.chat.message.{Message, Tool, ToolChoice}
+import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
+import sttp.tapir.{Schema => TSchema}
 import ujson._
 
 object ChatRequestBody {
@@ -15,6 +17,27 @@ object ChatRequestBody {
     case object JsonObject extends ResponseFormat
     @upickle.implicits.key("json_schema")
     case class JsonSchema(name: String, strict: Option[Boolean], schema: Option[Schema], description: Option[String]) extends ResponseFormat
+
+    object JsonSchema {
+
+      /** Create a JsonSchema response format with schema automatically generated from type T.
+        *
+        * @param name
+        *   The name of the response format.
+        * @param description
+        *   A description of what the response format is for.
+        * @param strict
+        *   Whether to enable strict schema adherence.
+        * @tparam T
+        *   The type to generate schema from.
+        * @return
+        *   A JsonSchema response format with auto-generated schema.
+        */
+      def withTapirSchema[T: TSchema](name: String, description: Option[String] = None, strict: Option[Boolean] = None): JsonSchema = {
+        val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
+        JsonSchema(name, strict, Some(schema), description)
+      }
+    }
 
     implicit private val schemaRW: SnakePickle.ReadWriter[Schema] = SchemaSupport.schemaRW
 

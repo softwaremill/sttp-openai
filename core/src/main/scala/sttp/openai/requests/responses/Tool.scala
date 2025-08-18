@@ -1,6 +1,9 @@
 package sttp.openai.requests.responses
 
 import sttp.openai.json.SnakePickle
+import sttp.openai.requests.completions.chat.SchemaSupport
+import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
+import sttp.tapir.{Schema => TSchema}
 import ujson.Value
 
 sealed trait Tool
@@ -25,6 +28,45 @@ object Tool {
       strict: Boolean = true,
       description: Option[String] = None
   ) extends Tool
+
+  object Function {
+
+    /** Create a Function tool with schema automatically generated from type T.
+      *
+      * @param name
+      *   The name of the function to call.
+      * @param description
+      *   A description of the function.
+      * @tparam T
+      *   The type to generate schema from.
+      * @return
+      *   A Function tool with auto-generated schema.
+      */
+    def withTapirSchema[T: TSchema](name: String, description: Option[String] = None): Function = {
+      val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
+      val schemaJson = SnakePickle.writeJs(schema)(SchemaSupport.schemaRW)
+      Function(name, schemaJson.obj.toMap, strict = true, description)
+    }
+
+    /** Create a Function tool with schema automatically generated from type T and custom strict flag.
+      *
+      * @param name
+      *   The name of the function to call.
+      * @param description
+      *   A description of the function.
+      * @param strict
+      *   Whether to enforce strict parameter validation.
+      * @tparam T
+      *   The type to generate schema from.
+      * @return
+      *   A Function tool with auto-generated schema and custom strict flag.
+      */
+    def withTapirSchema[T: TSchema](name: String, description: Option[String], strict: Boolean): Function = {
+      val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
+      val schemaJson = SnakePickle.writeJs(schema)(SchemaSupport.schemaRW)
+      Function(name, schemaJson.obj.toMap, strict, description)
+    }
+  }
 
   object FileSearch {
 
@@ -184,6 +226,22 @@ object Tool {
     object AllowedTools {
       case class ToolList(tools: List[String]) extends AllowedTools
       case class FilterObject(filter: Map[String, Value]) extends AllowedTools
+
+      object FilterObject {
+
+        /** Create a FilterObject with schema automatically generated from type T.
+          *
+          * @tparam T
+          *   The type to generate schema from.
+          * @return
+          *   A FilterObject with auto-generated schema.
+          */
+        def withTapirSchema[T: TSchema](): FilterObject = {
+          val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
+          val schemaJson = SnakePickle.writeJs(schema)(SchemaSupport.schemaRW)
+          FilterObject(schemaJson.obj.toMap)
+        }
+      }
 
       implicit val allowedToolsRW: SnakePickle.ReadWriter[AllowedTools] = SnakePickle
         .readwriter[Value]

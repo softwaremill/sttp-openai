@@ -44,7 +44,7 @@ object Tool {
       * @return
       *   A FunctionTool with auto-generated schema.
       */
-    def withSchema[T: TSchema](description: String, name: String): FunctionTool = {
+    def withTapirSchema[T: TSchema](description: String, name: String): FunctionTool = {
       val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
       val schemaJson = SnakePickle.writeJs(schema)(SchemaSupport.schemaRW)
       FunctionTool(description, name, schemaJson.obj.toMap, None)
@@ -63,7 +63,7 @@ object Tool {
       * @return
       *   A FunctionTool with auto-generated schema and strict flag.
       */
-    def withSchema[T: TSchema](description: String, name: String, strict: Option[Boolean]): FunctionTool = {
+    def withTapirSchema[T: TSchema](description: String, name: String, strict: Option[Boolean]): FunctionTool = {
       val schema = TapirSchemaToJsonSchema(implicitly[TSchema[T]], markOptionsAsNullable = true)
       val schemaJson = SnakePickle.writeJs(schema)(SchemaSupport.schemaRW)
       FunctionTool(description, name, schemaJson.obj.toMap, strict)
