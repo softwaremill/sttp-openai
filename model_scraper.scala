@@ -1,7 +1,9 @@
+//> using scala 3.3.4
 //> using dep com.microsoft.playwright:playwright:1.54.0
 //> using dep org.typelevel::cats-effect::3.6.3
 //> using dep org.typelevel::log4cats-slf4j::2.7.1
 //> using dep ch.qos.logback:logback-classic:1.5.18
+//> using dep com.github.scopt::scopt::4.1.0
 
 import cats.effect.{IO, IOApp, Resource}
 import cats.syntax.all._
@@ -11,6 +13,7 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import ch.qos.logback.classic.{Level, LoggerContext}
 import org.slf4j.LoggerFactory
+import scopt.OParser
 import scala.util.Try
 
 opaque type ModelName = String
@@ -30,9 +33,14 @@ object URL {
 }
 
 case class EndpointInfo(
-    name: String,
-    apiPath: String,
-    isActive: Boolean
+  name: String,
+  apiPath: String,
+  isActive: Boolean
+)
+
+case class Config(
+  debug: Boolean = false,
+  models: Option[List[String]] = None
 )
 
 case class ModelInfo(
@@ -43,7 +51,7 @@ case class ModelInfo(
     // Snapshot names
 )
 
-object ModelEndpointScraper extends IOApp.Simple {
+object ModelEndpointScraper extends IOApp {
 
   given logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
@@ -53,17 +61,72 @@ object ModelEndpointScraper extends IOApp.Simple {
     val rootLogger = loggerContext.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
     rootLogger.setLevel(Level.INFO)
     
-    val scraperLogger = loggerContext.getLogger("ModelEndpointScraper")
+    val scraperLogger = loggerContext.getLogger("<empty>.ModelEndpointScraper")
     scraperLogger.setLevel(level)
   }
 
-  def run: IO[Unit] =
+  private def parseArgs(args: List[String]): IO[Either[String, Config]] = IO {
+    val builder = OParser.builder[Config]
+    val parser = {
+      import builder._
+      OParser.sequence(
+        programName("model-scraper"),
+        
+        opt[Unit]("debug")
+          .action((_, c) => c.copy(debug = true))
+          .text("Enable debug logging for detailed output"),
+          
+        opt[String]("models")
+          .action((x, c) => c.copy(models = Some(x.split(",").map(_.trim).toList)))
+          .text("Comma-separated list of model names to scrape (e.g., \"GPT-4o,GPT-3.5\")")
+          .valueName("<model1,model2,...>")
+      )
+    }
+    
+    OParser.parse(parser, args, Config()) match {
+      case Some(config) => Right(config)
+      case None => 
+        // Check if help was requested (which is a normal exit)
+        if (args.contains("--help") || args.contains("-h")) {
+          Left("help")
+        } else {
+          Left("error")
+        }
+    }
+  }
+
+  def run(args: List[String]): IO[cats.effect.ExitCode] =
+    // Quick check for help before parsing
+    if (args.contains("--help") || args.contains("-h")) {
+      IO {
+        println("OpenAI Model Endpoint Scraper 1.0")
+        println("Usage: model-scraper [options]")
+        println()
+        println("  --debug                  Enable debug logging for detailed output")
+        println("  --models <model1,model2,...>")
+        println("                           Comma-separated list of model names to scrape (e.g., \"GPT-4o,GPT-3.5\")")
+        println("  --help                   Show this help message")
+      }.as(cats.effect.ExitCode.Success)
+    } else {
+      parseArgs(args).flatMap {
+        case Right(config) =>
+          runScraper(config).as(cats.effect.ExitCode.Success)
+        case Left(_) =>
+          IO.pure(cats.effect.ExitCode.Error) // Parse error
+      }
+    }
+
+  private def runScraper(config: Config): IO[Unit] =
     for {
-      _ <- configureLogging(Level.INFO) // Change to Level.DEBUG for detailed logs
+      _ <- configureLogging(if (config.debug) Level.DEBUG else Level.INFO)
       _ <- logger.info("🦊 Starting Firefox-based OpenAI endpoint scraper...")
+      _ <- config.models.fold(IO.unit)(models => 
+        logger.info(s"🎯 Filtering for models: ${models.mkString(", ")}")
+      )
+      
       modelList <-
         firefoxResource.use { case (_, browser) =>
-          fetchModelSet(browser)
+          fetchModelSet(browser, config.models)
         }
       _ <- logger.info(s"📋 Found ${modelList.size} models to scrape")
       models <- scrapeModels(modelList.toList)
@@ -91,7 +154,7 @@ object ModelEndpointScraper extends IOApp.Simple {
       } yield ()
     }
 
-  private def fetchModelSet(browser: Browser): IO[Set[(ModelName, URL)]] =
+  private def fetchModelSet(browser: Browser, modelFilter: Option[List[String]] = None): IO[Set[(ModelName, URL)]] =
     for {
       _ <- logger.info("🔍 Fetching model list from OpenAI models page...")
       page <- IO(browser.newPage())
@@ -141,7 +204,26 @@ object ModelEndpointScraper extends IOApp.Simple {
           logger.debug(s"✅ Found model: $name → $url")
         }
 
-      } yield models).handleErrorWith { e =>
+        // Apply model filter if specified
+        filteredModels <- IO {
+          modelFilter match {
+            case Some(filterList) =>
+              val filterSet = filterList.map(_.toLowerCase).toSet
+              models.filter { case (modelName, _) =>
+                val nameStr = modelName.value.toLowerCase
+                filterSet.exists(filter => 
+                  nameStr.contains(filter) || filter.contains(nameStr)
+                )
+              }
+            case None => models
+          }
+        }
+
+        _ <- if (modelFilter.isDefined) {
+          logger.info(s"🎯 Filtered to ${filteredModels.size} models matching criteria")
+        } else IO.unit
+
+      } yield filteredModels).handleErrorWith { e =>
         logger.error(s"❌ Failed to fetch model list: ${e.getMessage}") *>
         IO.raiseError(new Exception(s"Failed to fetch model list: ${e.getMessage}"))
       }.guarantee(IO(page.close()))
