@@ -43,10 +43,10 @@ object ModelEndpointScraper extends IOApp.Simple {
       _ <- IO.println("🦊 Starting Firefox-based OpenAI endpoint scraper...")
       modelList <-
         firefoxResource.use { case (_, browser) =>
-          fetchModelList(browser)
+          fetchModelSet(browser)
         }
-      _ <- IO.println(s"📋 Found ${modelList.length} models to scrape")
-      models <- scrapeModels(modelList)
+      _ <- IO.println(s"📋 Found ${modelList.size} models to scrape")
+      models <- scrapeModels(modelList.toList)
       _ <- displayResults(models)
     } yield ()
 
@@ -60,7 +60,7 @@ object ModelEndpointScraper extends IOApp.Simple {
           .firefox()
           .launch(
             new BrowserType.LaunchOptions()
-              .setHeadless(true) 
+              .setHeadless(true)
               .setTimeout(60000)
           )
 
@@ -74,7 +74,7 @@ object ModelEndpointScraper extends IOApp.Simple {
       }.handleError(_ => ())
     }
 
-  private def fetchModelList(browser: Browser): IO[List[(ModelName, URL)]] =
+  private def fetchModelSet(browser: Browser): IO[Set[(ModelName, URL)]] =
     IO {
       println("\n🔍 Fetching model list from https://platform.openai.com/docs/models...")
       val page = browser.newPage()
@@ -101,9 +101,8 @@ object ModelEndpointScraper extends IOApp.Simple {
         import scala.jdk.CollectionConverters._
         val modelLinks = page.querySelectorAll("a[href^='/docs/models/']").asScala.toSet
 
-        println(s"  📦 Found ${modelLinks.length} model links")
+        println(s"  📦 Found ${modelLinks.size} model links")
 
-        // Extract all models with their URLs
         val models = modelLinks.flatMap { link =>
           Try {
             val href = link.getAttribute("href")
@@ -121,8 +120,6 @@ object ModelEndpointScraper extends IOApp.Simple {
           }.toOption.flatten
         }
 
-        // Log the final list
-        println(s"  🧹 After removing duplicates: ${models.length} unique models")
         models.foreach { case (name, url) =>
           println(s"  ✅ Model: $name → $url")
         }
@@ -144,13 +141,12 @@ object ModelEndpointScraper extends IOApp.Simple {
     }
 
   private def scrapeModelPage(browser: Browser, modelName: ModelName, url: URL): IO[Option[ModelInfo]] =
-    IO {
+    IO.blocking {
       println(s"\n🔍 Scraping ${modelName.value} from $url...")
       val browserContext = browser.newContext()
       val page = browserContext.newPage()
 
       try {
-        // Firefox is fast and reliable with OpenAI pages
         page.navigate(
           url.value,
           new Page.NavigateOptions()
@@ -270,9 +266,8 @@ object ModelEndpointScraper extends IOApp.Simple {
         if (endpoints.isEmpty) {
           println(s"    ⚠️  No valid endpoints found in cards, checking page HTML structure...")
 
-          // Debug: Let's see what the actual HTML structure looks like
           val pageHtml = page.innerHTML("body")
-          val shortHtml = pageHtml.take(2000) // First 2K chars
+          val shortHtml = pageHtml.take(2000) 
           println(s"    🔍 Page HTML preview: ${shortHtml.take(500)}...")
 
           // Look for any div containing "v1/" text
