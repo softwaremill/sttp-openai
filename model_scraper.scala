@@ -7,6 +7,22 @@ import com.microsoft.playwright._
 import com.microsoft.playwright.options.WaitUntilState
 import scala.util.Try
 
+opaque type ModelName = String
+object ModelName {
+  def apply(name: String): ModelName = name
+  extension (modelName: ModelName) {
+    def value: String = modelName
+  }
+}
+
+opaque type URL = String
+object URL {
+  def apply(url: String): URL = url
+  extension (url: URL) {
+    def value: String = url
+  }
+}
+
 case class EndpointInfo(
     name: String,
     apiPath: String,
@@ -14,10 +30,10 @@ case class EndpointInfo(
 )
 
 case class ModelInfo(
-    name: String,
+    name: ModelName,
     activeEndpoints: List[EndpointInfo],
     inactiveEndpoints: List[EndpointInfo],
-    url: String
+    url: URL
 )
 
 object ModelEndpointScraper extends IOApp.Simple {
@@ -57,7 +73,7 @@ object ModelEndpointScraper extends IOApp.Simple {
       }.handleError(_ => ())
     }
 
-  private def fetchModelList(browser: Browser): IO[List[(String, String)]] = {
+  private def fetchModelList(browser: Browser): IO[List[(ModelName, URL)]] = {
     IO {
       println("\n🔍 Fetching model list from https://platform.openai.com/docs/models...")
       val page = browser.newPage()
@@ -88,7 +104,7 @@ object ModelEndpointScraper extends IOApp.Simple {
         println(s"  📦 Found ${modelLinks.length} model links")
         
         // Extract all models with their URLs
-        val allModels = modelLinks.flatMap { link =>
+        val models = modelLinks.flatMap { link =>
           Try {
             val href = link.getAttribute("href")
             val nameElement = link.querySelector(".font-semibold")
@@ -99,19 +115,12 @@ object ModelEndpointScraper extends IOApp.Simple {
               
               // Skip the main models page itself
               if (href != "/docs/models" && modelName.nonEmpty) {
-                Some((modelName, fullUrl))
+                Some((ModelName(modelName), URL(fullUrl)))
               } else None
             } else None
           }.toOption.flatten
         }
         
-        // Remove duplicates by URL (keeping the first occurrence)
-        val modelsByUrl = allModels.foldLeft(Map.empty[String, (String, String)]) { 
-          case (acc, model @ (name, url)) => 
-            if (!acc.contains(url)) acc + (url -> model) else acc 
-        }
-        
-        val models = modelsByUrl.values.toList
         
         // Log the final list
         println(s"  🧹 After removing duplicates: ${models.length} unique models")
@@ -124,18 +133,14 @@ object ModelEndpointScraper extends IOApp.Simple {
       } catch {
         case e: Exception =>
           println(s"  ❌ Failed to fetch model list: ${e.getMessage}")
-          // Fallback to a few known models
-          List(
-            ("DALL·E 3", "https://platform.openai.com/docs/models/dall-e-3"),
-            ("Whisper", "https://platform.openai.com/docs/models/whisper-1")
-          )
+          throw new Exception(s"Failed to fetch model list: ${e.getMessage}")
       } finally {
         page.close()
       }
     }
   }
 
-  private def scrapeModels(browser: Browser, modelList: List[(String, String)]): IO[List[ModelInfo]] = {
+  private def scrapeModels(browser: Browser, modelList: List[(ModelName, URL)]): IO[List[ModelInfo]] = {
     modelList
       .traverse { case (modelName, url) =>
         scrapeModelPage(browser, modelName, url)
@@ -143,15 +148,15 @@ object ModelEndpointScraper extends IOApp.Simple {
       .map(_.flatten)
   }
 
-  private def scrapeModelPage(browser: Browser, modelName: String, url: String): IO[Option[ModelInfo]] =
+  private def scrapeModelPage(browser: Browser, modelName: ModelName, url: URL): IO[Option[ModelInfo]] =
     IO {
-      println(s"\n🔍 Scraping $modelName from $url...")
+      println(s"\n🔍 Scraping ${modelName.value} from $url...")
       val page = browser.newPage()
 
       try {
         // Firefox is fast and reliable with OpenAI pages
         page.navigate(
-          url,
+          url.value,
           new Page.NavigateOptions()
             .setTimeout(60000)
             .setWaitUntil(WaitUntilState.LOAD)
@@ -164,7 +169,7 @@ object ModelEndpointScraper extends IOApp.Simple {
         println(s"  📄 Title: $title")
 
         if (title.contains("Just a moment")) {
-          println(s"  ⚠️  Unexpected Cloudflare challenge - skipping $modelName")
+          println(s"  ⚠️  Unexpected Cloudflare challenge - skipping ${modelName.value}")
           None
         } else {
           // Extract content
@@ -300,7 +305,6 @@ object ModelEndpointScraper extends IOApp.Simple {
 
       models.foreach { model =>
         println(s"\n🔸 ${model.name}")
-        println("─" * (model.name.length + 3))
 
         if (model.activeEndpoints.nonEmpty) {
           println("  ✅ Active Endpoints:")
