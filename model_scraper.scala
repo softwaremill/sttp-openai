@@ -77,7 +77,7 @@ object ModelEndpointScraper extends IOApp {
           .text("Enable debug logging for detailed output"),
           
         opt[String]("models")
-          .action((x, c) => c.copy(models = Some(x.split(",").map(_.trim).toList)))
+          .action((x, c) => c.copy(models = Some(x.split(",").map(_.trim).map(ModelName.apply).toList)))
           .text("Comma-separated list of model names to scrape (e.g., \"GPT-4o,GPT-3.5\")")
           .valueName("<model1,model2,...>")
       )
@@ -154,7 +154,7 @@ object ModelEndpointScraper extends IOApp {
       } yield ()
     }
 
-  private def fetchModelSet(browser: Browser, modelFilter: Option[List[String]] = None): IO[Set[(ModelName, URL)]] =
+  private def fetchModelSet(browser: Browser, modelFilter: Option[List[ModelName]] = None): IO[Set[(ModelName, URL)]] =
     for {
       _ <- logger.info("🔍 Fetching model list from OpenAI models page...")
       page <- IO(browser.newPage())
@@ -208,7 +208,7 @@ object ModelEndpointScraper extends IOApp {
         filteredModels <- IO {
           modelFilter match {
             case Some(filterList) =>
-              val filterSet = filterList.map(_.toLowerCase).toSet
+              val filterSet = filterList.map(_.value.toLowerCase).toSet
               models.filter { case (modelName, _) =>
                 val nameStr = modelName.value.toLowerCase
                 filterSet.exists(filter => 
