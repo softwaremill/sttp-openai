@@ -60,7 +60,7 @@ object ModelEndpointScraper extends IOApp.Simple {
           .firefox()
           .launch(
             new BrowserType.LaunchOptions()
-              .setHeadless(true) // Change to false if you want to see the browser
+              .setHeadless(true) 
               .setTimeout(60000)
           )
 
@@ -98,9 +98,8 @@ object ModelEndpointScraper extends IOApp.Simple {
           page.waitForTimeout(15000)
         }
 
-        // Extract model links using the pattern you provided
         import scala.jdk.CollectionConverters._
-        val modelLinks = page.querySelectorAll("a[href^='/docs/models/']").asScala.toList
+        val modelLinks = page.querySelectorAll("a[href^='/docs/models/']").asScala.toSet
 
         println(s"  📦 Found ${modelLinks.length} model links")
 
