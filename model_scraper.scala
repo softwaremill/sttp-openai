@@ -44,7 +44,7 @@ object ModelEndpointScraper extends IOApp.Simple {
         _ <- IO.println("🦊 Starting Firefox-based OpenAI endpoint scraper...")
         modelList <- fetchModelList(browser)
         _ <- IO.println(s"📋 Found ${modelList.length} models to scrape")
-        models <- scrapeModels(browser, modelList)
+        models <- scrapeModels(modelList)
         _ <- displayResults(models)
       } yield ()
     }
@@ -136,18 +136,18 @@ object ModelEndpointScraper extends IOApp.Simple {
       } finally page.close()
     }
 
-  private def scrapeModels(browser: Browser, modelList: List[(ModelName, URL)]): IO[List[ModelInfo]] =
-    IO.parSequenceN(10) {
-      modelList
-        .traverse { case (modelName, url) =>
-          scrapeModelPage(browser, modelName, url)
-        }
+  private def scrapeModels(modelList: List[(ModelName, URL)]): IO[List[ModelInfo]] =
+    IO.parTraverseN(10)(modelList) { case (modelName, url) =>
+      firefoxResource.use { case (playwright, browser) =>
+        scrapeModelPage(browser, modelName, url).map(_.getOrElse(ModelInfo(modelName, Nil, Nil, url)))
+      }
     }
 
   private def scrapeModelPage(browser: Browser, modelName: ModelName, url: URL): IO[Option[ModelInfo]] =
     IO {
       println(s"\n🔍 Scraping ${modelName.value} from $url...")
-      val page = browser.newPage()
+      val browserContext = browser.newContext()
+      val page = browserContext.newPage()
 
       try {
         // Firefox is fast and reliable with OpenAI pages
