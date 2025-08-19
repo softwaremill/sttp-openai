@@ -39,15 +39,16 @@ case class ModelInfo(
 object ModelEndpointScraper extends IOApp.Simple {
 
   def run: IO[Unit] =
-    firefoxResource.use { case (playwright, browser) =>
-      for {
-        _ <- IO.println("🦊 Starting Firefox-based OpenAI endpoint scraper...")
-        modelList <- fetchModelList(browser)
-        _ <- IO.println(s"📋 Found ${modelList.length} models to scrape")
-        models <- scrapeModels(modelList)
-        _ <- displayResults(models)
-      } yield ()
-    }
+    for {
+      _ <- IO.println("🦊 Starting Firefox-based OpenAI endpoint scraper...")
+      modelList <-
+        firefoxResource.use { case (_, browser) =>
+          fetchModelList(browser)
+        }
+      _ <- IO.println(s"📋 Found ${modelList.length} models to scrape")
+      models <- scrapeModels(modelList)
+      _ <- displayResults(models)
+    } yield ()
 
   private def firefoxResource: Resource[IO, (Playwright, Browser)] =
     Resource.make(
