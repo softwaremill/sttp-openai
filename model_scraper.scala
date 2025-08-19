@@ -26,7 +26,9 @@ object ModelEndpointScraper extends IOApp.Simple {
     firefoxResource.use { case (playwright, browser) =>
       for {
         _ <- IO.println("🦊 Starting Firefox-based OpenAI endpoint scraper...")
-        models <- scrapeAllModels(browser)
+        modelList <- fetchModelList(browser)
+        _ <- IO.println(s"📋 Found ${modelList.length} models to scrape")
+        models <- scrapeModels(browser, modelList)
         _ <- displayResults(models)
       } yield ()
     }
@@ -55,20 +57,86 @@ object ModelEndpointScraper extends IOApp.Simple {
       }.handleError(_ => ())
     }
 
-  private def scrapeAllModels(browser: Browser): IO[List[ModelInfo]] = {
-    val modelPages = List(
-//      ("GPT-4o", "https://platform.openai.com/docs/models/gpt-4o"),
-//      ("GPT-4o mini", "https://platform.openai.com/docs/models/gpt-4o-mini"),
-//      ("GPT-4 Turbo", "https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4"),
-//      ("GPT-3.5 Turbo", "https://platform.openai.com/docs/models/gpt-3-5-turbo"),
-      ("DALL·E 3", "https://platform.openai.com/docs/models/dall-e-3"),
-      ("Whisper", "https://platform.openai.com/docs/models/whisper-1")
-//      ("TTS", "https://platform.openai.com/docs/models/tts"),
-//      ("Embeddings", "https://platform.openai.com/docs/models/embeddings"),
-//      ("Moderation", "https://platform.openai.com/docs/models/moderation")
-    )
+  private def fetchModelList(browser: Browser): IO[List[(String, String)]] = {
+    IO {
+      println("\n🔍 Fetching model list from https://platform.openai.com/docs/models...")
+      val page = browser.newPage()
+      
+      try {
+        page.navigate(
+          "https://platform.openai.com/docs/models",
+          new Page.NavigateOptions()
+            .setTimeout(90000)
+            .setWaitUntil(WaitUntilState.LOAD)
+        )
+        
+        // Wait for content to load
+        page.waitForTimeout(5000)
+        
+        val title = Option(page.title()).getOrElse("No title")
+        println(s"  📄 Title: $title")
+        
+        if (title.contains("Just a moment")) {
+          println(s"  ⚠️  Cloudflare challenge detected - this may take longer...")
+          page.waitForTimeout(15000)
+        }
+        
+        // Extract model links using the pattern you provided
+        import scala.jdk.CollectionConverters._
+        val modelLinks = page.querySelectorAll("a[href^='/docs/models/']").asScala.toList
+        
+        println(s"  📦 Found ${modelLinks.length} model links")
+        
+        // Extract all models with their URLs
+        val allModels = modelLinks.flatMap { link =>
+          Try {
+            val href = link.getAttribute("href")
+            val nameElement = link.querySelector(".font-semibold")
+            
+            if (nameElement != null && href != null) {
+              val modelName = nameElement.textContent().trim
+              val fullUrl = s"https://platform.openai.com$href"
+              
+              // Skip the main models page itself
+              if (href != "/docs/models" && modelName.nonEmpty) {
+                Some((modelName, fullUrl))
+              } else None
+            } else None
+          }.toOption.flatten
+        }
+        
+        // Remove duplicates by URL (keeping the first occurrence)
+        val modelsByUrl = allModels.foldLeft(Map.empty[String, (String, String)]) { 
+          case (acc, model @ (name, url)) => 
+            if (!acc.contains(url)) acc + (url -> model) else acc 
+        }
+        
+        val models = modelsByUrl.values.toList
+        
+        // Log the final list
+        println(s"  🧹 After removing duplicates: ${models.length} unique models")
+        models.foreach { case (name, url) =>
+          println(s"  ✅ Model: $name → $url")
+        }
+        
+        models
+        
+      } catch {
+        case e: Exception =>
+          println(s"  ❌ Failed to fetch model list: ${e.getMessage}")
+          // Fallback to a few known models
+          List(
+            ("DALL·E 3", "https://platform.openai.com/docs/models/dall-e-3"),
+            ("Whisper", "https://platform.openai.com/docs/models/whisper-1")
+          )
+      } finally {
+        page.close()
+      }
+    }
+  }
 
-    modelPages
+  private def scrapeModels(browser: Browser, modelList: List[(String, String)]): IO[List[ModelInfo]] = {
+    modelList
       .traverse { case (modelName, url) =>
         scrapeModelPage(browser, modelName, url)
       }
