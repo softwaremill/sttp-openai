@@ -136,7 +136,6 @@ object ModelEndpointScraper extends IOApp.Simple {
 
       // First, find cards that actually contain v1/ API paths
       val allCards = page.querySelectorAll("div.flex.flex-row.gap-2").asScala.toList
-      // println(page.innerHTML("body"))
       val endpointCards = allCards.filter { card =>
         Try(card.textContent()).getOrElse("").contains("v1/")
       }
