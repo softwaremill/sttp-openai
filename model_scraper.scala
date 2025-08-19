@@ -61,8 +61,8 @@ object ModelEndpointScraper extends IOApp.Simple {
 //      ("GPT-4o mini", "https://platform.openai.com/docs/models/gpt-4o-mini"),
 //      ("GPT-4 Turbo", "https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4"),
 //      ("GPT-3.5 Turbo", "https://platform.openai.com/docs/models/gpt-3-5-turbo"),
-//      ("DALL·E 3", "https://platform.openai.com/docs/models/dall-e"),
-      ("Whisper", "https://platform.openai.com/docs/models/whisper")
+      ("DALL·E 3", "https://platform.openai.com/docs/models/dall-e-3"),
+      ("Whisper", "https://platform.openai.com/docs/models/whisper-1")
 //      ("TTS", "https://platform.openai.com/docs/models/tts"),
 //      ("Embeddings", "https://platform.openai.com/docs/models/embeddings"),
 //      ("Moderation", "https://platform.openai.com/docs/models/moderation")
@@ -136,6 +136,7 @@ object ModelEndpointScraper extends IOApp.Simple {
 
       // First, find cards that actually contain v1/ API paths
       val allCards = page.querySelectorAll("div.flex.flex-row.gap-2").asScala.toList
+      // println(page.innerHTML("body"))
       val endpointCards = allCards.filter { card =>
         Try(card.textContent()).getOrElse("").contains("v1/")
       }
