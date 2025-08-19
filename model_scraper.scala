@@ -47,15 +47,12 @@ object ModelEndpointScraper extends IOApp.Simple {
 
   given logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
-  // Configure logging levels programmatically
   private def configureLogging(level: Level = Level.INFO): IO[Unit] = IO {
     val loggerContext = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
     
-    // Set root logger level
     val rootLogger = loggerContext.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
     rootLogger.setLevel(Level.INFO)
     
-    // Set our scraper to the specified level (DEBUG for detailed logs, INFO for summary)
     val scraperLogger = loggerContext.getLogger("ModelEndpointScraper")
     scraperLogger.setLevel(level)
   }
