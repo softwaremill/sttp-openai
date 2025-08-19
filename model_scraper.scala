@@ -40,7 +40,7 @@ case class EndpointInfo(
 
 case class Config(
   debug: Boolean = false,
-  models: Option[List[String]] = None
+  models: Option[List[ModelName]] = None
 )
 
 case class ModelInfo(
@@ -60,7 +60,7 @@ object ModelEndpointScraper extends IOApp {
     
     val rootLogger = loggerContext.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
     rootLogger.setLevel(Level.INFO)
-    
+
     val scraperLogger = loggerContext.getLogger("<empty>.ModelEndpointScraper")
     scraperLogger.setLevel(level)
   }
