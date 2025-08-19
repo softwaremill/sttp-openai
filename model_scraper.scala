@@ -73,11 +73,11 @@ object ModelEndpointScraper extends IOApp.Simple {
       }.handleError(_ => ())
     }
 
-  private def fetchModelList(browser: Browser): IO[List[(ModelName, URL)]] = {
+  private def fetchModelList(browser: Browser): IO[List[(ModelName, URL)]] =
     IO {
       println("\n🔍 Fetching model list from https://platform.openai.com/docs/models...")
       val page = browser.newPage()
-      
+
       try {
         page.navigate(
           "https://platform.openai.com/docs/models",
@@ -85,34 +85,34 @@ object ModelEndpointScraper extends IOApp.Simple {
             .setTimeout(90000)
             .setWaitUntil(WaitUntilState.LOAD)
         )
-        
+
         // Wait for content to load
         page.waitForTimeout(5000)
-        
+
         val title = Option(page.title()).getOrElse("No title")
         println(s"  📄 Title: $title")
-        
+
         if (title.contains("Just a moment")) {
           println(s"  ⚠️  Cloudflare challenge detected - this may take longer...")
           page.waitForTimeout(15000)
         }
-        
+
         // Extract model links using the pattern you provided
         import scala.jdk.CollectionConverters._
         val modelLinks = page.querySelectorAll("a[href^='/docs/models/']").asScala.toList
-        
+
         println(s"  📦 Found ${modelLinks.length} model links")
-        
+
         // Extract all models with their URLs
         val models = modelLinks.flatMap { link =>
           Try {
             val href = link.getAttribute("href")
             val nameElement = link.querySelector(".font-semibold")
-            
+
             if (nameElement != null && href != null) {
               val modelName = nameElement.textContent().trim
               val fullUrl = s"https://platform.openai.com$href"
-              
+
               // Skip the main models page itself
               if (href != "/docs/models" && modelName.nonEmpty) {
                 Some((ModelName(modelName), URL(fullUrl)))
@@ -120,33 +120,29 @@ object ModelEndpointScraper extends IOApp.Simple {
             } else None
           }.toOption.flatten
         }
-        
-        
+
         // Log the final list
         println(s"  🧹 After removing duplicates: ${models.length} unique models")
         models.foreach { case (name, url) =>
           println(s"  ✅ Model: $name → $url")
         }
-        
+
         models
-        
+
       } catch {
         case e: Exception =>
           println(s"  ❌ Failed to fetch model list: ${e.getMessage}")
           throw new Exception(s"Failed to fetch model list: ${e.getMessage}")
-      } finally {
-        page.close()
-      }
+      } finally page.close()
     }
-  }
 
-  private def scrapeModels(browser: Browser, modelList: List[(ModelName, URL)]): IO[List[ModelInfo]] = {
-    modelList
-      .traverse { case (modelName, url) =>
-        scrapeModelPage(browser, modelName, url)
-      }
-      .map(_.flatten)
-  }
+  private def scrapeModels(browser: Browser, modelList: List[(ModelName, URL)]): IO[List[ModelInfo]] =
+    IO.parSequenceN(10) {
+      modelList
+        .traverse { case (modelName, url) =>
+          scrapeModelPage(browser, modelName, url)
+        }
+    }
 
   private def scrapeModelPage(browser: Browser, modelName: ModelName, url: URL): IO[Option[ModelInfo]] =
     IO {
