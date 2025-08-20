@@ -46,6 +46,8 @@ case class NameConversionConfig(
 
 case class Replacement(from: String, to: String)
 
+case class ModelWithSnapshots(name: String, snapshots: List[String])
+
 case class ModelUpdateConfig(
   endpoints: Map[String, EndpointConfig],
   nameConversion: NameConversionConfig
@@ -167,7 +169,13 @@ object ModelUpdater extends IOApp {
       // We'll shell out to run the scraper
       result <- IO {
         import sys.process._
-        val command = s"scala-cli run model_scraper.scala --jvm 17 -- --output $outputFile"
+        // Check if we're in model_update_scripts directory and adjust path accordingly
+        val scraperPath = if (new File("model_scraper.scala").exists()) {
+          "model_scraper.scala"
+        } else {
+          "model_update_scripts/model_scraper.scala"
+        }
+        val command = s"scala-cli run $scraperPath --jvm 17 -- --output $outputFile"
         command.!
       }
       _ <- if (result == 0) {
@@ -179,9 +187,10 @@ object ModelUpdater extends IOApp {
 
   private def loadModelConfig(configPath: String): IO[ModelUpdateConfig] =
     for {
-      _ <- logger.debug(s"📖 Loading config from $configPath...")
+      resolvedConfigPath <- IO.pure(resolveFilePath(configPath))
+      _ <- logger.debug(s"📖 Loading config from $resolvedConfigPath...")
       content <- IO {
-        Using(Source.fromFile(configPath))(_.mkString).get
+        Using(Source.fromFile(resolvedConfigPath))(_.mkString).get
       }
       config <- IO.fromEither(
         parser.parse(content).flatMap(_.as[ModelUpdateConfig])
@@ -190,32 +199,47 @@ object ModelUpdater extends IOApp {
       _ <- logger.debug(s"✅ Loaded config with ${config.endpoints.size} endpoints")
     } yield config
 
-  private def loadEndpointMapping(inputPath: String): IO[Map[String, List[String]]] =
+  private def loadEndpointMapping(inputPath: String): IO[Map[String, List[ModelWithSnapshots]]] =
     for {
-      _ <- logger.debug(s"📖 Loading endpoint mapping from $inputPath...")
+      resolvedInputPath <- IO.pure(resolveFilePath(inputPath))
+      _ <- logger.debug(s"📖 Loading endpoint mapping from $resolvedInputPath...")
       content <- IO {
-        Using(Source.fromFile(inputPath))(_.mkString).get
+        Using(Source.fromFile(resolvedInputPath))(_.mkString).get
       }
       mapping <- IO.fromEither(
-        decode[Map[String, List[String]]](content)
+        decode[Map[String, List[ModelWithSnapshots]]](content)
           .left.map(e => new Exception(s"Failed to parse endpoint mapping: $e"))
       )
       _ <- logger.info(s"✅ Loaded mappings for ${mapping.size} endpoints")
+      _ <- mapping.toList.traverse_ { case (endpoint, models) =>
+        logger.debug(s"  $endpoint: ${models.size} models with ${models.map(_.snapshots.size).sum} total snapshots")
+      }
     } yield mapping
 
   private def updateModelClasses(
     config: ModelUpdateConfig,
-    endpointMapping: Map[String, List[String]],
+    endpointMapping: Map[String, List[ModelWithSnapshots]],
     dryRun: Boolean
   ): IO[Unit] =
     for {
       _ <- logger.info(s"🔄 Updating model classes (dry-run: $dryRun)...")
       
-      updates <- endpointMapping.toList.traverse { case (endpoint, models) =>
+      updates <- endpointMapping.toList.traverse { case (endpoint, modelsWithSnapshots) =>
         config.endpoints.get(endpoint) match {
           case Some(endpointConfig) =>
-            updateSingleModelClass(endpointConfig, models, config.nameConversion, dryRun)
-              .map(Some(_))
+            // Extract all model names and their snapshots
+            val allModelNames = modelsWithSnapshots.flatMap { modelWithSnapshots =>
+              // Include the base model name and all its snapshots
+              modelWithSnapshots.name :: modelWithSnapshots.snapshots
+            }.distinct
+            
+            for {
+              _ <- logger.debug(s"📸 Processing $endpoint with ${modelsWithSnapshots.size} models:")
+              _ <- modelsWithSnapshots.traverse_ { model =>
+                logger.debug(s"  ${model.name} (${model.snapshots.size} snapshots: ${model.snapshots.mkString(", ")})")
+              }
+              result <- updateSingleModelClass(endpointConfig, allModelNames, config.nameConversion, dryRun)
+            } yield Some(result)
           case None =>
             logger.warn(s"⚠️ No config found for endpoint: $endpoint") *>
             IO.pure(None)
@@ -226,6 +250,22 @@ object ModelUpdater extends IOApp {
       _ <- logger.info(s"📊 Successfully processed $successCount model class files")
     } yield ()
 
+  private def resolveFilePath(configPath: String): String = {
+    val file = new File(configPath)
+    if (file.exists()) {
+      configPath
+    } else {
+      // Try relative to parent directory (in case we're in model_update_scripts/)
+      val parentPath = s"../$configPath"
+      val parentFile = new File(parentPath)
+      if (parentFile.exists()) {
+        parentPath
+      } else {
+        configPath // Return original path, let it fail with clear error
+      }
+    }
+  }
+
   private def updateSingleModelClass(
     endpointConfig: EndpointConfig,
     models: List[String],
@@ -233,11 +273,12 @@ object ModelUpdater extends IOApp {
     dryRun: Boolean
   ): IO[String] =
     for {
-      _ <- logger.info(s"🔧 Updating ${endpointConfig.className} in ${endpointConfig.file}")
+      resolvedFilePath <- IO.pure(resolveFilePath(endpointConfig.file))
+      _ <- logger.info(s"🔧 Updating ${endpointConfig.className} in $resolvedFilePath")
       
       // Read current file
       currentContent <- IO {
-        Using(Source.fromFile(endpointConfig.file))(_.mkString).get
+        Using(Source.fromFile(resolvedFilePath))(_.mkString).get
       }
       
       // Extract existing case objects
@@ -274,11 +315,11 @@ object ModelUpdater extends IOApp {
           } else {
             for {
               // Create backup
-              _ <- createBackup(endpointConfig.file)
+              _ <- createBackup(resolvedFilePath)
               
               // Write updated content
               _ <- IO {
-                val writer = new PrintWriter(endpointConfig.file)
+                val writer = new PrintWriter(resolvedFilePath)
                 try {
                   writer.write(newContent)
                 } finally {
@@ -286,14 +327,14 @@ object ModelUpdater extends IOApp {
                 }
               }
               
-              _ <- logger.info(s"💾 Updated ${endpointConfig.file}")
+              _ <- logger.info(s"💾 Updated $resolvedFilePath")
             } yield ()
           }
         } yield ()
       } else {
         logger.info(s"✅ No new models to add for ${endpointConfig.className}")
       }
-    } yield endpointConfig.file
+    } yield resolvedFilePath
 
   private def extractExistingModels(content: String, className: String): IO[List[String]] =
     IO {
@@ -335,26 +376,31 @@ object ModelUpdater extends IOApp {
       nameConversion.specialCases.get(modelName) match {
         case Some(specialCase) => specialCase
         case None =>
-          // Apply replacements
-          var result = modelName
-          nameConversion.replacements.foreach { replacement =>
-            result = result.replace(replacement.from, replacement.to)
-          }
-          
-          // Capitalize first letter and after special characters
-          val chars = result.toCharArray
-          var shouldCapitalize = true
-          
-          for (i <- chars.indices) {
-            if (shouldCapitalize && chars(i).isLetter) {
-              chars(i) = chars(i).toUpper
-              shouldCapitalize = false
-            } else if (nameConversion.capitalizeAfter.contains(chars(i).toString)) {
-              shouldCapitalize = true
+          // Split into words by separators (-, ., _, spaces)
+          val words = modelName.split("[\\-\\._\\s]+").filter(_.nonEmpty)
+          val processedWords = words.map { word =>
+            val lowerWord = word.toLowerCase
+            val upperWord = word.toUpperCase
+            
+            // Preserve original casing for certain base model names
+            if (upperWord == "GPT" || upperWord == "DALL" || upperWord == "WHISPER" || upperWord == "CHATGPT") {
+              upperWord
+            } 
+            // Capitalize first letter for other known model parts
+            else if (Set("mini", "nano", "chat", "audio", "realtime", "transcribe", "search", "tts", "preview", "latest", "o").contains(lowerWord)) {
+              lowerWord.capitalize
+            }
+            // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
+            else if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
+              word
+            }
+            // Default: capitalize first letter
+            else {
+              lowerWord.capitalize
             }
           }
           
-          new String(chars).filter(_.isLetterOrDigit)
+          processedWords.mkString("")
       }
     }
 
