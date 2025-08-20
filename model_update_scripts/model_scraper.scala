@@ -158,7 +158,6 @@ object ModelEndpointScraper extends IOApp {
         logger.debug(s"  $endpoint: $modelNames")
       }
       
-      // Convert to JSON and save
       json = endpointMapping.asJson.spaces2
       _ <- IO {
         val writer = new PrintWriter(outputPath)
@@ -230,7 +229,6 @@ object ModelEndpointScraper extends IOApp {
                 val modelName = nameElement.textContent().trim
                 val fullUrl = s"https://platform.openai.com$href"
 
-                // Skip the main models page itself
                 if (href != "/docs/models" && modelName.nonEmpty) {
                   Some((ModelName(modelName), URL(fullUrl)))
                 } else None
@@ -243,7 +241,6 @@ object ModelEndpointScraper extends IOApp {
           logger.debug(s"✅ Found model: $name → $url")
         }
 
-        // Apply model filter if specified
         filteredModels <- IO {
           modelFilter match {
             case Some(filterList) =>
