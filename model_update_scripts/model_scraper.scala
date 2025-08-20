@@ -323,7 +323,7 @@ object ModelEndpointScraper extends IOApp {
             activeEndpoints = endpoints.filter(_.isActive)
             inactiveEndpoints = endpoints.filter(!_.isActive)
             
-            snapshots <- extractSnapshots(page)
+            snapshots <- extractSnapshots(page, modelName)
 
             modelInfo = ModelInfo(
               name = modelName,
@@ -400,115 +400,184 @@ object ModelEndpointScraper extends IOApp {
       }
     } yield endpoints
 
-  private def extractSnapshots(page: Page): IO[List[String]] =
+  private def extractSnapshots(page: Page, modelName: ModelName): IO[List[String]] =
     for {
-      _ <- logger.debug("🔍 Looking for model snapshots...")
+      _ <- logger.debug(s"🔍 Looking for model snapshots for ${modelName.value}...")
       
       snapshots <- IO {
         import scala.jdk.CollectionConverters._
         
-        // Get all text content and look for snapshot patterns
-        val bodyText = page.textContent("body")
+        // Method 1: Look for the snapshots section by finding div containing "Snapshots" text
+        val snapshotSections = page.querySelectorAll("div").asScala.toList.filter { div =>
+          val text = div.textContent()
+          text.contains("Snapshots") && text.contains("lock in") && text.contains("version")
+        }
         
-        // Pattern 1: Look for model icons (img elements with model names in alt/src)
-        val modelIconImages = page.querySelectorAll("img[alt*='-'], img[src*='model-icons/']").asScala.toList
-        val snapshotsFromIcons = modelIconImages.flatMap { img =>
-          Try {
-            val alt = Option(img.getAttribute("alt")).getOrElse("")
-            val src = Option(img.getAttribute("src")).getOrElse("")
+        val snapshotsFromSection = snapshotSections.flatMap { section =>
+          // Look for the snapshot list container (.flex.flex-col.gap-8.font-mono)
+          val snapshotContainers = section.querySelectorAll(".flex.flex-col.gap-8.font-mono").asScala.toList
+          
+          snapshotContainers.flatMap { container =>
+            // New structure: Look for individual model blocks (.flex.flex-col.gap-4)
+            val modelBlocks = container.querySelectorAll(".flex.flex-col.gap-4").asScala.toList
             
-            // Extract model name from alt attribute
-            if (alt.nonEmpty && alt.contains("-") && !alt.toLowerCase.contains("icon")) {
-              Some(alt)
-            } else if (src.contains("model-icons/")) {
-              // Extract from src path like "model-icons/gpt-4o-mini-realtime-preview.png"
-              val filename = src.split("/").last.replace(".png", "").replace(".jpg", "")
-              if (filename.nonEmpty) Some(filename) else None
-            } else None
-          }.toOption.flatten
-        }
-        
-        // Pattern 2: Extract individual snapshot names using regex
-        val snapshotRegexes = List(
-          // GPT models with dates
-          """(gpt-[45](?:o)?(?:-mini)?(?:-\w+)*-\d{4}-\d{2}-\d{2})""".r,
-          // GPT models with preview/realtime/audio etc
-          """(gpt-[45](?:o)?(?:-mini)?-(?:preview|realtime|audio|transcribe|search|tts)(?:-preview)?(?:-\d{4}-\d{2}-\d{2})?)""".r,
-          // Base GPT models
-          """(gpt-[45](?:o)?(?:-mini)?)(?=\s|$|,)""".r,
-          // ChatGPT models
-          """(chatgpt-[45](?:o)?-latest)""".r,
-          // Whisper models
-          """(whisper-\d+)""".r,
-          // DALL-E models
-          """(dall-e-[23])""".r
-        )
-        
-        val snapshotsFromRegex = snapshotRegexes.flatMap { regex =>
-          regex.findAllMatchIn(bodyText).map(_.group(1)).toList
-        }.distinct
-        
-        // Pattern 3: Look for clean snapshot names in specific elements
-        val cleanSnapshotElements = page.querySelectorAll(".font-mono .text-sm.font-semibold").asScala.toList
-        val snapshotsFromCleanElements = cleanSnapshotElements.flatMap { element =>
-          Try {
-            val text = element.textContent().trim
-            // Only accept if it looks like a clean model name (no long descriptions)
-            if (text.length < 50 && 
-                (text.matches("gpt-[45].*") || text.matches("whisper-.*") || text.matches("dall-e-.*") || text.matches("chatgpt-.*")) &&
-                !text.toLowerCase.contains("snapshot") &&
-                !text.toLowerCase.contains("performance") &&
-                !text.toLowerCase.contains("behavior")) {
-              Some(text)
-            } else None
-          }.toOption.flatten
-        }
-        
-        // Combine all found snapshots
-        val allSnapshots = (snapshotsFromIcons ++ snapshotsFromRegex ++ snapshotsFromCleanElements).distinct
-        
-        // Filter and clean up
-        val cleanedSnapshots = allSnapshots
-          .filter(_.nonEmpty)
-          .map(_.trim)
-          .filter(name => 
-            name.length < 100 && // Reject very long strings (descriptions)
-            !name.toLowerCase.contains("snapshot") &&
-            !name.toLowerCase.contains("performance") &&
-            !name.toLowerCase.contains("behavior") &&
-            !name.toLowerCase.contains("consistent") &&
-            !name.toLowerCase.contains("available") &&
-            !name.startsWith("Snapshots") &&
-            !name.startsWith("Below is")
-          )
-          .flatMap { name =>
-            // Split concatenated snapshot names (e.g., "gpt-5-2025-08-07gpt-5-2025-08-07" -> ["gpt-5-2025-08-07"])
-            val duplicatePattern = """(.+)\1+""".r
-            name match {
-              case duplicatePattern(base) => List(base) // Extract the base pattern from duplicates
-              case _ =>
-                // Try to split concatenated model names
-                val modelSplitRegex = """((?:gpt|whisper|dall-e|chatgpt)-[^\s]+?)(?=(?:gpt|whisper|dall-e|chatgpt)-|$)""".r
-                val splits = modelSplitRegex.findAllMatchIn(name).map(_.group(1)).toList
-                if (splits.length > 1 && splits.mkString("") == name) {
-                  splits // Successfully split concatenated names
-                } else {
-                  List(name) // Keep original if no split pattern found
+            val snapshotsFromBlocks = modelBlocks.flatMap { block =>
+              // Method 1a: Get snapshots from model icon images within this block
+              val iconSnapshots = block.querySelectorAll("img[alt]").asScala.toList.flatMap { img =>
+                Try {
+                  val alt = img.getAttribute("alt")
+                  if (alt != null && alt.nonEmpty && !alt.toLowerCase.contains("icon")) {
+                    Some(alt.trim)
+                  } else None
+                }.toOption.flatten
+              }
+              
+              // Method 1b: Get snapshots from the main model name (.text-sm.font-semibold) within this block
+              val mainModelSnapshots = block.querySelectorAll(".text-sm.font-semibold").asScala.toList.flatMap { elem =>
+                Try {
+                  val text = elem.textContent().trim
+                  if (text.nonEmpty && !text.contains(" ") && text.length < 50) {
+                    Some(text)
+                  } else None
+                }.toOption.flatten
+              }
+              
+              // Method 1c: Get snapshots from the arrow indicator section within this block
+              val arrowSnapshots = block.querySelectorAll("svg + div").asScala.toList.flatMap { elem =>
+                Try {
+                  val text = elem.textContent().trim
+                  if (text.nonEmpty && !text.contains(" ") && text.length < 50) {
+                    Some(text)
+                  } else None
+                }.toOption.flatten
+              }
+              
+              // Method 1c2: Also look for arrow indicators in different structures
+              val arrowSnapshots2 = block.querySelectorAll(".flex.flex-row.items-center.gap-2.text-xs.text-tertiary").asScala.toList.flatMap { container =>
+                container.querySelectorAll("div").asScala.toList.flatMap { div =>
+                  Try {
+                    val text = div.textContent().trim
+                    if (text.nonEmpty && !text.contains(" ") && text.length < 50 && 
+                        !text.toLowerCase.contains("svg") && !text.toLowerCase.contains("path")) {
+                      Some(text)
+                    } else None
+                  }.toOption.flatten
                 }
+              }
+              
+              // Method 1d: Get snapshots from the snapshot list within this block
+              val listSnapshots = block.querySelectorAll(".flex.flex-1.flex-col.gap-2 .flex.flex-row.items-center.gap-2.text-sm").asScala.toList.flatMap { row =>
+                Try {
+                  val text = row.textContent().trim
+                  // Remove any leading dot indicators or spacing
+                  val cleanText = text.replaceAll("^[•\\s]+", "").trim
+                  if (cleanText.nonEmpty && !cleanText.contains(" ") && cleanText.length < 50) {
+                    Some(cleanText)
+                  } else None
+                }.toOption.flatten
+              }
+              
+              iconSnapshots ++ mainModelSnapshots ++ arrowSnapshots ++ arrowSnapshots2 ++ listSnapshots
+            }
+            
+            // Fallback: If no model blocks found, use the old method on the entire container
+            if (snapshotsFromBlocks.isEmpty) {
+              // Method 1a: Get snapshots from model icon images
+              val iconSnapshots = container.querySelectorAll("img[alt]").asScala.toList.flatMap { img =>
+                Try {
+                  val alt = img.getAttribute("alt")
+                  if (alt != null && alt.nonEmpty && !alt.toLowerCase.contains("icon")) {
+                    Some(alt.trim)
+                  } else None
+                }.toOption.flatten
+              }
+              
+              // Method 1b: Get snapshots from the main model name (.text-sm.font-semibold)
+              val mainModelSnapshots = container.querySelectorAll(".text-sm.font-semibold").asScala.toList.flatMap { elem =>
+                Try {
+                  val text = elem.textContent().trim
+                  if (text.nonEmpty && !text.contains(" ") && text.length < 50) {
+                    Some(text)
+                  } else None
+                }.toOption.flatten
+              }
+              
+              // Method 1c: Get snapshots from the arrow indicator section (points to current version)
+              val arrowSnapshots = container.querySelectorAll("svg + div").asScala.toList.flatMap { elem =>
+                Try {
+                  val text = elem.textContent().trim
+                  if (text.nonEmpty && !text.contains(" ") && text.length < 50) {
+                    Some(text)
+                  } else None
+                }.toOption.flatten
+              }
+              
+              // Method 1d: Get snapshots from the snapshot list (dots with model names)
+              val listSnapshots = container.querySelectorAll(".flex.flex-1.flex-col.gap-2 .flex.flex-row.items-center.gap-2.text-sm").asScala.toList.flatMap { row =>
+                Try {
+                  val text = row.textContent().trim
+                  // Remove any leading dot indicators or spacing
+                  val cleanText = text.replaceAll("^[•\\s]+", "").trim
+                  if (cleanText.nonEmpty && !cleanText.contains(" ") && cleanText.length < 50) {
+                    Some(cleanText)
+                  } else None
+                }.toOption.flatten
+              }
+              
+              iconSnapshots ++ mainModelSnapshots ++ arrowSnapshots ++ listSnapshots
+            } else {
+              snapshotsFromBlocks
             }
           }
-          .filter(name =>
-            // Additional filtering after splitting
-            name.nonEmpty &&
-            name.length > 3 && // Reject very short names
-            name.length < 50 && // Reject long descriptions
-            (name.matches("^(?:gpt|whisper|dall-e|chatgpt)-.*") || name.matches("^[a-z0-9-]+$")) &&
-            !name.contains(" ") // Reject names with spaces (likely descriptions)
-          )
-          .distinct
-          .sorted
+        }
         
-        cleanedSnapshots
+        // Method 2: Fallback - look for model icons anywhere on the page with model-specific alt text
+        val fallbackIconSnapshots = if (snapshotsFromSection.isEmpty) {
+          page.querySelectorAll("img[src*='model-icons/']").asScala.toList.flatMap { img =>
+            Try {
+              val alt = Option(img.getAttribute("alt")).getOrElse("")
+              val src = Option(img.getAttribute("src")).getOrElse("")
+              
+              if (alt.nonEmpty && alt.contains("-") && !alt.toLowerCase.contains("icon")) {
+                Some(alt.trim)
+              } else if (src.contains("model-icons/")) {
+                // Extract from src path like "gpt-3.5-turbo.png"
+                val filename = src.split("/").last.replaceAll("\\.(png|jpg|svg)$", "")
+                if (filename.nonEmpty && filename.contains("-")) Some(filename) else None
+              } else None
+            }.toOption.flatten
+          }
+        } else List.empty[String]
+        
+        // Combine and clean up results
+        val allSnapshots = (snapshotsFromSection ++ fallbackIconSnapshots).distinct
+        
+        // Filter to only valid model names
+        val validSnapshots = allSnapshots.filter { name =>
+          name.nonEmpty &&
+          name.length > 1 && 
+          name.length < 50 &&
+          name.matches("^[a-z0-9\\-\\.]+$") && // Only letters, numbers, dashes, dots
+          (name.startsWith("gpt-") || 
+           name.startsWith("whisper-") || 
+           name.startsWith("dall-e-") || 
+           name.startsWith("chatgpt-") || 
+           name.startsWith("o1") || 
+           name.startsWith("o3") || 
+           name.startsWith("o4") ||
+           name.startsWith("davinci-") ||
+           name.startsWith("babbage-") ||
+           name.startsWith("curie-") ||
+           name.startsWith("ada-") ||
+           name.startsWith("text-") ||
+           name.startsWith("tts-") ||
+           name.startsWith("computer-")) &&
+          !name.toLowerCase.contains("snapshot") &&
+          !name.toLowerCase.contains("icon") &&
+          !name.toLowerCase.contains("deprecated")
+        }.sorted
+        
+        validSnapshots
       }
       
       _ <- logger.debug(s"📸 Found ${snapshots.length} snapshots: ${snapshots.mkString(", ")}")
