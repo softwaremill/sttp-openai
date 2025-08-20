@@ -102,7 +102,6 @@ object ModelEndpointScraper extends IOApp {
     OParser.parse(parser, args, Config()) match {
       case Some(config) => Right(config)
       case None => 
-        // Check if help was requested (which is a normal exit)
         if (args.contains("--help") || args.contains("-h")) {
           Left("help")
         } else {
@@ -112,26 +111,12 @@ object ModelEndpointScraper extends IOApp {
   }
 
   def run(args: List[String]): IO[cats.effect.ExitCode] =
-    // Quick check for help before parsing
-    if (args.contains("--help") || args.contains("-h")) {
-      IO {
-        println("OpenAI Model Endpoint Scraper 1.0")
-        println("Usage: model-scraper [options]")
-        println()
-        println("  --debug                  Enable debug logging for detailed output")
-        println("  --models <model1,model2,...>")
-        println("                           Comma-separated list of model names to scrape (e.g., \"GPT-4o,GPT-3.5\")")
-        println("  --output <file.json>     Output file path for JSON endpoint-to-models mapping")
-        println("  --help                   Show this help message")
-      }.as(cats.effect.ExitCode.Success)
-    } else {
       parseArgs(args).flatMap {
         case Right(config) =>
           runScraper(config).as(cats.effect.ExitCode.Success)
         case Left(_) =>
-          IO.pure(cats.effect.ExitCode.Error) // Parse error
+          IO.pure(cats.effect.ExitCode.Error)
       }
-    }
 
   private def runScraper(config: Config): IO[Unit] =
     for {
@@ -159,7 +144,6 @@ object ModelEndpointScraper extends IOApp {
     for {
       _ <- logger.info(s"📝 Generating endpoint-to-models mapping...")
       
-      // Create mapping: endpoint -> list of models with their snapshots
       endpointMapping = models.flatMap { model =>
         model.activeEndpoints.map { endpoint =>
           endpoint.apiPath -> ModelWithSnapshots(model.name.value, model.snapshots)
@@ -236,7 +220,7 @@ object ModelEndpointScraper extends IOApp {
         }
         _ <- logger.debug(s"📦 Found ${modelLinks.size} model links")
 
-        models <- IO.eval {
+        models <- IO {
           modelLinks.flatMap { link =>
             Try {
               val href = link.getAttribute("href")
