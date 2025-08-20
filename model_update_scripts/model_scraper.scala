@@ -404,178 +404,64 @@ object ModelEndpointScraper extends IOApp {
     for {
       _ <- logger.debug(s"🔍 Looking for model snapshots for ${modelName.value}...")
       
-      snapshots <- IO {
+      snapshots <- IO.blocking {
         import scala.jdk.CollectionConverters._
         
-        // Method 1: Look for the snapshots section by finding div containing "Snapshots" text
         val snapshotSections = page.querySelectorAll("div").asScala.toList.filter { div =>
           val text = div.textContent()
-          text.contains("Snapshots") && text.contains("lock in") && text.contains("version")
+          text.equals("Snapshots")
         }
         
         val snapshotsFromSection = snapshotSections.flatMap { section =>
-          // Look for the snapshot list container (.flex.flex-col.gap-8.font-mono)
-          val snapshotContainers = section.querySelectorAll(".flex.flex-col.gap-8.font-mono").asScala.toList
           
-          snapshotContainers.flatMap { container =>
-            // New structure: Look for individual model blocks (.flex.flex-col.gap-4)
-            val modelBlocks = container.querySelectorAll(".flex.flex-col.gap-4").asScala.toList
-            
-            val snapshotsFromBlocks = modelBlocks.flatMap { block =>
-              // Method 1a: Get snapshots from model icon images within this block
-              val iconSnapshots = block.querySelectorAll("img[alt]").asScala.toList.flatMap { img =>
-                Try {
-                  val alt = img.getAttribute("alt")
-                  if (alt != null && alt.nonEmpty && !alt.toLowerCase.contains("icon")) {
-                    Some(alt.trim)
-                  } else None
-                }.toOption.flatten
-              }
-              
-              // Method 1b: Get snapshots from the main model name (.text-sm.font-semibold) within this block
-              val mainModelSnapshots = block.querySelectorAll(".text-sm.font-semibold").asScala.toList.flatMap { elem =>
-                Try {
-                  val text = elem.textContent().trim
-                  if (text.nonEmpty && !text.contains(" ") && text.length < 50) {
-                    Some(text)
-                  } else None
-                }.toOption.flatten
-              }
-              
-              // Method 1c: Get snapshots from the arrow indicator section within this block
-              val arrowSnapshots = block.querySelectorAll("svg + div").asScala.toList.flatMap { elem =>
-                Try {
-                  val text = elem.textContent().trim
-                  if (text.nonEmpty && !text.contains(" ") && text.length < 50) {
-                    Some(text)
-                  } else None
-                }.toOption.flatten
-              }
-              
-              // Method 1c2: Also look for arrow indicators in different structures
-              val arrowSnapshots2 = block.querySelectorAll(".flex.flex-row.items-center.gap-2.text-xs.text-tertiary").asScala.toList.flatMap { container =>
-                container.querySelectorAll("div").asScala.toList.flatMap { div =>
-                  Try {
-                    val text = div.textContent().trim
-                    if (text.nonEmpty && !text.contains(" ") && text.length < 50 && 
-                        !text.toLowerCase.contains("svg") && !text.toLowerCase.contains("path")) {
-                      Some(text)
-                    } else None
-                  }.toOption.flatten
+          val flexRowElements = section.querySelectorAll(".flex-row").asScala.toList
+          val snapshotsFromFlexRows = flexRowElements.flatMap { row =>
+            val allTextInRow = row.querySelectorAll("*").asScala.toList.flatMap { elem =>
+              Try {
+                val text = elem.textContent().trim
+                if (text.nonEmpty && 
+                    !text.contains(" ") && 
+                    text.length > 2 && 
+                    text.length < 50 &&
+                    text.matches("^[a-z0-9\\-\\.]+$")) {
+                  Some(text)
+                } else None
+              }.toOption.flatten
+            }
+            allTextInRow
+          }
+          
+          println("FLEX-ROWS: " + snapshotsFromFlexRows)
+          snapshotsFromFlexRows
+        }
+        
+        // Combine and clean up results
+        val allSnapshots = (snapshotsFromSection).distinct
+        
+        // Function to detect and fix duplicated words in snapshots
+        def removeDuplicatedWords(snapshot: String): String = {
+          // Simple exact duplication (e.g., "wordword" -> "word")
+          val exactDuplication = """^(.+?)\1+$""".r
+          snapshot match {
+            case exactDuplication(word) => word
+            case _ => 
+              // Generic approach to find any repeating pattern
+              // Try different pattern lengths to find repeats
+              (1 to snapshot.length / 2).foreach { len =>
+                if (snapshot.length % len == 0) {
+                  val pattern = snapshot.substring(0, len)
+                  val repeated = pattern * (snapshot.length / len)
+                  if (repeated == snapshot) {
+                    return pattern
+                  }
                 }
               }
-              
-              // Method 1d: Get snapshots from the snapshot list within this block
-              val listSnapshots = block.querySelectorAll(".flex.flex-1.flex-col.gap-2 .flex.flex-row.items-center.gap-2.text-sm").asScala.toList.flatMap { row =>
-                Try {
-                  val text = row.textContent().trim
-                  // Remove any leading dot indicators or spacing
-                  val cleanText = text.replaceAll("^[•\\s]+", "").trim
-                  if (cleanText.nonEmpty && !cleanText.contains(" ") && cleanText.length < 50) {
-                    Some(cleanText)
-                  } else None
-                }.toOption.flatten
-              }
-              
-              iconSnapshots ++ mainModelSnapshots ++ arrowSnapshots ++ arrowSnapshots2 ++ listSnapshots
-            }
-            
-            // Fallback: If no model blocks found, use the old method on the entire container
-            if (snapshotsFromBlocks.isEmpty) {
-              // Method 1a: Get snapshots from model icon images
-              val iconSnapshots = container.querySelectorAll("img[alt]").asScala.toList.flatMap { img =>
-                Try {
-                  val alt = img.getAttribute("alt")
-                  if (alt != null && alt.nonEmpty && !alt.toLowerCase.contains("icon")) {
-                    Some(alt.trim)
-                  } else None
-                }.toOption.flatten
-              }
-              
-              // Method 1b: Get snapshots from the main model name (.text-sm.font-semibold)
-              val mainModelSnapshots = container.querySelectorAll(".text-sm.font-semibold").asScala.toList.flatMap { elem =>
-                Try {
-                  val text = elem.textContent().trim
-                  if (text.nonEmpty && !text.contains(" ") && text.length < 50) {
-                    Some(text)
-                  } else None
-                }.toOption.flatten
-              }
-              
-              // Method 1c: Get snapshots from the arrow indicator section (points to current version)
-              val arrowSnapshots = container.querySelectorAll("svg + div").asScala.toList.flatMap { elem =>
-                Try {
-                  val text = elem.textContent().trim
-                  if (text.nonEmpty && !text.contains(" ") && text.length < 50) {
-                    Some(text)
-                  } else None
-                }.toOption.flatten
-              }
-              
-              // Method 1d: Get snapshots from the snapshot list (dots with model names)
-              val listSnapshots = container.querySelectorAll(".flex.flex-1.flex-col.gap-2 .flex.flex-row.items-center.gap-2.text-sm").asScala.toList.flatMap { row =>
-                Try {
-                  val text = row.textContent().trim
-                  // Remove any leading dot indicators or spacing
-                  val cleanText = text.replaceAll("^[•\\s]+", "").trim
-                  if (cleanText.nonEmpty && !cleanText.contains(" ") && cleanText.length < 50) {
-                    Some(cleanText)
-                  } else None
-                }.toOption.flatten
-              }
-              
-              iconSnapshots ++ mainModelSnapshots ++ arrowSnapshots ++ listSnapshots
-            } else {
-              snapshotsFromBlocks
-            }
+              snapshot
           }
         }
         
-        // Method 2: Fallback - look for model icons anywhere on the page with model-specific alt text
-        val fallbackIconSnapshots = if (snapshotsFromSection.isEmpty) {
-          page.querySelectorAll("img[src*='model-icons/']").asScala.toList.flatMap { img =>
-            Try {
-              val alt = Option(img.getAttribute("alt")).getOrElse("")
-              val src = Option(img.getAttribute("src")).getOrElse("")
-              
-              if (alt.nonEmpty && alt.contains("-") && !alt.toLowerCase.contains("icon")) {
-                Some(alt.trim)
-              } else if (src.contains("model-icons/")) {
-                // Extract from src path like "gpt-3.5-turbo.png"
-                val filename = src.split("/").last.replaceAll("\\.(png|jpg|svg)$", "")
-                if (filename.nonEmpty && filename.contains("-")) Some(filename) else None
-              } else None
-            }.toOption.flatten
-          }
-        } else List.empty[String]
-        
-        // Combine and clean up results
-        val allSnapshots = (snapshotsFromSection ++ fallbackIconSnapshots).distinct
-        
-        // Filter to only valid model names
-        val validSnapshots = allSnapshots.filter { name =>
-          name.nonEmpty &&
-          name.length > 1 && 
-          name.length < 50 &&
-          name.matches("^[a-z0-9\\-\\.]+$") && // Only letters, numbers, dashes, dots
-          (name.startsWith("gpt-") || 
-           name.startsWith("whisper-") || 
-           name.startsWith("dall-e-") || 
-           name.startsWith("chatgpt-") || 
-           name.startsWith("o1") || 
-           name.startsWith("o3") || 
-           name.startsWith("o4") ||
-           name.startsWith("davinci-") ||
-           name.startsWith("babbage-") ||
-           name.startsWith("curie-") ||
-           name.startsWith("ada-") ||
-           name.startsWith("text-") ||
-           name.startsWith("tts-") ||
-           name.startsWith("computer-")) &&
-          !name.toLowerCase.contains("snapshot") &&
-          !name.toLowerCase.contains("icon") &&
-          !name.toLowerCase.contains("deprecated")
-        }.sorted
+        // Apply duplication removal to all snapshots and keep them distinct
+        val validSnapshots = allSnapshots.map(removeDuplicatedWords).distinct
         
         validSnapshots
       }
