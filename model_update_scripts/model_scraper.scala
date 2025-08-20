@@ -412,6 +412,49 @@ object ModelEndpointScraper extends IOApp {
           text.equals("Snapshots")
         }
         
+        // Extract snapshots using XPath to find sibling elements
+        val extractedSnapshots = snapshotSections.flatMap { snapshotDiv =>
+          try {
+            // Use XPath to find the following sibling div that contains snapshot content
+            val siblingElements = page.querySelectorAll("xpath=//div[text()='Snapshots']/following-sibling::div").asScala.toList
+            
+            println(s"Found ${siblingElements.size} sibling elements after Snapshots div")
+            
+            siblingElements.flatMap { contentDiv =>
+              // Look for snapshot elements within the sibling div
+              val snapshotElements = contentDiv.querySelectorAll(".text-sm").asScala.toList
+              
+              println(s"Found ${snapshotElements.size} snapshot elements in content div")
+              
+              val snapshots = snapshotElements.map { element =>
+                val snapshotId = element.textContent().trim()
+                println(s"Extracted snapshot ID: $snapshotId")
+                snapshotId
+              }
+              
+              // If we didn't find any elements with the specific class, try a more general approach
+              if (snapshotElements.isEmpty) {
+                println("Trying alternative extraction method...")
+                // Look for elements with font-mono class which often contains the snapshot IDs
+                val monoElements = contentDiv.querySelectorAll(".font-mono").asScala.toList
+                monoElements.flatMap { elem =>
+                  val text = elem.textContent().trim()
+                  if (text.contains("-") && text.matches("^[a-z0-9\\-\\.]+$")) {
+                    println(s"Found potential snapshot ID from mono font: $text")
+                    Some(text)
+                  } else None
+                }
+              } else {
+                snapshots
+              }
+            }
+          } catch {
+            case ex: Exception =>
+              println(s"Error extracting snapshots: ${ex.getMessage}")
+              List.empty[String]
+          }
+        }
+        
         val snapshotsFromSection = snapshotSections.flatMap { section =>
           
           val flexRowElements = section.querySelectorAll(".flex-row").asScala.toList
@@ -436,7 +479,7 @@ object ModelEndpointScraper extends IOApp {
         }
         
         // Combine and clean up results
-        val allSnapshots = (snapshotsFromSection).distinct
+        val allSnapshots = (snapshotsFromSection ++ extractedSnapshots).distinct
         
         // Function to detect and fix duplicated words in snapshots
         def removeDuplicatedWords(snapshot: String): String = {
