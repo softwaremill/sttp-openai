@@ -1,0 +1,83 @@
+{
+  "v1/responses" : [
+    {
+      "name" : "GPT-5",
+      "snapshots" : [
+        "gpt-5",
+        "gpt-5-2025-08-07"
+      ]
+    },
+    {
+      "name" : "GPT-5 Chat",
+      "snapshots" : [
+        "gpt-5-chat-latest"
+      ]
+    },
+    {
+      "name" : "GPT-5 mini",
+      "snapshots" : [
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07"
+      ]
+    },
+    {
+      "name" : "GPT-5 nano",
+      "snapshots" : [
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07"
+      ]
+    }
+  ],
+  "v1/chat/completions" : [
+    {
+      "name" : "GPT-5",
+      "snapshots" : [
+        "gpt-5",
+        "gpt-5-2025-08-07"
+      ]
+    },
+    {
+      "name" : "GPT-5 Chat",
+      "snapshots" : [
+        "gpt-5-chat-latest"
+      ]
+    },
+    {
+      "name" : "GPT-5 mini",
+      "snapshots" : [
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07"
+      ]
+    },
+    {
+      "name" : "GPT-5 nano",
+      "snapshots" : [
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07"
+      ]
+    }
+  ],
+  "v1/batch" : [
+    {
+      "name" : "GPT-5",
+      "snapshots" : [
+        "gpt-5",
+        "gpt-5-2025-08-07"
+      ]
+    },
+    {
+      "name" : "GPT-5 mini",
+      "snapshots" : [
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07"
+      ]
+    },
+    {
+      "name" : "GPT-5 nano",
+      "snapshots" : [
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07"
+      ]
+    }
+  ]
+}
