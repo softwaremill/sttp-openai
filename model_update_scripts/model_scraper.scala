@@ -58,7 +58,6 @@ case class Config(
 case class ModelInfo(
     name: ModelName,
     activeEndpoints: List[EndpointInfo],
-    inactiveEndpoints: List[EndpointInfo],
     snapshots: List[String],
     url: URL
 )
@@ -213,22 +212,22 @@ object ModelEndpointScraper extends IOApp {
   private def fetchModelSet(browser: Browser, modelFilter: Option[List[ModelName]] = None): IO[Set[(ModelName, URL)]] =
     for {
       _ <- logger.info("🔍 Fetching model list from OpenAI models page...")
-      page <- IO(browser.newPage())
+      page <- IO.blocking(browser.newPage())
       result <- (for {
-        _ <- IO(page.navigate(
+        _ <- IO.blocking(page.navigate(
           "https://platform.openai.com/docs/models",
           new Page.NavigateOptions()
             .setTimeout(90000)
             .setWaitUntil(WaitUntilState.LOAD)
         ))
-        _ <- IO(page.waitForTimeout(5000))
+        _ <- IO.blocking(page.waitForTimeout(5000))
         
         title <- IO(Option(page.title()).getOrElse("No title"))
         _ <- logger.debug(s"📄 Page title: $title")
 
         _ <- if (title.contains("Just a moment")) {
           logger.warn("⚠️ Cloudflare challenge detected - waiting longer...") *>
-          IO(page.waitForTimeout(15000))
+          IO.blocking(page.waitForTimeout(15000))
         } else IO.unit
 
         modelLinks <- IO {
@@ -237,7 +236,7 @@ object ModelEndpointScraper extends IOApp {
         }
         _ <- logger.debug(s"📦 Found ${modelLinks.size} model links")
 
-        models <- IO {
+        models <- IO.eval {
           modelLinks.flatMap { link =>
             Try {
               val href = link.getAttribute("href")
@@ -288,7 +287,7 @@ object ModelEndpointScraper extends IOApp {
   private def scrapeModels(modelList: List[(ModelName, URL)]): IO[List[ModelInfo]] =
     IO.parTraverseN(10)(modelList) { case (modelName, url) =>
       firefoxResource.use { case (playwright, browser) =>
-        scrapeModelPage(browser, modelName, url).map(_.getOrElse(ModelInfo(modelName, Nil, Nil, Nil, url)))
+        scrapeModelPage(browser, modelName, url).map(_.getOrElse(ModelInfo(modelName, Nil, Nil, url)))
       }
     }
 
@@ -300,13 +299,13 @@ object ModelEndpointScraper extends IOApp {
       page <- IO(browserContext.newPage())
       
       result <- (for {
-        _ <- IO(page.navigate(
+        _ <- IO.blocking(page.navigate(
           url.value,
           new Page.NavigateOptions()
             .setTimeout(60000)
             .setWaitUntil(WaitUntilState.LOAD)
         ))
-        _ <- IO(page.waitForTimeout(3000))
+        _ <- IO.blocking(page.waitForTimeout(3000))
 
         title <- IO(Option(page.title()).getOrElse("No title"))
         _ <- logger.debug(s"📄 Page title: $title")
@@ -316,24 +315,22 @@ object ModelEndpointScraper extends IOApp {
           IO.pure(None)
         } else {
           for {
-            textContent <- IO(page.textContent("body"))
+            textContent <- IO.blocking(page.textContent("body"))
             _ <- logger.debug(s"📊 Content length: ${textContent.length} characters")
 
             endpoints <- extractEndpoints(page)
             activeEndpoints = endpoints.filter(_.isActive)
-            inactiveEndpoints = endpoints.filter(!_.isActive)
             
             snapshots <- extractSnapshots(page, modelName)
 
             modelInfo = ModelInfo(
               name = modelName,
               activeEndpoints = activeEndpoints,
-              inactiveEndpoints = inactiveEndpoints,
               snapshots = snapshots,
               url = url
             )
 
-            _ <- logger.info(s"✅ ${modelName.value}: ${activeEndpoints.length} active, ${inactiveEndpoints.length} inactive endpoints, ${snapshots.length} snapshots")
+            _ <- logger.info(s"✅ ${modelName.value}: ${activeEndpoints.length} active endpoints, ${snapshots.length} snapshots")
           } yield Some(modelInfo)
         }
       } yield result).handleErrorWith { e =>
@@ -346,7 +343,7 @@ object ModelEndpointScraper extends IOApp {
     for {
       _ <- logger.debug("🔍 Looking for endpoint cards in DOM structure...")
       
-      endpointCards <- IO {
+      endpointCards <- IO.blocking {
         import scala.jdk.CollectionConverters._
         page.waitForTimeout(3000)
         
@@ -359,7 +356,7 @@ object ModelEndpointScraper extends IOApp {
       _ <- logger.debug(s"📦 Found ${endpointCards.length} cards containing 'v1/' endpoints")
       
       endpoints <- if (endpointCards.nonEmpty) {
-        IO {
+        IO.blocking {
           endpointCards.flatMap { card =>
             Try {
               val iconContainer = card.querySelector("div.rounded-lg")
@@ -412,101 +409,30 @@ object ModelEndpointScraper extends IOApp {
           text.equals("Snapshots")
         }
         
-        // Extract snapshots using XPath to find sibling elements
         val extractedSnapshots = snapshotSections.flatMap { snapshotDiv =>
           try {
-            // Use XPath to find the following sibling div that contains snapshot content
             val siblingElements = page.querySelectorAll("xpath=//div[text()='Snapshots']/following-sibling::div").asScala.toList
             
-            println(s"Found ${siblingElements.size} sibling elements after Snapshots div")
+            logger.debug(s"Found ${siblingElements.size} sibling elements after Snapshots div")
             
             siblingElements.flatMap { contentDiv =>
-              // Look for snapshot elements within the sibling div
               val snapshotElements = contentDiv.querySelectorAll(".text-sm").asScala.toList
               
-              println(s"Found ${snapshotElements.size} snapshot elements in content div")
+              logger.debug(s"Found ${snapshotElements.size} snapshot elements in content div")
               
               val snapshots = snapshotElements.map { element =>
                 val snapshotId = element.textContent().trim()
-                println(s"Extracted snapshot ID: $snapshotId")
+                logger.debug(s"Extracted snapshot ID: $snapshotId")
                 snapshotId
               }
-              
-              // If we didn't find any elements with the specific class, try a more general approach
-              if (snapshotElements.isEmpty) {
-                println("Trying alternative extraction method...")
-                // Look for elements with font-mono class which often contains the snapshot IDs
-                val monoElements = contentDiv.querySelectorAll(".font-mono").asScala.toList
-                monoElements.flatMap { elem =>
-                  val text = elem.textContent().trim()
-                  if (text.contains("-") && text.matches("^[a-z0-9\\-\\.]+$")) {
-                    println(s"Found potential snapshot ID from mono font: $text")
-                    Some(text)
-                  } else None
-                }
-              } else {
-                snapshots
-              }
+              snapshots
             }
           } catch {
             case ex: Exception =>
-              println(s"Error extracting snapshots: ${ex.getMessage}")
-              List.empty[String]
+              throw new Exception(s"Error extracting snapshots: ${ex.getMessage}")
           }
         }
-        
-        val snapshotsFromSection = snapshotSections.flatMap { section =>
-          
-          val flexRowElements = section.querySelectorAll(".flex-row").asScala.toList
-          val snapshotsFromFlexRows = flexRowElements.flatMap { row =>
-            val allTextInRow = row.querySelectorAll("*").asScala.toList.flatMap { elem =>
-              Try {
-                val text = elem.textContent().trim
-                if (text.nonEmpty && 
-                    !text.contains(" ") && 
-                    text.length > 2 && 
-                    text.length < 50 &&
-                    text.matches("^[a-z0-9\\-\\.]+$")) {
-                  Some(text)
-                } else None
-              }.toOption.flatten
-            }
-            allTextInRow
-          }
-          
-          println("FLEX-ROWS: " + snapshotsFromFlexRows)
-          snapshotsFromFlexRows
-        }
-        
-        // Combine and clean up results
-        val allSnapshots = (snapshotsFromSection ++ extractedSnapshots).distinct
-        
-        // Function to detect and fix duplicated words in snapshots
-        def removeDuplicatedWords(snapshot: String): String = {
-          // Simple exact duplication (e.g., "wordword" -> "word")
-          val exactDuplication = """^(.+?)\1+$""".r
-          snapshot match {
-            case exactDuplication(word) => word
-            case _ => 
-              // Generic approach to find any repeating pattern
-              // Try different pattern lengths to find repeats
-              (1 to snapshot.length / 2).foreach { len =>
-                if (snapshot.length % len == 0) {
-                  val pattern = snapshot.substring(0, len)
-                  val repeated = pattern * (snapshot.length / len)
-                  if (repeated == snapshot) {
-                    return pattern
-                  }
-                }
-              }
-              snapshot
-          }
-        }
-        
-        // Apply duplication removal to all snapshots and keep them distinct
-        val validSnapshots = allSnapshots.map(removeDuplicatedWords).distinct
-        
-        validSnapshots
+        extractedSnapshots.distinct
       }
       
       _ <- logger.debug(s"📸 Found ${snapshots.length} snapshots: ${snapshots.mkString(", ")}")
@@ -529,13 +455,6 @@ object ModelEndpointScraper extends IOApp {
             )
           } else IO.unit
 
-          _ <- if (model.inactiveEndpoints.nonEmpty) {
-            logger.info("  ❌ Inactive Endpoints:") *>
-            model.inactiveEndpoints.traverse_(endpoint => 
-              logger.info(s"    🔴 ${endpoint.name} → ${endpoint.apiPath}")
-            )
-          } else IO.unit
-
           _ <- if (model.snapshots.nonEmpty) {
             logger.info("  📸 Model Snapshots:") *>
             model.snapshots.traverse_(snapshot => 
@@ -548,14 +467,12 @@ object ModelEndpointScraper extends IOApp {
       }
 
       totalActiveEndpoints = models.flatMap(_.activeEndpoints).length
-      totalInactiveEndpoints = models.flatMap(_.inactiveEndpoints).length
       uniqueActiveEndpoints = models.flatMap(_.activeEndpoints.map(_.apiPath)).distinct.length
       totalSnapshots = models.flatMap(_.snapshots).length
 
       _ <- logger.info("=" * 80)
       _ <- logger.info(s"📊 Successfully scraped ${models.length} models")
       _ <- logger.info(s"🟢 Found $totalActiveEndpoints active endpoints ($uniqueActiveEndpoints unique)")
-      _ <- logger.info(s"🔴 Found $totalInactiveEndpoints inactive endpoints")
       _ <- logger.info(s"📸 Found $totalSnapshots model snapshots")
       _ <- logger.info("=" * 80)
     } yield ()
