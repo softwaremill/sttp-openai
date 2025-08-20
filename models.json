@@ -1,0 +1,19 @@
+{
+  "v1/responses" : [
+    "GPT-5",
+    "GPT-5 Chat",
+    "GPT-5 mini",
+    "GPT-5 nano"
+  ],
+  "v1/chat/completions" : [
+    "GPT-5",
+    "GPT-5 Chat",
+    "GPT-5 mini",
+    "GPT-5 nano"
+  ],
+  "v1/batch" : [
+    "GPT-5",
+    "GPT-5 mini",
+    "GPT-5 nano"
+  ]
+}

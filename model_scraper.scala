@@ -4,6 +4,9 @@
 //> using dep org.typelevel::log4cats-slf4j::2.7.1
 //> using dep ch.qos.logback:logback-classic:1.5.18
 //> using dep com.github.scopt::scopt::4.1.0
+//> using dep io.circe::circe-core::0.14.14
+//> using dep io.circe::circe-generic::0.14.14
+//> using dep io.circe::circe-parser::0.14.14
 
 import cats.effect.{IO, IOApp, Resource}
 import cats.syntax.all._
@@ -14,6 +17,10 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import ch.qos.logback.classic.{Level, LoggerContext}
 import org.slf4j.LoggerFactory
 import scopt.OParser
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import java.io.PrintWriter
 import scala.util.Try
 
 opaque type ModelName = String
@@ -22,6 +29,8 @@ object ModelName {
   extension (modelName: ModelName) {
     def value: String = modelName
   }
+  
+  implicit val modelNameEncoder: Encoder[ModelName] = Encoder.encodeString.contramap(_.value)
 }
 
 opaque type URL = String
@@ -30,6 +39,8 @@ object URL {
   extension (url: URL) {
     def value: String = url
   }
+  
+  implicit val urlEncoder: Encoder[URL] = Encoder.encodeString.contramap(_.value)
 }
 
 case class EndpointInfo(
@@ -40,7 +51,8 @@ case class EndpointInfo(
 
 case class Config(
   debug: Boolean = false,
-  models: Option[List[ModelName]] = None
+  models: Option[List[ModelName]] = None,
+  output: Option[String] = None
 )
 
 case class ModelInfo(
@@ -79,7 +91,12 @@ object ModelEndpointScraper extends IOApp {
         opt[String]("models")
           .action((x, c) => c.copy(models = Some(x.split(",").map(_.trim).map(ModelName.apply).toList)))
           .text("Comma-separated list of model names to scrape (e.g., \"GPT-4o,GPT-3.5\")")
-          .valueName("<model1,model2,...>")
+          .valueName("<model1,model2,...>"),
+          
+        opt[String]("output")
+          .action((x, c) => c.copy(output = Some(x)))
+          .text("Output file path for JSON endpoint-to-models mapping")
+          .valueName("<file.json>")
       )
     }
     
@@ -105,6 +122,7 @@ object ModelEndpointScraper extends IOApp {
         println("  --debug                  Enable debug logging for detailed output")
         println("  --models <model1,model2,...>")
         println("                           Comma-separated list of model names to scrape (e.g., \"GPT-4o,GPT-3.5\")")
+        println("  --output <file.json>     Output file path for JSON endpoint-to-models mapping")
         println("  --help                   Show this help message")
       }.as(cats.effect.ExitCode.Success)
     } else {
@@ -131,6 +149,39 @@ object ModelEndpointScraper extends IOApp {
       _ <- logger.info(s"📋 Found ${modelList.size} models to scrape")
       models <- scrapeModels(modelList.toList)
       _ <- displayResults(models)
+      _ <- config.output.fold(IO.unit)(outputPath => 
+        generateAndSaveEndpointMapping(models, outputPath)
+      )
+    } yield ()
+
+  private def generateAndSaveEndpointMapping(models: List[ModelInfo], outputPath: String): IO[Unit] =
+    for {
+      _ <- logger.info(s"📝 Generating endpoint-to-models mapping...")
+      
+      // Create mapping: endpoint -> list of model names that support it
+      endpointMapping = models.flatMap { model =>
+        model.activeEndpoints.map(endpoint => endpoint.apiPath -> model.name.value)
+      }.groupBy(_._1).map { case (endpoint, pairs) =>
+        endpoint -> pairs.map(_._2).distinct.sorted
+      }
+      
+      _ <- logger.info(s"🔍 Found mappings for ${endpointMapping.size} endpoints")
+      _ <- endpointMapping.toList.traverse_ { case (endpoint, modelNames) =>
+        logger.debug(s"  $endpoint: ${modelNames.mkString(", ")}")
+      }
+      
+      // Convert to JSON and save
+      json = endpointMapping.asJson.spaces2
+      _ <- IO {
+        val writer = new PrintWriter(outputPath)
+        try {
+          writer.write(json)
+        } finally {
+          writer.close()
+        }
+      }
+      
+      _ <- logger.info(s"💾 Saved endpoint mapping to: $outputPath")
     } yield ()
 
   private def firefoxResource: Resource[IO, (Playwright, Browser)] =

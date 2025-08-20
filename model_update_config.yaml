@@ -1,0 +1,69 @@
+endpoints:
+  "v1/chat/completions":
+    file: "core/src/main/scala/sttp/openai/requests/completions/chat/ChatRequestBody.scala"
+    className: "ChatCompletionModel"
+    insertBeforeMarker: "case class CustomChatCompletionModel"
+    valuesSetName: "values"
+    
+  "v1/completions":
+    file: "core/src/main/scala/sttp/openai/requests/completions/CompletionsRequestBody.scala"
+    className: "CompletionModel"
+    insertBeforeMarker: "case class CustomCompletionModel"
+    valuesSetName: "values"
+    
+  "v1/embeddings":
+    file: "core/src/main/scala/sttp/openai/requests/embeddings/EmbeddingsRequestBody.scala"
+    className: "EmbeddingsModel"
+    insertBeforeMarker: "case class CustomEmbeddingsModel"
+    valuesSetName: "values"
+    
+  "v1/moderations":
+    file: "core/src/main/scala/sttp/openai/requests/moderations/ModerationsRequestBody.scala"
+    className: "ModerationModel"
+    insertBeforeMarker: "case class CustomModerationModel"
+    valuesSetName: "values"
+    
+  "v1/audio/speech":
+    file: "core/src/main/scala/sttp/openai/requests/audio/speech/SpeechRequestBody.scala"
+    className: "SpeechModel"
+    insertBeforeMarker: "case class CustomSpeechModel"
+    valuesSetName: null
+    
+  "v1/audio/transcriptions":
+    file: "core/src/main/scala/sttp/openai/requests/audio/transcriptions/TranscriptionModel.scala"
+    className: "TranscriptionModel"
+    insertBeforeMarker: "case class Custom"
+    valuesSetName: null
+    
+  "v1/audio/translations":
+    file: "core/src/main/scala/sttp/openai/requests/audio/translations/TranslationModel.scala"
+    className: "TranslationModel"
+    insertBeforeMarker: "case class Custom"
+    valuesSetName: null
+
+# Name conversion rules for model names to Scala identifiers
+nameConversion:
+  # Replace patterns (applied in order)
+  replacements:
+    - from: "-"
+      to: ""
+    - from: "."
+      to: ""
+    - from: "_"
+      to: ""
+  
+  # Capitalization rules
+  capitalizeAfter: ["-", ".", "_", "/"]
+  
+  # Special cases (exact matches)
+  specialCases:
+    "GPT-5": "GPT5"
+    "GPT-5 mini": "GPT5Mini"
+    "GPT-5 nano": "GPT5Nano"
+    "GPT-5 Chat": "GPT5Chat"
+    "gpt-4o": "GPT4o"
+    "gpt-4o-mini": "GPT4oMini"
+    "gpt-3.5-turbo": "GPT35Turbo"
+    "text-embedding-ada-002": "TextEmbeddingAda002"
+    "text-moderation-stable": "TextModerationStable"
+    "text-moderation-latest": "TextModerationLatest"
