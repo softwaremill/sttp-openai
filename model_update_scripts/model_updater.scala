@@ -31,7 +31,6 @@ object Endpoint {
   }
 }
 
-given JsonValueCodec[Replacement] = JsonCodecMaker.make
 given JsonValueCodec[NameConversionConfig] = JsonCodecMaker.make
 given JsonValueCodec[ModelUpdateConfig] = JsonCodecMaker.make
 given JsonValueCodec[ModelWithSnapshots] = JsonCodecMaker.make
@@ -52,12 +51,10 @@ case class EndpointConfig(
 ) derives YamlCodec
 
 case class NameConversionConfig(
-    replacements: List[Replacement],
-    capitalizeAfter: List[String],
-    specialCases: Map[String, String]
+    preserveUppercase: List[String], // Words that should remain uppercase (GPT, DALL, etc.)
+    capitalizeWords: List[String],   // Words that should be capitalized (mini, nano, etc.)
+    specialCases: Map[String, String] // Direct mappings for special cases
 ) derives YamlCodec
-
-case class Replacement(from: String, to: String) derives YamlCodec
 
 case class ModelWithSnapshots(name: String, snapshots: List[String])
 
@@ -326,32 +323,35 @@ object ModelUpdater extends IOApp {
       nameConversion: NameConversionConfig
   ): IO[String] =
     IO {
-      val words = modelName.split("[\\-\\._\\s]+").filter(_.nonEmpty)
-      val processedWords = words.map { word =>
-        val lowerWord = word.toLowerCase
-        val upperWord = word.toUpperCase
+      // Check special cases first
+      nameConversion.specialCases.get(modelName) match {
+        case Some(specialCase) => specialCase
+        case None =>
+          val words = modelName.split("[\\-\\._\\s]+").filter(_.nonEmpty)
+          val processedWords = words.map { word =>
+            val lowerWord = word.toLowerCase
+            val upperWord = word.toUpperCase
 
-        // Preserve original casing for certain base model names
-        if (upperWord == "GPT" || upperWord == "DALL" || upperWord == "WHISPER" || upperWord == "CHATGPT") {
-          upperWord
-        }
-        // Capitalize first letter for other known model parts
-        else if (
-          Set("mini", "nano", "chat", "audio", "realtime", "transcribe", "search", "tts", "preview", "latest", "o").contains(lowerWord)
-        ) {
-          lowerWord.capitalize
-        }
-        // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
-        else if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
-          word
-        }
-        // Default: capitalize first letter
-        else {
-          lowerWord.capitalize
-        }
+            // Check if word should be preserved as uppercase
+            if (nameConversion.preserveUppercase.contains(upperWord)) {
+              upperWord
+            }
+            // Check if word should be capitalized
+            else if (nameConversion.capitalizeWords.contains(lowerWord)) {
+              lowerWord.capitalize
+            }
+            // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
+            else if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
+              word
+            }
+            // Default: capitalize first letter
+            else {
+              lowerWord.capitalize
+            }
+          }
+
+          processedWords.mkString("")
       }
-
-      processedWords.mkString("")
     }
 
   private def generateUpdatedContent(

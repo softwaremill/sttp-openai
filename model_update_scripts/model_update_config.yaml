@@ -43,27 +43,15 @@ endpoints:
 
 # Name conversion rules for model names to Scala identifiers
 nameConversion:
-  # Replace patterns (applied in order)
-  replacements:
-    - from: "-"
-      to: ""
-    - from: "."
-      to: ""
-    - from: "_"
-      to: ""
+  # Words that should remain uppercase (GPT, DALL, WHISPER, CHATGPT)
+  preserveUppercase:
+    - "GPT"
+    - "DALL" 
+    - "TTS"
+    - "HD"
+    - "ChatGPT"
   
-  # Capitalization rules
-  capitalizeAfter: ["-", ".", "_", "/"]
-  
-  # Special cases (exact matches)
-  specialCases:
-    "GPT-5": "GPT5"
-    "GPT-5 mini": "GPT5Mini"
-    "GPT-5 nano": "GPT5Nano"
-    "GPT-5 Chat": "GPT5Chat"
-    "gpt-4o": "GPT4o"
-    "gpt-4o-mini": "GPT4oMini"
-    "gpt-3.5-turbo": "GPT35Turbo"
-    "text-embedding-ada-002": "TextEmbeddingAda002"
-    "text-moderation-stable": "TextModerationStable"
-    "text-moderation-latest": "TextModerationLatest"
+  # Words that should be capitalized (mini, nano, chat, audio, etc.)
+  capitalizeWords: []
+  # Special cases (exact matches for full model names)
+  specialCases: {}
