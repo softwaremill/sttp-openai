@@ -352,12 +352,15 @@ object ModelUpdater extends IOApp {
         throw new Exception(s"Could not find insertion marker: ${endpointConfig.insertBeforeMarker}")
       }
 
-      val newCaseObjects = modelsToAdd.map { case (original, scalaId) =>
-        s"    case object $scalaId extends ${endpointConfig.className}(\"$original\")"
+      val actualInsertIndex = findInsertionPoint(lines, insertIndex)
+      
+      val newCaseObjects = modelsToAdd.map { case (modelName, scalaId) =>
+        s"    case object $scalaId extends ${endpointConfig.className}(\"$modelName\")"
       }
 
-      val beforeInsert = lines.take(insertIndex)
-      val afterInsert = lines.drop(insertIndex)
+      
+      val beforeInsert = lines.take(actualInsertIndex)
+      val afterInsert = lines.drop(actualInsertIndex)
 
       val updatedLines = beforeInsert ++ newCaseObjects ++ List("") ++ afterInsert
 
@@ -399,6 +402,40 @@ object ModelUpdater extends IOApp {
 
       content
     }
+  }
+
+  private def findInsertionPoint(lines: List[String], markerIndex: Int): Int = {
+    // Look backwards from the marker to find comment lines
+    var currentIndex = markerIndex - 1
+    var commentStart = markerIndex
+    
+    // Skip empty lines immediately before the marker
+    while (currentIndex >= 0 && lines(currentIndex).trim.isEmpty) {
+      currentIndex -= 1
+    }
+    
+    // Check if we have comment lines
+    while (currentIndex >= 0 && isCommentLine(lines(currentIndex))) {
+      commentStart = currentIndex
+      currentIndex -= 1
+    }
+    
+    // If we found comments, insert before them (but after any preceding empty line)
+    if (commentStart < markerIndex) {
+      // Look for an empty line before the comments to maintain spacing
+      if (currentIndex >= 0 && lines(currentIndex).trim.isEmpty) {
+        currentIndex + 1 // Insert after the empty line
+      } else {
+        commentStart // Insert directly before comments
+      }
+    } else {
+      markerIndex // No comments found, use original marker position
+    }
+  }
+  
+  private def isCommentLine(line: String): Boolean = {
+    val trimmed = line.trim
+    trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")
   }
 
   private def generateValuesSetLines(valuesSetName: String, models: List[String], className: String): List[String] = {
