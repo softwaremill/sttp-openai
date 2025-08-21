@@ -27,8 +27,7 @@ case class UpdaterConfig(
   input: Option[String] = None,
   config: String = "model_update_config.yaml",
   dryRun: Boolean = false,
-  debug: Boolean = false,
-  scrapeAndUpdate: Boolean = false
+  debug: Boolean = false
 )
 
 case class EndpointConfig(
@@ -88,11 +87,7 @@ object ModelUpdater extends IOApp {
           
         opt[Unit]("debug")
           .action((_, c) => c.copy(debug = true))
-          .text("Enable debug logging"),
-          
-        opt[Unit]("scrape-and-update")
-          .action((_, c) => c.copy(scrapeAndUpdate = true))
-          .text("Run scraper first, then update model classes")
+          .text("Enable debug logging")
       )
     }
     
@@ -117,7 +112,6 @@ object ModelUpdater extends IOApp {
         println("  --config <config.yaml>   Configuration file path (default: model_update_config.yaml)")
         println("  --dry-run               Preview changes without applying them")
         println("  --debug                 Enable debug logging")
-        println("  --scrape-and-update     Run scraper first, then update model classes")
         println("  --help                  Show this help message")
       }.as(ExitCode.Success)
     } else {
@@ -134,18 +128,10 @@ object ModelUpdater extends IOApp {
       _ <- configureLogging(if (config.debug) Level.DEBUG else Level.INFO)
       _ <- logger.info("🔧 Starting Model Case Class Updater...")
       
-      // Step 1: Run scraper if requested
-      inputFile <- if (config.scrapeAndUpdate) {
-        for {
-          _ <- logger.info("🦊 Running scraper first...")
-          tempFile = "temp_models.json"
-          _ <- runScraper(tempFile)
-        } yield tempFile
-      } else {
-        config.input match {
-          case Some(file) => IO.pure(file)
-          case None => IO.raiseError(new Exception("Either --input or --scrape-and-update must be specified"))
-        }
+      // Step 1: Get input file
+      inputFile <- config.input match {
+        case Some(file) => IO.pure(file)
+        case None => IO.raiseError(new Exception("--input parameter must be specified"))
       }
       
       // Step 2: Load configurations
@@ -155,34 +141,7 @@ object ModelUpdater extends IOApp {
       // Step 3: Update model classes
       _ <- updateModelClasses(modelConfig, endpointMapping, config.dryRun)
       
-      // Step 4: Cleanup temp file if created
-      _ <- if (config.scrapeAndUpdate) {
-        IO(new File(inputFile).delete()).void
-      } else IO.unit
-      
       _ <- logger.info("✅ Model update process completed!")
-    } yield ()
-
-  private def runScraper(outputFile: String): IO[Unit] =
-    for {
-      _ <- logger.info(s"🦊 Running model scraper to generate $outputFile...")
-      // We'll shell out to run the scraper
-      result <- IO {
-        import sys.process._
-        // Check if we're in model_update_scripts directory and adjust path accordingly
-        val scraperPath = if (new File("model_scraper.scala").exists()) {
-          "model_scraper.scala"
-        } else {
-          "model_update_scripts/model_scraper.scala"
-        }
-        val command = s"scala-cli run $scraperPath --jvm 17 -- --output $outputFile"
-        command.!
-      }
-      _ <- if (result == 0) {
-        logger.info("✅ Scraper completed successfully")
-      } else {
-        IO.raiseError(new Exception(s"Scraper failed with exit code $result"))
-      }
     } yield ()
 
   private def loadModelConfig(configPath: String): IO[ModelUpdateConfig] =
@@ -227,10 +186,10 @@ object ModelUpdater extends IOApp {
       updates <- endpointMapping.toList.traverse { case (endpoint, modelsWithSnapshots) =>
         config.endpoints.get(endpoint) match {
           case Some(endpointConfig) =>
-            // Extract all model names and their snapshots
+            // Extract only snapshots (not base model names)
             val allModelNames = modelsWithSnapshots.flatMap { modelWithSnapshots =>
-              // Include the base model name and all its snapshots
-              modelWithSnapshots.name :: modelWithSnapshots.snapshots
+              // Only include snapshots, skip the base model name
+              modelWithSnapshots.snapshots
             }.distinct
             
             for {
@@ -314,9 +273,6 @@ object ModelUpdater extends IOApp {
             logger.info("🔍 DRY RUN - Changes would be applied to file")
           } else {
             for {
-              // Create backup
-              _ <- createBackup(resolvedFilePath)
-              
               // Write updated content
               _ <- IO {
                 val writer = new PrintWriter(resolvedFilePath)
@@ -481,16 +437,4 @@ object ModelUpdater extends IOApp {
       "      )"
     )
   }
-
-  private def createBackup(filePath: String): IO[Unit] =
-    IO {
-      val backupPath = s"$filePath.backup"
-      val content = Using(Source.fromFile(filePath))(_.mkString).get
-      val writer = new PrintWriter(backupPath)
-      try {
-        writer.write(content)
-      } finally {
-        writer.close()
-      }
-    }.flatTap(_ => logger.debug(s"📋 Created backup: $filePath.backup"))
 }
