@@ -259,7 +259,14 @@ object ModelUpdater extends IOApp {
             )
             _ <-
               if (dryRun) {
-                logger.info("🔍 DRY RUN - Changes would be applied to file")
+                for {
+                  _ <- logger.info("🔍 DRY RUN - Changes would be applied to file")
+                  _ <- logger.info(s"📄 File: $resolvedFilePath")
+                  _ <- logger.info("📝 New case objects that would be added:")
+                  _ <- modelsToAdd.traverse { case (modelName, scalaId) =>
+                    logger.info(s"    case object $scalaId extends ${endpointConfig.className}(\"$modelName\")")
+                  }
+                } yield ()
               } else {
                 for {
                   _ <- writeToFile(resolvedFilePath, newContent)
