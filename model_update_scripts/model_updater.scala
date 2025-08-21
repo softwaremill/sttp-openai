@@ -51,8 +51,8 @@ case class EndpointConfig(
 ) derives YamlCodec
 
 case class NameConversionConfig(
-    preserveCase: List[String],       // Words that should preserve their exact case (GPT, ChatGPT, etc.)
-    specialCases: Map[String, String] // Direct mappings for special cases
+    preserveCase: List[String],
+    specialCases: Map[String, String]
 ) derives YamlCodec
 
 case class ModelWithSnapshots(name: String, snapshots: List[String])
@@ -230,18 +230,14 @@ object ModelUpdater extends IOApp {
       resolvedFilePath <- IO.pure(resolveFilePath(endpointConfig.file))
       _ <- logger.info(s"🔧 Updating ${endpointConfig.className} in $resolvedFilePath")
 
-      // Read current file
       currentContent <- IO {
         Using(Source.fromFile(resolvedFilePath))(_.mkString).get
       }
 
-      // Extract existing case objects
       existingModels <- extractExistingModels(currentContent, endpointConfig.className)
 
-      // Convert model names to Scala identifiers
       newModels <- models.traverse(modelName => convertModelNameToScalaId(modelName, nameConversion).map(modelName -> _))
 
-      // Filter out existing models
       modelsToAdd = newModels.filterNot { case (_, scalaId) =>
         existingModels.contains(scalaId)
       }
@@ -254,7 +250,6 @@ object ModelUpdater extends IOApp {
               logger.info(s"   $original → case object $scalaId")
             }
 
-            // Generate new content
             newContent <- generateUpdatedContent(
               currentContent,
               endpointConfig,
@@ -262,13 +257,11 @@ object ModelUpdater extends IOApp {
               existingModels
             )
 
-            // Write or preview
             _ <-
               if (dryRun) {
                 logger.info("🔍 DRY RUN - Changes would be applied to file")
               } else {
                 for {
-                  // Write updated content
                   _ <- IO {
                     val writer = new PrintWriter(resolvedFilePath)
                     try
@@ -328,7 +321,6 @@ object ModelUpdater extends IOApp {
         case None =>
           val words = modelName.split("[\\-\\._\\s]+").filter(_.nonEmpty)
           val processedWords = words.map { word =>
-            // Check if word should preserve its exact case (case-insensitive match)
             nameConversion.preserveCase.find(_.equalsIgnoreCase(word)) match {
               case Some(preservedWord) => preservedWord
               case None =>
@@ -336,7 +328,6 @@ object ModelUpdater extends IOApp {
                 if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
                   word
                 }
-                // Default: capitalize first letter
                 else {
                   word.toLowerCase.capitalize
                 }
@@ -361,18 +352,15 @@ object ModelUpdater extends IOApp {
         throw new Exception(s"Could not find insertion marker: ${endpointConfig.insertBeforeMarker}")
       }
 
-      // Generate new case object lines
       val newCaseObjects = modelsToAdd.map { case (original, scalaId) =>
         s"    case object $scalaId extends ${endpointConfig.className}(\"$original\")"
       }
 
-      // Insert new case objects before the marker
       val beforeInsert = lines.take(insertIndex)
       val afterInsert = lines.drop(insertIndex)
 
       val updatedLines = beforeInsert ++ newCaseObjects ++ List("") ++ afterInsert
 
-      // Update values set if it exists
       endpointConfig.valuesSetName match {
         case Some(valuesSetName) =>
           updateValuesSet(updatedLines.mkString("\n"), valuesSetName, existingModels ++ modelsToAdd.map(_._2), endpointConfig.className)
@@ -387,9 +375,8 @@ object ModelUpdater extends IOApp {
     val startIndex = lines.indexWhere(_.matches(s".*$valuesPattern.*"))
 
     if (startIndex == -1) {
-      content // No values set found, return as-is
+      content
     } else {
-      // Find the end of the Set definition
       var endIndex = startIndex
       var braceCount = 0
       var foundStart = false
@@ -410,7 +397,7 @@ object ModelUpdater extends IOApp {
         }
       }
 
-      content // If we can't find the end, return as-is
+      content
     }
   }
 
