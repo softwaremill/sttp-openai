@@ -118,7 +118,7 @@ case class ResponsesResponseBody(
     maxOutputTokens: Option[Int] = None,
     maxToolCalls: Option[Int] = None,
     metadata: Option[Map[String, String]] = None,
-    model: String,
+    model: ResponsesModel,
     `object`: String,
     output: List[ResponsesResponseBody.OutputItem],
     parallelToolCalls: Option[Boolean] = None,

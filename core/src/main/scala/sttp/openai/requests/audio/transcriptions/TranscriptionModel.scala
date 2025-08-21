@@ -9,6 +9,9 @@ object TranscriptionModel {
   case object Gpt4oTranscribe extends TranscriptionModel("gpt-4o-transcribe")
   case object Gpt4oMiniTranscribe extends TranscriptionModel("gpt-4o-mini-transcribe")
 
+  case object GPT4oTranscribe extends TranscriptionModel("gpt-4o-transcribe")
+  case object GPT4oMiniTranscribe extends TranscriptionModel("gpt-4o-mini-transcribe")
+
   /** Use only as a workaround if API supports a format that's not yet predefined as a case object of Model. Otherwise, a custom format
     * would be rejected. See [[https://platform.openai.com/docs/api-reference/audio/createTranscription]] for current list of supported
     * formats

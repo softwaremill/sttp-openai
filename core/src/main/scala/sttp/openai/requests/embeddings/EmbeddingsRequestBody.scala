@@ -37,6 +37,9 @@ object EmbeddingsRequestBody {
       )
     case object TextEmbeddingAda002 extends EmbeddingsModel("text-embedding-ada-002")
     case object TextSearchAdaDoc001 extends EmbeddingsModel("text-search-ada-doc-001")
+  case object TextEmbedding3Large extends EmbeddingsModel("text-embedding-3-large")
+  case object TextEmbedding3Small extends EmbeddingsModel("text-embedding-3-small")
+
     case class CustomEmbeddingsModel(customEmbeddingsModel: String) extends EmbeddingsModel(customEmbeddingsModel)
 
     val values: Set[EmbeddingsModel] = Set(TextEmbeddingAda002, TextSearchAdaDoc001)

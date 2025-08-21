@@ -6,14 +6,9 @@ import org.scalatest.matchers.should.Matchers
 import sttp.apispec.{Schema, SchemaType}
 import sttp.openai.fixtures.ResponsesFixture
 import sttp.openai.json.SnakePickle
+import sttp.openai.requests.responses.ResponsesModel.GPT4o20240806
 import sttp.openai.requests.responses.ResponsesRequestBody.Format.JsonSchema
-import sttp.openai.requests.responses.ResponsesRequestBody.{
-  Format => RequestFormat,
-  PromptConfig => RequestPromptConfig,
-  ReasoningConfig => RequestReasoningConfig,
-  TextConfig => RequestTextConfig,
-  _
-}
+import sttp.openai.requests.responses.ResponsesRequestBody.{Format => RequestFormat, PromptConfig => RequestPromptConfig, ReasoningConfig => RequestReasoningConfig, TextConfig => RequestTextConfig, _}
 import sttp.openai.requests.responses.ResponsesResponseBody._
 import sttp.openai.requests.responses.ToolChoice.ToolChoiceObject
 import ujson.{Obj, Str}
@@ -54,7 +49,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       maxOutputTokens = Some(1000),
       maxToolCalls = Some(5),
       metadata = Some(Map("key1" -> "value1", "key2" -> "value2")),
-      model = Some("gpt-4o"),
+      model = Some(ResponsesModel.GPT4o),
       parallelToolCalls = Some(true),
       previousResponseId = Some("prev_resp_123"),
       prompt = Some(
@@ -110,7 +105,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // given
     val givenRequest = ResponsesRequestBody(
-      model = Some("gpt-4o"),
+      model = Some(ResponsesModel.GPT4o),
       text = Some(
         RequestTextConfig(
           format = Some(RequestFormat.Text())
@@ -141,7 +136,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // given
     val givenRequest = ResponsesRequestBody(
-      model = Some("gpt-4.1"),
+      model = Some(ResponsesModel.GPT41),
       input = Some(
         Right(
           InputMessage(
@@ -178,7 +173,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // given
     val givenRequest = ResponsesRequestBody(
-      model = Some("gpt-4.1"),
+      model = Some(ResponsesModel.GPT41),
       input = Some(
         Right(
           InputMessage(
@@ -214,7 +209,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // given
     val givenRequest = ResponsesRequestBody(
-      model = Some("gpt-4.1"),
+      model = Some(ResponsesModel.GPT41),
       input = Some(
         Right(
           FileSearchToolCall(
@@ -250,7 +245,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // given
     val givenRequest = ResponsesRequestBody(
-      model = Some("gpt-4.1"),
+      model = Some(ResponsesModel.GPT41),
       input = Some(
         Right(
           FileSearchToolCall(
@@ -282,7 +277,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // then
     deserializedResponse.id shouldBe "resp_67ccd3a9da748190baa7f1570fe91ac604becb25c45c1d41"
-    deserializedResponse.model shouldBe "gpt-4o-2024-08-06"
+    deserializedResponse.model shouldBe GPT4o20240806
     deserializedResponse.`object` shouldBe "response"
     deserializedResponse.status shouldBe "completed"
     deserializedResponse.createdAt shouldBe 1741476777L
@@ -324,7 +319,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // then
     deserializedResponse.id shouldBe "resp_complex123"
-    deserializedResponse.model shouldBe "gpt-4o"
+    deserializedResponse.model shouldBe ResponsesModel.GPT4o
     deserializedResponse.`object` shouldBe "response"
     deserializedResponse.status shouldBe "completed"
     deserializedResponse.createdAt shouldBe 1741476778L
@@ -407,7 +402,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
     )
 
     val givenRequest = ResponsesRequestBody(
-      model = Some("gpt-4o"),
+      model = Some(ResponsesModel.GPT4o),
       input = Some(Right(List(computerToolCall)))
     )
 
@@ -442,7 +437,7 @@ class ResponsesDataSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     // then
     deserializedResponse.id shouldBe "resp_tool_choice_123"
-    deserializedResponse.model shouldBe "gpt-4o"
+    deserializedResponse.model shouldBe ResponsesModel.GPT4o
     deserializedResponse.status shouldBe "completed"
 
     // Check tool_choice structure
