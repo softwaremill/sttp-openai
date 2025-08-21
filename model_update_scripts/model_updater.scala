@@ -187,7 +187,6 @@ object ModelUpdater extends IOApp {
   ): IO[Unit] =
     for {
       _ <- logger.info(s"🔄 Updating model classes (dry-run: $dryRun)...")
-      _ <-
       updates <- endpointMapping.toList.traverse { case (endpoint, modelsWithSnapshots) =>
         config.endpoints.get(endpoint) match {
           case Some(endpointConfig) =>
