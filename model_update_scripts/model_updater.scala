@@ -1,4 +1,4 @@
-//> using scala 3.3.4
+//> using scala 3.7.2
 //> using dep org.typelevel::cats-effect::3.6.3
 //> using dep org.typelevel::log4cats-slf4j::2.7.1
 //> using dep ch.qos.logback:logback-classic:1.5.18
@@ -39,7 +39,7 @@ given JsonValueCodec[Map[String, List[ModelWithSnapshots]]] = JsonCodecMaker.mak
 case class UpdaterConfig(
     input: Option[String] = None,
     config: String = "model_update_config.yaml",
-    dryRun: Boolean = true,  // Default to dry-run mode
+    dryRun: Boolean = true,
     debug: Boolean = false
 )
 
@@ -400,7 +400,7 @@ object ModelUpdater extends IOApp {
           braceCount += line.count(_ == '(') - line.count(_ == ')')
           if (braceCount == 0 && line.contains(")")) {
             endIndex = i
-            return (lines.take(startIndex) ++
+            (lines.take(startIndex) ++
               generateValuesSetLines(valuesSetName, allModels, className) ++
               lines.drop(endIndex + 1)).mkString("\n")
           }
