@@ -39,7 +39,7 @@ given JsonValueCodec[Map[String, List[ModelWithSnapshots]]] = JsonCodecMaker.mak
 case class UpdaterConfig(
     input: Option[String] = None,
     config: String = "model_update_config.yaml",
-    dryRun: Boolean = false,
+    dryRun: Boolean = true,  // Default to dry-run mode
     debug: Boolean = false
 )
 
@@ -90,7 +90,10 @@ object ModelUpdater extends IOApp {
           .valueName("<config.yaml>"),
         opt[Unit]("dry-run")
           .action((_, c) => c.copy(dryRun = true))
-          .text("Preview changes without applying them"),
+          .text("Preview changes without applying them (default behavior)"),
+        opt[Unit]("apply")
+          .action((_, c) => c.copy(dryRun = false))
+          .text("Apply changes to files (overrides default dry-run mode)"),
         opt[Unit]("debug")
           .action((_, c) => c.copy(debug = true))
           .text("Enable debug logging")
@@ -117,7 +120,11 @@ object ModelUpdater extends IOApp {
   private def runUpdater(config: UpdaterConfig): IO[Unit] =
     for {
       _ <- configureLogging(if (config.debug) Level.DEBUG else Level.INFO)
-      _ <- logger.info("🔧 Starting Model Case Class Updater...")
+      _ <- if (config.dryRun) {
+        logger.info("🔧 Starting Model Case Class Updater (DRY-RUN MODE - use --apply to make changes)...")
+      } else {
+        logger.info("🔧 Starting Model Case Class Updater (APPLY MODE)...")
+      }
 
       inputFile <- config.input match {
         case Some(file) => IO.pure(file)
@@ -179,6 +186,12 @@ object ModelUpdater extends IOApp {
   ): IO[Unit] =
     for {
       _ <- logger.info(s"🔄 Updating model classes (dry-run: $dryRun)...")
+      _ <-
+        if (dryRun) {
+          logger.info("🔍 DRY RUN - Changes would not be applied to files")
+        } else {
+          logger.info("APPLYING CHANGES TO FILE")
+        }
 
       updates <- endpointMapping.toList.traverse { case (endpoint, modelsWithSnapshots) =>
         config.endpoints.get(endpoint) match {
@@ -241,7 +254,6 @@ object ModelUpdater extends IOApp {
       modelsToAdd = newModels.filterNot { case (_, scalaId) =>
         existingModels.contains(scalaId)
       }
-
       _ <-
         if (modelsToAdd.nonEmpty) {
           for {
@@ -260,7 +272,6 @@ object ModelUpdater extends IOApp {
             _ <-
               if (dryRun) {
                 for {
-                  _ <- logger.info("🔍 DRY RUN - Changes would be applied to file")
                   _ <- logger.info(s"📄 File: $resolvedFilePath")
                   _ <- logger.info("📝 New case objects that would be added:")
                   _ <- modelsToAdd.traverse { case (modelName, scalaId) =>
@@ -353,7 +364,7 @@ object ModelUpdater extends IOApp {
     val actualInsertIndex = findInsertionPoint(lines, insertIndex)
 
     val newCaseObjects = modelsToAdd.map { case (modelName, scalaId) =>
-      s"    case object $scalaId extends ${endpointConfig.className}(\"$modelName\")"
+      s"  case object $scalaId extends ${endpointConfig.className}(\"$modelName\")"
     }
 
     val beforeInsert = lines.take(actualInsertIndex)
