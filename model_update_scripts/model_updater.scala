@@ -8,15 +8,16 @@
 //> using dep org.virtuslab::scala-yaml::0.3.0
 
 import cats.effect.{ExitCode, IO, IOApp}
-import cats.syntax.all._
+import cats.syntax.all.*
+import ch.qos.logback.classic.{Level, LoggerContext}
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import org.slf4j.LoggerFactory
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import ch.qos.logback.classic.{Level, LoggerContext}
-import org.slf4j.LoggerFactory
+import org.virtuslab.yaml.*
 import scopt.OParser
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
-import org.virtuslab.yaml._
+
 import java.io.{File, PrintWriter}
 import scala.io.Source
 import scala.util.{Try, Using}
@@ -77,7 +78,7 @@ object ModelUpdater extends IOApp {
   private def parseArgs(args: List[String]): IO[Either[String, UpdaterConfig]] = IO {
     val builder = OParser.builder[UpdaterConfig]
     val parser = {
-      import builder._
+      import builder.*
       OParser.sequence(
         programName("model-updater"),
         opt[String]("input")
