@@ -3,10 +3,9 @@
 //> using dep org.typelevel::log4cats-slf4j::2.7.1
 //> using dep ch.qos.logback:logback-classic:1.5.18
 //> using dep com.github.scopt::scopt::4.1.0
-//> using dep io.circe::circe-core::0.14.14
-//> using dep io.circe::circe-generic::0.14.14
-//> using dep io.circe::circe-parser::0.14.14
-//> using dep io.circe::circe-yaml::1.15.0
+//> using dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core::2.37.6
+//> using dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros::2.37.6
+//> using dep org.virtuslab::scala-yaml::0.3.0
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.all._
@@ -15,13 +14,30 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import ch.qos.logback.classic.{Level, LoggerContext}
 import org.slf4j.LoggerFactory
 import scopt.OParser
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.parser._
-import io.circe.yaml.parser
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
+import org.virtuslab.yaml._
 import java.io.{File, PrintWriter}
 import scala.io.Source
 import scala.util.{Try, Using}
+
+opaque type Endpoint = String
+
+object Endpoint {
+  def apply(value: String): Endpoint = value
+  
+  extension (endpoint: Endpoint) {
+    def value: String = endpoint
+  }
+}
+
+// JSON codecs for jsoniter-scala
+given JsonValueCodec[Replacement] = JsonCodecMaker.make
+given JsonValueCodec[NameConversionConfig] = JsonCodecMaker.make
+given JsonValueCodec[EndpointConfig] = JsonCodecMaker.make
+given JsonValueCodec[ModelUpdateConfig] = JsonCodecMaker.make
+given JsonValueCodec[ModelWithSnapshots] = JsonCodecMaker.make
+given JsonValueCodec[Map[String, List[ModelWithSnapshots]]] = JsonCodecMaker.make
 
 case class UpdaterConfig(
     input: Option[String] = None,
@@ -35,22 +51,22 @@ case class EndpointConfig(
     className: String,
     insertBeforeMarker: String,
     valuesSetName: Option[String]
-)
+) derives YamlCodec
 
 case class NameConversionConfig(
     replacements: List[Replacement],
     capitalizeAfter: List[String],
     specialCases: Map[String, String]
-)
+) derives YamlCodec
 
-case class Replacement(from: String, to: String)
+case class Replacement(from: String, to: String) derives YamlCodec
 
 case class ModelWithSnapshots(name: String, snapshots: List[String])
 
 case class ModelUpdateConfig(
     endpoints: Map[String, EndpointConfig],
     nameConversion: NameConversionConfig
-)
+) derives YamlCodec
 
 object ModelUpdater extends IOApp {
 
@@ -129,9 +145,16 @@ object ModelUpdater extends IOApp {
       content <- IO {
         Using(Source.fromFile(resolvedConfigPath))(_.mkString).get
       }
-      config <- IO.fromEither(
-        parser.parse(content).flatMap(_.as[ModelUpdateConfig]).left.map(e => new Exception(s"Failed to parse config: $e"))
-      )
+      config <- IO {
+        try {
+          content.as[ModelUpdateConfig] match {
+            case Right(config) => config
+            case Left(error) => throw new Exception(s"Failed to parse YAML config: $error")
+          }
+        } catch {
+          case e: Exception => throw e
+        }
+      }
       _ <- logger.debug(s"✅ Loaded config with ${config.endpoints.size} endpoints")
     } yield config
 
@@ -142,9 +165,13 @@ object ModelUpdater extends IOApp {
       content <- IO {
         Using(Source.fromFile(resolvedInputPath))(_.mkString).get
       }
-      mapping <- IO.fromEither(
-        decode[Map[String, List[ModelWithSnapshots]]](content).left.map(e => new Exception(s"Failed to parse endpoint mapping: $e"))
-      )
+      mapping <- IO {
+        try {
+          readFromString[Map[String, List[ModelWithSnapshots]]](content)
+        } catch {
+          case e: JsonReaderException => throw new Exception(s"Failed to parse endpoint mapping: ${e.getMessage}")
+        }
+      }
       _ <- logger.info(s"✅ Loaded mappings for ${mapping.size} endpoints")
       _ <- mapping.toList.traverse_ { case (endpoint, models) =>
         logger.debug(s"  $endpoint: ${models.size} models with ${models.map(_.snapshots.size).sum} total snapshots")
