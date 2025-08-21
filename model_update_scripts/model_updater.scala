@@ -246,30 +246,23 @@ object ModelUpdater extends IOApp {
         if (modelsToAdd.nonEmpty) {
           for {
             _ <- logger.info(s"➕ Adding ${modelsToAdd.size} new models:")
-            _ <- modelsToAdd.traverse { case (original, scalaId) =>
-              logger.info(s"   $original → case object $scalaId")
+            _ <- modelsToAdd.traverse { case (modelName, scalaId) =>
+              logger.info(s"   $modelName → case object $scalaId")
             }
-
-            newContent <- generateUpdatedContent(
-              currentContent,
-              endpointConfig,
-              modelsToAdd,
-              existingModels
+            newContent <- IO(
+              generateUpdatedContent(
+                currentContent,
+                endpointConfig,
+                modelsToAdd,
+                existingModels
+              )
             )
-
             _ <-
               if (dryRun) {
                 logger.info("🔍 DRY RUN - Changes would be applied to file")
               } else {
                 for {
-                  _ <- IO {
-                    val writer = new PrintWriter(resolvedFilePath)
-                    try
-                      writer.write(newContent)
-                    finally
-                      writer.close()
-                  }
-
+                  _ <- writeToFile(resolvedFilePath, newContent)
                   _ <- logger.info(s"💾 Updated $resolvedFilePath")
                 } yield ()
               }
@@ -323,12 +316,11 @@ object ModelUpdater extends IOApp {
           val processedWords = words.map { word =>
             nameConversion.preserveCase.find(_.equalsIgnoreCase(word)) match {
               case Some(preservedWord) => preservedWord
-              case None =>
+              case None                =>
                 // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
                 if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
                   word
-                }
-                else {
+                } else {
                   word.toLowerCase.capitalize
                 }
             }
@@ -343,33 +335,30 @@ object ModelUpdater extends IOApp {
       endpointConfig: EndpointConfig,
       modelsToAdd: List[(String, String)],
       existingModels: List[String]
-  ): IO[String] =
-    IO {
-      val lines = currentContent.split("\n").toList
-      val insertIndex = lines.indexWhere(_.contains(endpointConfig.insertBeforeMarker))
+  ): String =
+    val lines = currentContent.split("\n").toList
+    val insertIndex = lines.indexWhere(_.contains(endpointConfig.insertBeforeMarker))
 
-      if (insertIndex == -1) {
-        throw new Exception(s"Could not find insertion marker: ${endpointConfig.insertBeforeMarker}")
-      }
+    if (insertIndex == -1) {
+      throw new Exception(s"Could not find insertion marker: ${endpointConfig.insertBeforeMarker}")
+    }
 
-      val actualInsertIndex = findInsertionPoint(lines, insertIndex)
-      
-      val newCaseObjects = modelsToAdd.map { case (modelName, scalaId) =>
-        s"    case object $scalaId extends ${endpointConfig.className}(\"$modelName\")"
-      }
+    val actualInsertIndex = findInsertionPoint(lines, insertIndex)
 
-      
-      val beforeInsert = lines.take(actualInsertIndex)
-      val afterInsert = lines.drop(actualInsertIndex)
+    val newCaseObjects = modelsToAdd.map { case (modelName, scalaId) =>
+      s"    case object $scalaId extends ${endpointConfig.className}(\"$modelName\")"
+    }
 
-      val updatedLines = beforeInsert ++ newCaseObjects ++ List("") ++ afterInsert
+    val beforeInsert = lines.take(actualInsertIndex)
+    val afterInsert = lines.drop(actualInsertIndex)
 
-      endpointConfig.valuesSetName match {
-        case Some(valuesSetName) =>
-          updateValuesSet(updatedLines.mkString("\n"), valuesSetName, existingModels ++ modelsToAdd.map(_._2), endpointConfig.className)
-        case None =>
-          updatedLines.mkString("\n")
-      }
+    val updatedLines = beforeInsert ++ newCaseObjects ++ List("") ++ afterInsert
+
+    endpointConfig.valuesSetName match {
+      case Some(valuesSetName) =>
+        updateValuesSet(updatedLines.mkString("\n"), valuesSetName, existingModels ++ modelsToAdd.map(_._2), endpointConfig.className)
+      case None =>
+        updatedLines.mkString("\n")
     }
 
   private def updateValuesSet(content: String, valuesSetName: String, allModels: List[String], className: String): String = {
@@ -408,18 +397,17 @@ object ModelUpdater extends IOApp {
     // Look backwards from the marker to find comment lines
     var currentIndex = markerIndex - 1
     var commentStart = markerIndex
-    
+
     // Skip empty lines immediately before the marker
-    while (currentIndex >= 0 && lines(currentIndex).trim.isEmpty) {
+    while (currentIndex >= 0 && lines(currentIndex).trim.isEmpty)
       currentIndex -= 1
-    }
-    
+
     // Check if we have comment lines
     while (currentIndex >= 0 && isCommentLine(lines(currentIndex))) {
       commentStart = currentIndex
       currentIndex -= 1
     }
-    
+
     // If we found comments, insert before them (but after any preceding empty line)
     if (commentStart < markerIndex) {
       // Look for an empty line before the comments to maintain spacing
@@ -432,10 +420,18 @@ object ModelUpdater extends IOApp {
       markerIndex // No comments found, use original marker position
     }
   }
-  
+
   private def isCommentLine(line: String): Boolean = {
     val trimmed = line.trim
     trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")
+  }
+
+  private def writeToFile(filePath: String, content: String): IO[Unit] = IO {
+    val writer = new PrintWriter(filePath)
+    try
+      writer.write(content)
+    finally
+      writer.close()
   }
 
   private def generateValuesSetLines(valuesSetName: String, models: List[String], className: String): List[String] = {
