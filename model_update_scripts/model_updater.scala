@@ -120,11 +120,12 @@ object ModelUpdater extends IOApp {
   private def runUpdater(config: UpdaterConfig): IO[Unit] =
     for {
       _ <- configureLogging(if (config.debug) Level.DEBUG else Level.INFO)
-      _ <- if (config.dryRun) {
-        logger.info("🔧 Starting Model Case Class Updater (DRY-RUN MODE - use --apply to make changes)...")
-      } else {
-        logger.info("🔧 Starting Model Case Class Updater (APPLY MODE)...")
-      }
+      _ <-
+        if (config.dryRun) {
+          logger.info("🔧 Starting Model Case Class Updater (DRY-RUN MODE - use --apply to make changes)...")
+        } else {
+          logger.info("🔧 Starting Model Case Class Updater (APPLY MODE)...")
+        }
 
       inputFile <- config.input match {
         case Some(file) => IO.pure(file)
@@ -187,12 +188,6 @@ object ModelUpdater extends IOApp {
     for {
       _ <- logger.info(s"🔄 Updating model classes (dry-run: $dryRun)...")
       _ <-
-        if (dryRun) {
-          logger.info("🔍 DRY RUN - Changes would not be applied to files")
-        } else {
-          logger.info("APPLYING CHANGES TO FILE")
-        }
-
       updates <- endpointMapping.toList.traverse { case (endpoint, modelsWithSnapshots) =>
         config.endpoints.get(endpoint) match {
           case Some(endpointConfig) =>
