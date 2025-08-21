@@ -33,7 +33,6 @@ object Endpoint {
 
 given JsonValueCodec[Replacement] = JsonCodecMaker.make
 given JsonValueCodec[NameConversionConfig] = JsonCodecMaker.make
-given JsonValueCodec[EndpointConfig] = JsonCodecMaker.make
 given JsonValueCodec[ModelUpdateConfig] = JsonCodecMaker.make
 given JsonValueCodec[ModelWithSnapshots] = JsonCodecMaker.make
 given JsonValueCodec[Map[String, List[ModelWithSnapshots]]] = JsonCodecMaker.make
