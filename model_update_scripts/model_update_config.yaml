@@ -43,15 +43,13 @@ endpoints:
 
 # Name conversion rules for model names to Scala identifiers
 nameConversion:
-  # Words that should remain uppercase (GPT, DALL, WHISPER, CHATGPT)
-  preserveUppercase:
+  # Words that should preserve their exact case (case-insensitive matching)
+  preserveCase:
     - "GPT"
     - "DALL" 
     - "TTS"
     - "HD"
     - "ChatGPT"
   
-  # Words that should be capitalized (mini, nano, chat, audio, etc.)
-  capitalizeWords: []
   # Special cases (exact matches for full model names)
   specialCases: {}

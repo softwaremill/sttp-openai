@@ -51,8 +51,7 @@ case class EndpointConfig(
 ) derives YamlCodec
 
 case class NameConversionConfig(
-    preserveUppercase: List[String], // Words that should remain uppercase (GPT, DALL, etc.)
-    capitalizeWords: List[String],   // Words that should be capitalized (mini, nano, etc.)
+    preserveCase: List[String],       // Words that should preserve their exact case (GPT, ChatGPT, etc.)
     specialCases: Map[String, String] // Direct mappings for special cases
 ) derives YamlCodec
 
@@ -329,24 +328,18 @@ object ModelUpdater extends IOApp {
         case None =>
           val words = modelName.split("[\\-\\._\\s]+").filter(_.nonEmpty)
           val processedWords = words.map { word =>
-            val lowerWord = word.toLowerCase
-            val upperWord = word.toUpperCase
-
-            // Check if word should be preserved as uppercase
-            if (nameConversion.preserveUppercase.contains(upperWord)) {
-              upperWord
-            }
-            // Check if word should be capitalized
-            else if (nameConversion.capitalizeWords.contains(lowerWord)) {
-              lowerWord.capitalize
-            }
-            // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
-            else if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
-              word
-            }
-            // Default: capitalize first letter
-            else {
-              lowerWord.capitalize
+            // Check if word should preserve its exact case (case-insensitive match)
+            nameConversion.preserveCase.find(_.equalsIgnoreCase(word)) match {
+              case Some(preservedWord) => preservedWord
+              case None =>
+                // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
+                if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
+                  word
+                }
+                // Default: capitalize first letter
+                else {
+                  word.toLowerCase.capitalize
+                }
             }
           }
 
