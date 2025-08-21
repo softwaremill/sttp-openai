@@ -18,11 +18,66 @@ object ResponsesModel {
         }
     )
 
-  val values: Set[ResponsesModel] = Set(
-    GPT4o,
-    ChatGPT4oLatest,
-    GPT4o20240806
-  )
+    val values: Set[ResponsesModel] =
+      Set(
+        ChatGPT4oLatest,
+        CodexMiniLatest,
+        ComputerUsePreview,
+        ComputerUsePreview20250311,
+        GPT35Turbo,
+        GPT35Turbo0125,
+        GPT35Turbo1106,
+        GPT35TurboInstruct,
+        GPT4,
+        GPT40125Preview,
+        GPT40314,
+        GPT40613,
+        GPT41,
+        GPT41106VisionPreview,
+        GPT4120250414,
+        GPT41Mini,
+        GPT41Mini20250414,
+        GPT41Nano,
+        GPT41Nano20250414,
+        GPT45Preview,
+        GPT45Preview20250227,
+        GPT4Turbo,
+        GPT4Turbo20240409,
+        GPT4TurboPreview,
+        GPT4o,
+        GPT4o20240513,
+        GPT4o20240806,
+        GPT4o20241120,
+        GPT4oMini,
+        GPT4oMini20240718,
+        GPT5,
+        GPT520250807,
+        GPT5ChatLatest,
+        GPT5Mini,
+        GPT5Mini20250807,
+        GPT5Nano,
+        GPT5Nano20250807,
+        GPTOss120b,
+        GPTOss20b,
+        O1,
+        O120241217,
+        O1Preview,
+        O1Preview20240912,
+        O1Pro,
+        O1Pro20250319,
+        O3,
+        O320250416,
+        O3DeepResearch,
+        O3DeepResearch20250626,
+        O3Mini,
+        O3Mini20250131,
+        O3Pro,
+        O3Pro20250610,
+        O4Mini,
+        O4Mini20250416,
+        O4MiniDeepResearch,
+        O4MiniDeepResearch20250626
+      )
 
   case object ChatGPT4oLatest extends ResponsesModel("chatgpt-4o-latest")
   case object GPT35Turbo extends ResponsesModel("gpt-3.5-turbo")
@@ -55,14 +110,6 @@ object ResponsesModel {
   case object GPT520250807 extends ResponsesModel("gpt-5-2025-08-07")
   case object GPT5ChatLatest extends ResponsesModel("gpt-5-chat-latest")
   case object GPT5Mini extends ResponsesModel("gpt-5-mini")
-  case object GPT5Mini20250807 extends ResponsesModel("gpt-5-mini-2025-08-07")
-  case object GPT5Nano extends ResponsesModel("gpt-5-nano")
-  case object GPT5Nano20250807 extends ResponsesModel("gpt-5-nano-2025-08-07")
-  case object CodexMiniLatest extends ResponsesModel("codex-mini-latest")
-  case object ComputerUsePreview extends ResponsesModel("computer-use-preview")
-  case object ComputerUsePreview20250311 extends ResponsesModel("computer-use-preview-2025-03-11")
-  case object GPTOss120b extends ResponsesModel("gpt-oss-120b")
-  case object GPTOss20b extends ResponsesModel("gpt-oss-20b")
   case object O1 extends ResponsesModel("o1")
   case object O120241217 extends ResponsesModel("o1-2024-12-17")
   case object O1Preview extends ResponsesModel("o1-preview")
@@ -81,6 +128,15 @@ object ResponsesModel {
   case object O4Mini20250416 extends ResponsesModel("o4-mini-2025-04-16")
   case object O4MiniDeepResearch extends ResponsesModel("o4-mini-deep-research")
   case object O4MiniDeepResearch20250626 extends ResponsesModel("o4-mini-deep-research-2025-06-26")
+
+  case object GPT5Mini20250807 extends ResponsesModel("gpt-5-mini-2025-08-07")
+  case object GPT5Nano extends ResponsesModel("gpt-5-nano")
+  case object GPT5Nano20250807 extends ResponsesModel("gpt-5-nano-2025-08-07")
+  case object CodexMiniLatest extends ResponsesModel("codex-mini-latest")
+  case object ComputerUsePreview extends ResponsesModel("computer-use-preview")
+  case object ComputerUsePreview20250311 extends ResponsesModel("computer-use-preview-2025-03-11")
+  case object GPTOss120b extends ResponsesModel("gpt-oss-120b")
+  case object GPTOss20b extends ResponsesModel("gpt-oss-20b")
 
   case class CustomResponsesModel(customResponsesModel: String) extends ResponsesModel(customResponsesModel)
 

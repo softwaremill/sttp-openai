@@ -20,7 +20,8 @@ import scopt.OParser
 
 import java.io.{File, PrintWriter}
 import scala.io.Source
-import scala.util.{Try, Using}
+import scala.util.boundary.break
+import scala.util.{boundary, Try, Using}
 
 opaque type Endpoint = String
 
@@ -389,23 +390,26 @@ object ModelUpdater extends IOApp {
       var braceCount = 0
       var foundStart = false
 
-      for (i <- startIndex until lines.length) {
-        val line = lines(i)
-        if (line.contains("Set(")) {
-          foundStart = true
-        }
-        if (foundStart) {
-          braceCount += line.count(_ == '(') - line.count(_ == ')')
-          if (braceCount == 0 && line.contains(")")) {
-            endIndex = i
-            (lines.take(startIndex) ++
-              generateValuesSetLines(valuesSetName, allModels, className) ++
-              lines.drop(endIndex + 1)).mkString("\n")
+      boundary {
+        for (i <- startIndex until lines.length) {
+          val line = lines(i)
+          if (line.contains("Set(")) {
+            foundStart = true
+          }
+          if (foundStart) {
+            braceCount += line.count(_ == '(') - line.count(_ == ')')
+            if (braceCount == 0 && line.contains(")")) {
+              endIndex = i
+              break(
+                (lines.take(startIndex) ++
+                  generateValuesSetLines(valuesSetName, allModels, className) ++
+                  lines.drop(endIndex + 1)).mkString("\n")
+              )
+            }
           }
         }
+        content
       }
-
-      content
     }
   }
 
