@@ -9,17 +9,18 @@
 //> using dep io.circe::circe-parser::0.14.14
 
 import cats.effect.{IO, IOApp, Resource}
-import cats.syntax.all._
-import com.microsoft.playwright._
+import cats.syntax.all.*
+import ch.qos.logback.classic.{Level, LoggerContext}
+import com.microsoft.playwright.*
 import com.microsoft.playwright.options.WaitUntilState
+import io.circe.*
+import io.circe.generic.auto.*
+import io.circe.syntax.*
+import org.slf4j.LoggerFactory
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import ch.qos.logback.classic.{Level, LoggerContext}
-import org.slf4j.LoggerFactory
 import scopt.OParser
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.syntax._
+
 import java.io.PrintWriter
 import scala.util.Try
 
@@ -79,7 +80,7 @@ object ModelEndpointScraper extends IOApp {
   private def parseArgs(args: List[String]): IO[Either[String, Config]] = IO {
     val builder = OParser.builder[Config]
     val parser = {
-      import builder._
+      import builder.*
       OParser.sequence(
         programName("model-scraper"),
         opt[Unit]("debug")
@@ -205,14 +206,17 @@ object ModelEndpointScraper extends IOApp {
       title <- IO(Option(page.title()).getOrElse("No title"))
       _ <- logger.debug(s"📄 Page title: $title")
 
-             _ <-
-         if (title.contains("Just a moment")) {
-           logger.error("⚠️ Cloudflare challenge detected") *>
-             IO.raiseError(new Exception(
-               "Unfortunately it won't be possible to fetch data using this configuration because Cloudflare challenge was detected. " +
-               "This script is generally using Playwright to get around Cloudflare challenge to scrape model data. " +
-               "You can try to use different browser, but Chromium was tested as not working."))
-         } else IO.unit
+      _ <-
+        if (title.contains("Just a moment")) {
+          logger.error("⚠️ Cloudflare challenge detected") *>
+            IO.raiseError(
+              new Exception(
+                "Unfortunately it won't be possible to fetch data using this configuration because Cloudflare challenge was detected. " +
+                  "This script is generally using Playwright to get around Cloudflare challenge to scrape model data. " +
+                  "You can try to use different browser, but Chromium was tested as not working."
+              )
+            )
+        } else IO.unit
     } yield ()
 
   private def withPage[A](browser: Browser)(operation: Page => IO[A]): IO[A] =
@@ -230,7 +234,7 @@ object ModelEndpointScraper extends IOApp {
           _ <- IO.blocking(page.waitForTimeout(2000)) // Additional wait for models page
 
           modelLinks <- IO {
-            import scala.jdk.CollectionConverters._
+            import scala.jdk.CollectionConverters.*
             page.querySelectorAll("a[href^='/docs/models/']").asScala.toSet
           }
           _ <- logger.debug(s"📦 Found ${modelLinks.size} model links")
@@ -299,11 +303,11 @@ object ModelEndpointScraper extends IOApp {
 
           // Check if we still have a Cloudflare challenge after navigation
           title <- IO(Option(page.title()).getOrElse("No title"))
-                     result <-
-             if (title.contains("Just a moment")) {
-               logger.warn(s"⚠️ Cloudflare challenge detected for ${modelName.value} - skipping this model") *>
-                 IO.pure(None) // Skip this model but continue with others
-             } else {
+          result <-
+            if (title.contains("Just a moment")) {
+              logger.warn(s"⚠️ Cloudflare challenge detected for ${modelName.value} - skipping this model") *>
+                IO.pure(None) // Skip this model but continue with others
+            } else {
               for {
                 textContent <- IO.blocking(page.textContent("body"))
                 _ <- logger.debug(s"📊 Content length: ${textContent.length} characters")
@@ -335,7 +339,7 @@ object ModelEndpointScraper extends IOApp {
       _ <- logger.debug("🔍 Looking for endpoint cards in DOM structure...")
 
       endpointCards <- IO.blocking {
-        import scala.jdk.CollectionConverters._
+        import scala.jdk.CollectionConverters.*
         page.waitForTimeout(3000)
 
         val allCards = page.querySelectorAll("div.flex.flex-row.gap-2").asScala.toList
@@ -395,7 +399,7 @@ object ModelEndpointScraper extends IOApp {
       _ <- logger.debug(s"🔍 Looking for model snapshots for ${modelName.value}...")
 
       snapshots <- IO.blocking {
-        import scala.jdk.CollectionConverters._
+        import scala.jdk.CollectionConverters.*
 
         val snapshotSections = page.querySelectorAll("div").asScala.toList.filter { div =>
           val text = div.textContent()
