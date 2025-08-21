@@ -57,8 +57,8 @@ object ResponsesModel {
         GPT5Mini20250807,
         GPT5Nano,
         GPT5Nano20250807,
-        GPTOss120b,
-        GPTOss20b,
+        GPTOSS120b,
+        GPTOSS20b,
         O1,
         O120241217,
         O1Preview,
@@ -135,8 +135,9 @@ object ResponsesModel {
   case object CodexMiniLatest extends ResponsesModel("codex-mini-latest")
   case object ComputerUsePreview extends ResponsesModel("computer-use-preview")
   case object ComputerUsePreview20250311 extends ResponsesModel("computer-use-preview-2025-03-11")
-  case object GPTOss120b extends ResponsesModel("gpt-oss-120b")
-  case object GPTOss20b extends ResponsesModel("gpt-oss-20b")
+
+  case object GPTOSS120b extends ResponsesModel("gpt-oss-120b")
+  case object GPTOSS20b extends ResponsesModel("gpt-oss-20b")
 
   case class CustomResponsesModel(customResponsesModel: String) extends ResponsesModel(customResponsesModel)
 
