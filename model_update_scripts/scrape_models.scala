@@ -47,7 +47,7 @@ case class EndpointInfo(
 case class Config(
     debug: Boolean = false,
     models: Option[List[ModelName]] = None,
-    output: Option[String] = None
+    output: String = "models.json"
 )
 
 case class ModelInfo(
@@ -91,8 +91,8 @@ object ModelEndpointScraper extends IOApp {
           .text("Comma-separated list of model names to scrape (e.g., \"GPT-4o,GPT-3.5\")")
           .valueName("<model1,model2,...>"),
         opt[String]("output")
-          .action((x, c) => c.copy(output = Some(x)))
-          .text("Output file path for JSON endpoint-to-models mapping")
+          .action((x, c) => c.copy(output = x))
+          .text("Output file path for JSON endpoint-to-models mapping (default: models.json)")
           .valueName("<file.json>")
       )
     }
@@ -129,14 +129,13 @@ object ModelEndpointScraper extends IOApp {
       _ <- logger.info(s"📋 Found ${modelList.size} models to scrape")
       models <- scrapeModels(modelList.toList)
       _ <- displayResults(models)
-      _ <- config.output.fold(IO.unit)(outputPath => generateAndSaveEndpointMapping(models, outputPath))
+      _ <- generateAndSaveEndpointMapping(models, config.output)
     } yield ()
 
   case class ModelWithSnapshots(name: String, snapshots: List[String])
   
-  // Additional codec for output structure
   given JsonValueCodec[ModelWithSnapshots] = JsonCodecMaker.make
-  given JsonValueCodec[Map[String, List[ModelWithSnapshots]]] = JsonCodecMaker.make
+  given JsonValueCodec[scala.collection.immutable.ListMap[String, List[ModelWithSnapshots]]] = JsonCodecMaker.make
 
   private def generateAndSaveEndpointMapping(models: List[ModelInfo], outputPath: String): IO[Unit] =
     for {
@@ -145,13 +144,17 @@ object ModelEndpointScraper extends IOApp {
       endpointMapping = models
         .flatMap { model =>
           model.activeEndpoints.map { endpoint =>
-            endpoint.apiPath -> ModelWithSnapshots(model.name.value, model.snapshots)
+            endpoint.apiPath -> ModelWithSnapshots(model.name.value, model.snapshots.sorted)
           }
         }
         .groupBy(_._1)
         .map { case (endpoint, pairs) =>
           endpoint -> pairs.map(_._2).distinctBy(_.name).sortBy(_.name)
         }
+        .toSeq
+        .sortBy(_._1)
+        // Using ListMap to preserve order of endpoints
+        .to(scala.collection.immutable.ListMap)
 
       _ <- logger.info(s"🔍 Found mappings for ${endpointMapping.size} endpoints")
       _ <- endpointMapping.toList.traverse_ { case (endpoint, modelInfos) =>
@@ -160,7 +163,7 @@ object ModelEndpointScraper extends IOApp {
       }
 
       json = writeToString(endpointMapping, WriterConfig.withIndentionStep(2))
-      _ <- IO {
+      _ <- IO.blocking {
         val writer = new PrintWriter(outputPath)
         try
           writer.write(json)

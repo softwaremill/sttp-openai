@@ -38,7 +38,7 @@ given JsonValueCodec[ModelWithSnapshots] = JsonCodecMaker.make
 given JsonValueCodec[Map[String, List[ModelWithSnapshots]]] = JsonCodecMaker.make
 
 case class UpdaterConfig(
-    input: Option[String] = None,
+    input: String = "models.json",
     config: String = "model_update_config.yaml",
     dryRun: Boolean = true,
     debug: Boolean = false
@@ -82,8 +82,8 @@ object ModelUpdater extends IOApp {
       OParser.sequence(
         programName("model-updater"),
         opt[String]("input")
-          .action((x, c) => c.copy(input = Some(x)))
-          .text("Input JSON file with endpoint-to-models mapping")
+          .action((x, c) => c.copy(input = x))
+          .text("Input JSON file with endpoint-to-models mapping (default: models.json)")
           .valueName("<models.json>"),
         opt[String]("config")
           .action((x, c) => c.copy(config = x))
@@ -128,10 +128,7 @@ object ModelUpdater extends IOApp {
           logger.info("🔧 Starting Model Case Class Updater (APPLY MODE)...")
         }
 
-      inputFile <- config.input match {
-        case Some(file) => IO.pure(file)
-        case None       => IO.raiseError(new Exception("--input parameter must be specified"))
-      }
+      inputFile = config.input
 
       modelConfig <- loadModelConfig(config.config)
       endpointMapping <- loadEndpointMapping(inputFile)
@@ -145,7 +142,7 @@ object ModelUpdater extends IOApp {
     for {
       resolvedConfigPath <- IO.pure(resolveFilePath(configPath))
       _ <- logger.debug(s"📖 Loading config from $resolvedConfigPath...")
-      content <- IO {
+      content <- IO.blocking {
         Using(Source.fromFile(resolvedConfigPath))(_.mkString).get
       }
       config <- IO {
@@ -165,7 +162,7 @@ object ModelUpdater extends IOApp {
     for {
       resolvedInputPath <- IO.pure(resolveFilePath(inputPath))
       _ <- logger.debug(s"📖 Loading endpoint mapping from $resolvedInputPath...")
-      content <- IO {
+      content <- IO.blocking {
         Using(Source.fromFile(resolvedInputPath))(_.mkString).get
       }
       mapping <- IO {
@@ -238,7 +235,7 @@ object ModelUpdater extends IOApp {
       resolvedFilePath <- IO.pure(resolveFilePath(endpointConfig.file))
       _ <- logger.info(s"🔧 Updating ${endpointConfig.className} in $resolvedFilePath")
 
-      currentContent <- IO {
+      currentContent <- IO.blocking {
         Using(Source.fromFile(resolvedFilePath))(_.mkString).get
       }
 
@@ -439,7 +436,7 @@ object ModelUpdater extends IOApp {
     trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")
   }
 
-  private def writeToFile(filePath: String, content: String): IO[Unit] = IO {
+  private def writeToFile(filePath: String, content: String): IO[Unit] = IO.blocking {
     val writer = new PrintWriter(filePath)
     try
       writer.write(content)
