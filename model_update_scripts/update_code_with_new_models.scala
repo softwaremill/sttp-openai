@@ -134,8 +134,14 @@ object ModelUpdater extends IOApp {
       endpointMapping <- loadEndpointMapping(inputFile)
 
       _ <- updateModelClasses(modelConfig, endpointMapping, config.dryRun)
-
-      _ <- logger.info("✅ Model update process completed!")
+      _ <-
+        logger.info("✅ Model update process completed!")
+      _ <-
+        if (config.dryRun) {
+          logger.info("🔍 DRY RUN MODE: No changes have been applied to any files. Use --apply to make changes.")
+        } else {
+          IO.pure(())
+        }
     } yield ()
 
   private def loadModelConfig(configPath: String): IO[ModelUpdateConfig] =
