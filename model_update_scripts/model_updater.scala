@@ -25,13 +25,12 @@ opaque type Endpoint = String
 
 object Endpoint {
   def apply(value: String): Endpoint = value
-  
+
   extension (endpoint: Endpoint) {
     def value: String = endpoint
   }
 }
 
-// JSON codecs for jsoniter-scala
 given JsonValueCodec[Replacement] = JsonCodecMaker.make
 given JsonValueCodec[NameConversionConfig] = JsonCodecMaker.make
 given JsonValueCodec[EndpointConfig] = JsonCodecMaker.make
@@ -146,12 +145,12 @@ object ModelUpdater extends IOApp {
         Using(Source.fromFile(resolvedConfigPath))(_.mkString).get
       }
       config <- IO {
-        try {
+        try
           content.as[ModelUpdateConfig] match {
             case Right(config) => config
-            case Left(error) => throw new Exception(s"Failed to parse YAML config: $error")
+            case Left(error)   => throw new Exception(s"Failed to parse YAML config: $error")
           }
-        } catch {
+        catch {
           case e: Exception => throw e
         }
       }
@@ -166,9 +165,9 @@ object ModelUpdater extends IOApp {
         Using(Source.fromFile(resolvedInputPath))(_.mkString).get
       }
       mapping <- IO {
-        try {
+        try
           readFromString[Map[String, List[ModelWithSnapshots]]](content)
-        } catch {
+        catch {
           case e: JsonReaderException => throw new Exception(s"Failed to parse endpoint mapping: ${e.getMessage}")
         }
       }
@@ -328,38 +327,32 @@ object ModelUpdater extends IOApp {
       nameConversion: NameConversionConfig
   ): IO[String] =
     IO {
-      // Check special cases first
-      nameConversion.specialCases.get(modelName) match {
-        case Some(specialCase) => specialCase
-        case None              =>
-          // Split into words by separators (-, ., _, spaces)
-          val words = modelName.split("[\\-\\._\\s]+").filter(_.nonEmpty)
-          val processedWords = words.map { word =>
-            val lowerWord = word.toLowerCase
-            val upperWord = word.toUpperCase
+      val words = modelName.split("[\\-\\._\\s]+").filter(_.nonEmpty)
+      val processedWords = words.map { word =>
+        val lowerWord = word.toLowerCase
+        val upperWord = word.toUpperCase
 
-            // Preserve original casing for certain base model names
-            if (upperWord == "GPT" || upperWord == "DALL" || upperWord == "WHISPER" || upperWord == "CHATGPT") {
-              upperWord
-            }
-            // Capitalize first letter for other known model parts
-            else if (
-              Set("mini", "nano", "chat", "audio", "realtime", "transcribe", "search", "tts", "preview", "latest", "o").contains(lowerWord)
-            ) {
-              lowerWord.capitalize
-            }
-            // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
-            else if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
-              word
-            }
-            // Default: capitalize first letter
-            else {
-              lowerWord.capitalize
-            }
-          }
-
-          processedWords.mkString("")
+        // Preserve original casing for certain base model names
+        if (upperWord == "GPT" || upperWord == "DALL" || upperWord == "WHISPER" || upperWord == "CHATGPT") {
+          upperWord
+        }
+        // Capitalize first letter for other known model parts
+        else if (
+          Set("mini", "nano", "chat", "audio", "realtime", "transcribe", "search", "tts", "preview", "latest", "o").contains(lowerWord)
+        ) {
+          lowerWord.capitalize
+        }
+        // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
+        else if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
+          word
+        }
+        // Default: capitalize first letter
+        else {
+          lowerWord.capitalize
+        }
       }
+
+      processedWords.mkString("")
     }
 
   private def generateUpdatedContent(
