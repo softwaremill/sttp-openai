@@ -4,18 +4,16 @@
 //> using dep org.typelevel::log4cats-slf4j::2.7.1
 //> using dep ch.qos.logback:logback-classic:1.5.18
 //> using dep com.github.scopt::scopt::4.1.0
-//> using dep io.circe::circe-core::0.14.14
-//> using dep io.circe::circe-generic::0.14.14
-//> using dep io.circe::circe-parser::0.14.14
+//> using dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core::2.37.6
+//> using dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros::2.37.6
 
 import cats.effect.{IO, IOApp, Resource}
 import cats.syntax.all.*
 import ch.qos.logback.classic.{Level, LoggerContext}
 import com.microsoft.playwright.*
 import com.microsoft.playwright.options.WaitUntilState
-import io.circe.*
-import io.circe.generic.auto.*
-import io.circe.syntax.*
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import org.slf4j.LoggerFactory
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -30,8 +28,6 @@ object ModelName {
   extension (modelName: ModelName) {
     def value: String = modelName
   }
-
-  implicit val modelNameEncoder: Encoder[ModelName] = Encoder.encodeString.contramap(_.value)
 }
 
 opaque type URL = String
@@ -40,8 +36,6 @@ object URL {
   extension (url: URL) {
     def value: String = url
   }
-
-  implicit val urlEncoder: Encoder[URL] = Encoder.encodeString.contramap(_.value)
 }
 
 case class EndpointInfo(
@@ -62,6 +56,12 @@ case class ModelInfo(
     snapshots: List[String],
     url: URL
 )
+
+// JSON codecs for jsoniter-scala
+given JsonValueCodec[ModelName] = JsonCodecMaker.make[String].asInstanceOf[JsonValueCodec[ModelName]]
+given JsonValueCodec[URL] = JsonCodecMaker.make[String].asInstanceOf[JsonValueCodec[URL]]
+given JsonValueCodec[EndpointInfo] = JsonCodecMaker.make
+given JsonValueCodec[ModelInfo] = JsonCodecMaker.make
 
 object ModelEndpointScraper extends IOApp {
 
@@ -133,6 +133,10 @@ object ModelEndpointScraper extends IOApp {
     } yield ()
 
   case class ModelWithSnapshots(name: String, snapshots: List[String])
+  
+  // Additional codec for output structure
+  given JsonValueCodec[ModelWithSnapshots] = JsonCodecMaker.make
+  given JsonValueCodec[Map[String, List[ModelWithSnapshots]]] = JsonCodecMaker.make
 
   private def generateAndSaveEndpointMapping(models: List[ModelInfo], outputPath: String): IO[Unit] =
     for {
@@ -155,7 +159,7 @@ object ModelEndpointScraper extends IOApp {
         logger.debug(s"  $endpoint: $modelNames")
       }
 
-      json = endpointMapping.asJson.spaces2
+      json = writeToString(endpointMapping, WriterConfig.withIndentionStep(2))
       _ <- IO {
         val writer = new PrintWriter(outputPath)
         try
@@ -190,7 +194,6 @@ object ModelEndpointScraper extends IOApp {
       } yield ()
     }
 
-  // Common page navigation and Cloudflare handling
   private def navigateToPage(page: Page, url: String, timeout: Double = 60000): IO[Unit] =
     for {
       _ <- IO.blocking(
