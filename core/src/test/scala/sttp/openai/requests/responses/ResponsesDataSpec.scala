@@ -8,7 +8,13 @@ import sttp.openai.fixtures.ResponsesFixture
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.responses.ResponsesModel.GPT4o20240806
 import sttp.openai.requests.responses.ResponsesRequestBody.Format.JsonSchema
-import sttp.openai.requests.responses.ResponsesRequestBody.{Format => RequestFormat, PromptConfig => RequestPromptConfig, ReasoningConfig => RequestReasoningConfig, TextConfig => RequestTextConfig, _}
+import sttp.openai.requests.responses.ResponsesRequestBody.{
+  Format => RequestFormat,
+  PromptConfig => RequestPromptConfig,
+  ReasoningConfig => RequestReasoningConfig,
+  TextConfig => RequestTextConfig,
+  _
+}
 import sttp.openai.requests.responses.ResponsesResponseBody._
 import sttp.openai.requests.responses.ToolChoice.ToolChoiceObject
 import ujson.{Obj, Str}
