@@ -2,6 +2,7 @@ package sttp.openai.requests.images.creation
 
 import sttp.openai.json.SnakePickle
 import sttp.openai.requests.images.{ResponseFormat, Size}
+import ujson.Str
 
 object ImageCreationRequestBody {
 
@@ -55,7 +56,7 @@ object ImageCreationRequestBody {
   case class ImageCreationBody(
       prompt: String,
       background: Option[String] = None,
-      model: String,
+      model: ImageCreationModel,
       moderation: Option[String] = None,
       n: Option[Int] = None,
       outputCompression: Option[Int] = None,
@@ -71,6 +72,21 @@ object ImageCreationRequestBody {
 
   object ImageCreationBody {
     implicit val imageCreationBodyW: SnakePickle.Writer[ImageCreationBody] = SnakePickle.macroW[ImageCreationBody]
+  }
+
+  sealed abstract class ImageCreationModel(val value: String)
+
+  object ImageCreationModel {
+
+    implicit val imageCreationModelW: SnakePickle.Writer[ImageCreationModel] = SnakePickle
+      .writer[ujson.Value]
+      .comap[ImageCreationModel](model => SnakePickle.writeJs(model.value))
+
+    case object DALLE2 extends ImageCreationModel("dall-e-2")
+    case object DALLE3 extends ImageCreationModel("dall-e-3")
+    case object GPTImage1 extends ImageCreationModel("gpt-image-1")
+    case class CustomImageCreationModel(customImageCreationModel: String) extends ImageCreationModel(customImageCreationModel)
+
   }
 
 }

@@ -22,6 +22,12 @@ endpoints:
     className: "EmbeddingsModel"
     insertBeforeMarker: "case class CustomEmbeddingsModel"
     valuesSetName: "values"
+  
+  "v1/images/generations":
+    file: "core/src/main/scala/sttp/openai/requests/images/creation/ImageCreationRequestBody.scala"
+    className: "ImageCreationModel"
+    insertBeforeMarker: "case class CustomImageCreationModel"
+    valuesSetName: null
 
   "v1/fine-tuning":
     file: "core/src/main/scala/sttp/openai/requests/finetuning/FineTuningModel.scala"
