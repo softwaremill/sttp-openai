@@ -247,13 +247,13 @@ object ModelUpdater extends IOApp {
       }
 
       caseObjectBlockOpt <- IO(findCaseObjectBlock(currentContent, endpointConfig.className, endpointConfig.insertBeforeMarker))
-      
+        
       caseObjectBlock = caseObjectBlockOpt.getOrElse(
         throw new Exception(s"Could not find case object block for ${endpointConfig.className}")
       )
 
       existingModelNames = caseObjectBlock.caseObjects.map(_.name)
-      
+
       newModels <- models.traverse(modelName => convertModelNameToScalaId(modelName, nameConversion).map(modelName -> _))
 
       modelsToAdd = newModels.filterNot { case (_, scalaId) =>
@@ -269,13 +269,16 @@ object ModelUpdater extends IOApp {
       _ <-
         if (modelsToAdd.nonEmpty || caseObjectBlock.caseObjects.size != allCaseObjects.size) {
           for {
-            _ <- logger.info(s"🔄 Reordering ${allCaseObjects.size} case objects (${modelsToAdd.size} new, ${caseObjectBlock.caseObjects.size} existing)")
-            _ <- if (modelsToAdd.nonEmpty) {
-              modelsToAdd.traverse { case (modelName, scalaId) =>
-                logger.info(s"   ➕ $modelName → case object $scalaId")
-              }
-            } else IO.pure(List.empty)
-            
+            _ <- logger.info(
+              s"🔄 Reordering ${allCaseObjects.size} case objects (${modelsToAdd.size} new, ${caseObjectBlock.caseObjects.size} existing)"
+            )
+            _ <-
+              if (modelsToAdd.nonEmpty) {
+                modelsToAdd.traverse { case (modelName, scalaId) =>
+                  logger.info(s"   ➕ $modelName → case object $scalaId")
+                }
+              } else IO.pure(List.empty)
+
             newContent <- IO(
               generateUpdatedContentWithSortedObjects(
                 currentContent,
@@ -306,7 +309,7 @@ object ModelUpdater extends IOApp {
     } yield resolvedFilePath
 
   case class CaseObjectInfo(name: String, fullDefinition: String, originalModelName: String)
-  
+
   case class CaseObjectBlock(startIndex: Int, endIndex: Int, caseObjects: List[CaseObjectInfo])
 
   private def extractExistingModels(content: String, className: String): IO[(List[String], List[CaseObjectInfo], Int, Int)] =
@@ -334,7 +337,7 @@ object ModelUpdater extends IOApp {
 
         val objectLines = if (endIndex == -1) relevantLines else relevantLines.take(endIndex)
 
-        val caseObjects = objectLines.zipWithIndex.collect { 
+        val caseObjects = objectLines.zipWithIndex.collect {
           case (line, _) if caseObjectPattern.matches(line) =>
             val caseObjectPattern(name, modelName) = line: @unchecked
             CaseObjectInfo(name, line.trim, modelName)
@@ -349,49 +352,46 @@ object ModelUpdater extends IOApp {
     }
 
   private def findCaseObjectBlock(content: String, className: String, insertBeforeMarker: String): Option[CaseObjectBlock] =
-      val lines = content.split("\n").toList
-      val caseObjectPattern = s"""^\\s*case object\\s+(\\w+)\\s+extends\\s+$className\\("([^"]+)"\\).*""".r
-      val markerIndex = lines.indexWhere(_.contains(insertBeforeMarker))
-      
-      if (markerIndex == -1) {
-        None
-      } else {
-        // Find the start of case objects block by looking backwards from marker
-        var startIndex = -1
-        var endIndex = markerIndex
-        
-        // Look backwards to find the first case object that extends our className
-        var i = markerIndex - 1
-        while (i >= 0) {
-          val line = lines(i)
+    val lines = content.split("\n").toList
+    val caseObjectPattern = s"""^\\s*case object\\s+(\\w+)\\s+extends\\s+$className\\("([^"]+)"\\).*""".r
+    val markerIndex = lines.indexWhere(_.contains(insertBeforeMarker))
+
+    if (markerIndex == -1) {
+      None
+    } else {
+      val endIndex = markerIndex
+      val startIndex = boundary {
+        lines.take(markerIndex).zipWithIndex.reverse.foldLeft(-1) { case (startIndex, (line, index)) =>
           if (caseObjectPattern.matches(line)) {
-            startIndex = i
-          } else if (startIndex != -1 && !line.trim.isEmpty && !isCommentLine(line)) {
+            index
+          } else if (startIndex != -1 && line.trim.nonEmpty && !isCommentLine(line)) {
             // Found non-case-object, non-comment, non-empty line - stop here
             // startIndex is already set to the last case object we found
-            i = -1 // Exit the loop
+            break(startIndex)
+          } else {
+            startIndex
           }
-          if (i >= 0) i -= 1
-        }
-        
-        if (startIndex == -1) {
-          // No case objects found before marker
-          Some(CaseObjectBlock(markerIndex, markerIndex, List.empty))
-        } else {
-          // Extract all case objects in the block that extend our className
-          val caseObjects = (startIndex until endIndex).toList.flatMap { i =>
-            val line = lines(i)
-            if (caseObjectPattern.matches(line)) {
-              val caseObjectPattern(name, modelName) = line: @unchecked
-              Some(CaseObjectInfo(name, line.trim, modelName))
-            } else {
-              None
-            }
-          }
-          
-          Some(CaseObjectBlock(startIndex, endIndex, caseObjects))
         }
       }
+
+      if (startIndex == -1) {
+        // No case objects found before marker
+        Some(CaseObjectBlock(markerIndex, markerIndex, List.empty))
+      } else {
+        // Extract all case objects in the block that extend our className
+        val caseObjects = (startIndex until endIndex).toList.flatMap { i =>
+          val line = lines(i)
+          if (caseObjectPattern.matches(line)) {
+            val caseObjectPattern(name, modelName) = line: @unchecked
+            Some(CaseObjectInfo(name, line.trim, modelName))
+          } else {
+            None
+          }
+        }
+
+        Some(CaseObjectBlock(startIndex, endIndex, caseObjects))
+      }
+    }
 
   private def convertModelNameToScalaId(
       modelName: String,
@@ -426,12 +426,12 @@ object ModelUpdater extends IOApp {
       sortedCaseObjects: List[CaseObjectInfo]
   ): String = {
     val lines = currentContent.split("\n").toList
-    
+
     val beforeBlock = lines.take(caseObjectBlock.startIndex)
     val afterBlock = lines.drop(caseObjectBlock.endIndex)
-    
+
     val sortedCaseObjectLines = sortedCaseObjects.map(_.fullDefinition)
-    
+
     val updatedLines = beforeBlock ++ sortedCaseObjectLines ++ afterBlock
 
     endpointConfig.valuesSetName match {
