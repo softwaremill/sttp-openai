@@ -1,4 +1,10 @@
 endpoints:
+  "v1/assistants":
+    file: "core/src/main/scala/sttp/openai/requests/assistants/AssistantsModel.scala"
+    className: "AssistantsModel"
+    insertBeforeMarker: "case class CustomAssistantsModel"
+    valuesSetName: "values"
+
   "v1/chat/completions":
     file: "core/src/main/scala/sttp/openai/requests/completions/chat/ChatRequestBody.scala"
     className: "ChatCompletionModel"

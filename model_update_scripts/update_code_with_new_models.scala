@@ -321,7 +321,7 @@ object ModelUpdater extends IOApp {
       val startIndex = lines.indexWhere(caseObjectPattern.matches)
       val endIndex = boundary {
         lines.take(markerIndex).zipWithIndex.reverse.foldLeft(-1) { case (passedIndex, (line, index)) =>
-          if (!isCommentLine(line) || caseObjectPattern.matches(line)) {
+          if (!isCommentLine(line)) {
             break(index + 1)
           } else {
             passedIndex
