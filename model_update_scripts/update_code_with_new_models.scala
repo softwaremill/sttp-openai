@@ -339,14 +339,16 @@ object ModelUpdater extends IOApp {
         Some(CaseObjectBlock(markerIndex, markerIndex, List.empty))
       } else {
         // Extract all case objects in the block that extend our className
-        val caseObjects = (startIndex until markerIndex).toList.flatMap { i =>
-          val line = lines(i)
-          line match {
-            case caseObjectPattern(name, modelName) =>
-              Some(CaseObjectInfo(name, line.trim, modelName))
-            case _ => None
+        val caseObjects = lines
+          .slice(startIndex, markerIndex)
+          .zipWithIndex
+          .flatMap { case (line, index) =>
+            line match {
+              case caseObjectPattern(name, modelName) =>
+                Some(CaseObjectInfo(name, line.trim, modelName))
+              case _ => None
+            }
           }
-        }
 
         Some(CaseObjectBlock(startIndex, markerIndex, caseObjects))
       }
