@@ -44,5 +44,3 @@ case class FineTuningJobRequestBody(
 object FineTuningJobRequestBody {
   implicit val fineTuningRequestBodyWriter: SnakePickle.Writer[FineTuningJobRequestBody] = SnakePickle.macroW[FineTuningJobRequestBody]
 }
-
-

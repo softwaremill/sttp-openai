@@ -28,6 +28,12 @@ endpoints:
     className: "ImageCreationModel"
     insertBeforeMarker: "case class CustomImageCreationModel"
     valuesSetName: null
+  
+  "v1/images/edits":
+    file: "core/src/main/scala/sttp/openai/requests/images/edit/ImageEditsConfig.scala"
+    className: "ImageEditsModel"
+    insertBeforeMarker: "case class CustomImageEditsModel"
+    valuesSetName: null
 
   "v1/fine-tuning":
     file: "core/src/main/scala/sttp/openai/requests/finetuning/FineTuningModel.scala"

@@ -1,7 +1,17 @@
 package sttp.openai.fixtures
 
 import sttp.openai.requests.finetuning.Status.Running
-import sttp.openai.requests.finetuning.{Dpo, Error, FineTuningJobResponse, FineTuningModel, Hyperparameters, Integration, Method, Supervised, Wandb}
+import sttp.openai.requests.finetuning.{
+  Dpo,
+  Error,
+  FineTuningJobResponse,
+  FineTuningModel,
+  Hyperparameters,
+  Integration,
+  Method,
+  Supervised,
+  Wandb
+}
 
 object FineTuningJobFixture {
 
