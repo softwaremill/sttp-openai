@@ -1,7 +1,0 @@
-{
-  "mcpServers": {
-    "sttp-openai-metals": {
-      "url": "http://localhost:51344/sse"
-    }
-  }
-}

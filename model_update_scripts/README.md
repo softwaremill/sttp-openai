@@ -23,7 +23,7 @@ scala-cli scrape_models.scala
 - `--output <file.json>` - Output file path (default: `models.json`)
 
 **What it does:**
-- Uses Playwright with Firefox to scrape OpenAI's model documentation pages
+- Uses Playwright with Firefox to scrape OpenAI's model documentation pages (Firefox specifically is used to bypass Cloudflare protection on OpenAI docs)
 - Extracts model names, supported endpoints, and model snapshots
 - Generates a structured JSON file with endpoint-to-models mapping
 
