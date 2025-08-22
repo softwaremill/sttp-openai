@@ -408,7 +408,7 @@ object ModelUpdater extends IOApp {
       content
     } else {
       val (_, _, newContent) = boundary {
-        lines.zipWithIndex.foldLeft((0, false, "")) { case ((braceCount, startFound, _), (line, index)) =>
+        lines.drop(startIndex).zipWithIndex.foldLeft((0, false, "")) { case ((braceCount, startFound, _), (line, index)) =>
           if (startFound || line.contains("Set(")) {
             val newBraceCount = braceCount + line.count(_ == '(') - line.count(_ == ')')
             if (newBraceCount == 0 && line.contains(")")) {
@@ -418,7 +418,7 @@ object ModelUpdater extends IOApp {
                   true,
                   (lines.take(startIndex) ++
                     generateValuesSetLines(valuesSetName, allModels, className) ++
-                    lines.drop(index + 1)).mkString("\n")
+                    lines.drop(startIndex + index + 1)).mkString("\n")
                 )
               )
             } else {
