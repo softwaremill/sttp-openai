@@ -254,7 +254,7 @@ object ModelUpdater extends IOApp {
 
       existingModelNames = caseObjectBlock.caseObjects.map(_.name)
 
-      newModels <- models.traverse(modelName => convertModelNameToScalaId(modelName, nameConversion).map(modelName -> _))
+      newModels <- models.traverse(modelName => IO(convertModelNameToScalaId(modelName, nameConversion)).map(modelName -> _))
 
       modelsToAdd = newModels.filterNot { case (_, scalaId) =>
         existingModelNames.contains(scalaId)
@@ -341,11 +341,10 @@ object ModelUpdater extends IOApp {
         // Extract all case objects in the block that extend our className
         val caseObjects = (startIndex until markerIndex).toList.flatMap { i =>
           val line = lines(i)
-          if (caseObjectPattern.matches(line)) {
-            val caseObjectPattern(name, modelName) = line: @unchecked
-            Some(CaseObjectInfo(name, line.trim, modelName))
-          } else {
-            None
+          line match {
+            case caseObjectPattern(name, modelName) =>
+              Some(CaseObjectInfo(name, line.trim, modelName))
+            case _ => None
           }
         }
 
@@ -356,27 +355,25 @@ object ModelUpdater extends IOApp {
   private def convertModelNameToScalaId(
       modelName: String,
       nameConversion: NameConversionConfig
-  ): IO[String] =
-    IO {
-      nameConversion.specialCases.get(modelName) match {
-        case Some(specialCase) => specialCase
-        case None =>
-          val words = modelName.split("[\\-\\._\\s]+").filter(_.nonEmpty)
-          val processedWords = words.map { word =>
-            nameConversion.preserveCase.find(_.equalsIgnoreCase(word)) match {
-              case Some(preservedWord) => preservedWord
-              case None                =>
-                // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
-                if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
-                  word
-                } else {
-                  word.toLowerCase.capitalize
-                }
-            }
+  ): String =
+    nameConversion.specialCases.get(modelName) match {
+      case Some(specialCase) => specialCase
+      case None =>
+        val words = modelName.split("[\\-\\._\\s]+").filter(_.nonEmpty)
+        val processedWords = words.map { word =>
+          nameConversion.preserveCase.find(_.equalsIgnoreCase(word)) match {
+            case Some(preservedWord) => preservedWord
+            case None                =>
+              // For dates (YYYY-MM-DD format becomes YYYYMMDD), keep as is
+              if (word.matches("\\d{4}\\d{2}\\d{2}") || word.matches("\\d+")) {
+                word
+              } else {
+                word.toLowerCase.capitalize
+              }
           }
+        }
 
-          processedWords.mkString("")
-      }
+        processedWords.mkString("")
     }
 
   private def generateUpdatedContentWithSortedObjects(
@@ -402,37 +399,6 @@ object ModelUpdater extends IOApp {
     }
   }
 
-  private def generateUpdatedContent(
-      currentContent: String,
-      endpointConfig: EndpointConfig,
-      modelsToAdd: List[(String, String)],
-      existingModels: List[String]
-  ): String =
-    val lines = currentContent.split("\n").toList
-    val insertIndex = lines.indexWhere(_.contains(endpointConfig.insertBeforeMarker))
-
-    if (insertIndex == -1) {
-      throw new Exception(s"Could not find insertion marker: ${endpointConfig.insertBeforeMarker}")
-    }
-
-    val actualInsertIndex = findInsertionPoint(lines, insertIndex)
-
-    val newCaseObjects = modelsToAdd.map { case (modelName, scalaId) =>
-      s"  case object $scalaId extends ${endpointConfig.className}(\"$modelName\")"
-    }
-
-    val beforeInsert = lines.take(actualInsertIndex)
-    val afterInsert = lines.drop(actualInsertIndex)
-
-    val updatedLines = beforeInsert ++ newCaseObjects ++ List("") ++ afterInsert
-
-    endpointConfig.valuesSetName match {
-      case Some(valuesSetName) =>
-        updateValuesSet(updatedLines.mkString("\n"), valuesSetName, existingModels ++ modelsToAdd.map(_._2), endpointConfig.className)
-      case None =>
-        updatedLines.mkString("\n")
-    }
-
   private def updateValuesSet(content: String, valuesSetName: String, allModels: List[String], className: String): String = {
     val lines = content.split("\n").toList
     val valuesPattern = s"val $valuesSetName: Set\\[.*?\\] ="
@@ -441,30 +407,31 @@ object ModelUpdater extends IOApp {
     if (startIndex == -1) {
       content
     } else {
-      var endIndex = startIndex
-      var braceCount = 0
-      var foundStart = false
-
-      boundary {
-        for (i <- startIndex until lines.length) {
-          val line = lines(i)
-          if (line.contains("Set(")) {
-            foundStart = true
-          }
-          if (foundStart) {
-            braceCount += line.count(_ == '(') - line.count(_ == ')')
-            if (braceCount == 0 && line.contains(")")) {
-              endIndex = i
+      val (_, _, newContent) = boundary {
+        lines.zipWithIndex.foldLeft((0, false, "")) { case ((braceCount, startFound, _), (line, index)) =>
+          if (startFound || line.contains("Set(")) {
+            val newBraceCount = braceCount + line.count(_ == '(') - line.count(_ == ')')
+            if (newBraceCount == 0 && line.contains(")")) {
               break(
-                (lines.take(startIndex) ++
-                  generateValuesSetLines(valuesSetName, allModels, className) ++
-                  lines.drop(endIndex + 1)).mkString("\n")
+                (
+                  newBraceCount,
+                  true,
+                  (lines.take(startIndex) ++
+                    generateValuesSetLines(valuesSetName, allModels, className) ++
+                    lines.drop(index + 1)).mkString("\n")
+                )
               )
+            } else {
+              (newBraceCount, true, "")
             }
+
+          } else {
+            (braceCount, startFound, "")
           }
         }
-        content
+        (0, false, content)
       }
+      newContent
     }
   }
 
