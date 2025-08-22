@@ -246,35 +246,51 @@ object ModelUpdater extends IOApp {
         Using(Source.fromFile(resolvedFilePath))(_.mkString).get
       }
 
-      existingModels <- extractExistingModels(currentContent, endpointConfig.className)
+      caseObjectBlockOpt <- IO(findCaseObjectBlock(currentContent, endpointConfig.className, endpointConfig.insertBeforeMarker))
+      
+      caseObjectBlock = caseObjectBlockOpt.getOrElse(
+        throw new Exception(s"Could not find case object block for ${endpointConfig.className}")
+      )
 
+      existingModelNames = caseObjectBlock.caseObjects.map(_.name)
+      
       newModels <- models.traverse(modelName => convertModelNameToScalaId(modelName, nameConversion).map(modelName -> _))
 
       modelsToAdd = newModels.filterNot { case (_, scalaId) =>
-        existingModels.contains(scalaId)
+        existingModelNames.contains(scalaId)
       }
+
+      newCaseObjects = modelsToAdd.map { case (modelName, scalaId) =>
+        CaseObjectInfo(scalaId, s"  case object $scalaId extends ${endpointConfig.className}(\"$modelName\")", modelName)
+      }
+
+      allCaseObjects = (caseObjectBlock.caseObjects ++ newCaseObjects).sortBy(_.name)
+
       _ <-
-        if (modelsToAdd.nonEmpty) {
+        if (modelsToAdd.nonEmpty || caseObjectBlock.caseObjects.size != allCaseObjects.size) {
           for {
-            _ <- logger.info(s"➕ Adding ${modelsToAdd.size} new models:")
-            _ <- modelsToAdd.traverse { case (modelName, scalaId) =>
-              logger.info(s"   $modelName → case object $scalaId")
-            }
+            _ <- logger.info(s"🔄 Reordering ${allCaseObjects.size} case objects (${modelsToAdd.size} new, ${caseObjectBlock.caseObjects.size} existing)")
+            _ <- if (modelsToAdd.nonEmpty) {
+              modelsToAdd.traverse { case (modelName, scalaId) =>
+                logger.info(s"   ➕ $modelName → case object $scalaId")
+              }
+            } else IO.pure(List.empty)
+            
             newContent <- IO(
-              generateUpdatedContent(
+              generateUpdatedContentWithSortedObjects(
                 currentContent,
                 endpointConfig,
-                modelsToAdd,
-                existingModels
+                caseObjectBlock,
+                allCaseObjects
               )
             )
             _ <-
               if (dryRun) {
                 for {
                   _ <- logger.info(s"📄 File: $resolvedFilePath")
-                  _ <- logger.info("📝 New case objects that would be added:")
-                  _ <- modelsToAdd.traverse { case (modelName, scalaId) =>
-                    logger.info(s"    case object $scalaId extends ${endpointConfig.className}(\"$modelName\")")
+                  _ <- logger.info("📝 All case objects would be reordered as:")
+                  _ <- allCaseObjects.traverse { caseObj =>
+                    logger.info(s"    ${caseObj.fullDefinition}")
                   }
                 } yield ()
               } else {
@@ -285,20 +301,24 @@ object ModelUpdater extends IOApp {
               }
           } yield ()
         } else {
-          logger.info(s"✅ No new models to add for ${endpointConfig.className}")
+          logger.info(s"✅ All case objects for ${endpointConfig.className} are already in correct order")
         }
     } yield resolvedFilePath
 
-  private def extractExistingModels(content: String, className: String): IO[List[String]] =
+  case class CaseObjectInfo(name: String, fullDefinition: String, originalModelName: String)
+  
+  case class CaseObjectBlock(startIndex: Int, endIndex: Int, caseObjects: List[CaseObjectInfo])
+
+  private def extractExistingModels(content: String, className: String): IO[(List[String], List[CaseObjectInfo], Int, Int)] =
     IO {
       val lines = content.split("\n").toList
       val startPattern = s"object $className"
-      val caseObjectPattern = """^\s*case object\s+(\w+).*""".r
+      val caseObjectPattern = s"""^\\s*case object\\s+(\\w+)\\s+extends\\s+$className\\("([^"]+)"\\).*""".r
 
       val startIndex = lines.indexWhere(_.contains(startPattern))
 
       if (startIndex == -1) {
-        List.empty
+        (List.empty, List.empty, -1, -1)
       } else {
         val relevantLines = lines.drop(startIndex)
         // Find the end of the object by counting braces
@@ -314,18 +334,70 @@ object ModelUpdater extends IOApp {
 
         val objectLines = if (endIndex == -1) relevantLines else relevantLines.take(endIndex)
 
-        objectLines.collect { case caseObjectPattern(name) =>
-          name
+        val caseObjects = objectLines.zipWithIndex.collect { 
+          case (line, _) if caseObjectPattern.matches(line) =>
+            val caseObjectPattern(name, modelName) = line: @unchecked
+            CaseObjectInfo(name, line.trim, modelName)
         }
+
+        val modelNames = caseObjects.map(_.name)
+        val objectStartIndex = startIndex
+        val objectEndIndex = if (endIndex == -1) lines.length else startIndex + endIndex
+
+        (modelNames, caseObjects, objectStartIndex, objectEndIndex)
       }
     }
+
+  private def findCaseObjectBlock(content: String, className: String, insertBeforeMarker: String): Option[CaseObjectBlock] =
+      val lines = content.split("\n").toList
+      val caseObjectPattern = s"""^\\s*case object\\s+(\\w+)\\s+extends\\s+$className\\("([^"]+)"\\).*""".r
+      val markerIndex = lines.indexWhere(_.contains(insertBeforeMarker))
+      
+      if (markerIndex == -1) {
+        None
+      } else {
+        // Find the start of case objects block by looking backwards from marker
+        var startIndex = -1
+        var endIndex = markerIndex
+        
+        // Look backwards to find the first case object that extends our className
+        var i = markerIndex - 1
+        while (i >= 0) {
+          val line = lines(i)
+          if (caseObjectPattern.matches(line)) {
+            startIndex = i
+          } else if (startIndex != -1 && !line.trim.isEmpty && !isCommentLine(line)) {
+            // Found non-case-object, non-comment, non-empty line - stop here
+            // startIndex is already set to the last case object we found
+            i = -1 // Exit the loop
+          }
+          if (i >= 0) i -= 1
+        }
+        
+        if (startIndex == -1) {
+          // No case objects found before marker
+          Some(CaseObjectBlock(markerIndex, markerIndex, List.empty))
+        } else {
+          // Extract all case objects in the block that extend our className
+          val caseObjects = (startIndex until endIndex).toList.flatMap { i =>
+            val line = lines(i)
+            if (caseObjectPattern.matches(line)) {
+              val caseObjectPattern(name, modelName) = line: @unchecked
+              Some(CaseObjectInfo(name, line.trim, modelName))
+            } else {
+              None
+            }
+          }
+          
+          Some(CaseObjectBlock(startIndex, endIndex, caseObjects))
+        }
+      }
 
   private def convertModelNameToScalaId(
       modelName: String,
       nameConversion: NameConversionConfig
   ): IO[String] =
     IO {
-      // Check special cases first
       nameConversion.specialCases.get(modelName) match {
         case Some(specialCase) => specialCase
         case None =>
@@ -346,6 +418,29 @@ object ModelUpdater extends IOApp {
           processedWords.mkString("")
       }
     }
+
+  private def generateUpdatedContentWithSortedObjects(
+      currentContent: String,
+      endpointConfig: EndpointConfig,
+      caseObjectBlock: CaseObjectBlock,
+      sortedCaseObjects: List[CaseObjectInfo]
+  ): String = {
+    val lines = currentContent.split("\n").toList
+    
+    val beforeBlock = lines.take(caseObjectBlock.startIndex)
+    val afterBlock = lines.drop(caseObjectBlock.endIndex)
+    
+    val sortedCaseObjectLines = sortedCaseObjects.map(_.fullDefinition)
+    
+    val updatedLines = beforeBlock ++ sortedCaseObjectLines ++ afterBlock
+
+    endpointConfig.valuesSetName match {
+      case Some(valuesSetName) =>
+        updateValuesSet(updatedLines.mkString("\n"), valuesSetName, sortedCaseObjects.map(_.name), endpointConfig.className)
+      case None =>
+        updatedLines.mkString("\n")
+    }
+  }
 
   private def generateUpdatedContent(
       currentContent: String,
