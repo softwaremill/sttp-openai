@@ -247,7 +247,7 @@ object ModelUpdater extends IOApp {
       }
 
       caseObjectBlockOpt <- IO(findCaseObjectBlock(currentContent, endpointConfig.className, endpointConfig.insertBeforeMarker))
-        
+
       caseObjectBlock = caseObjectBlockOpt.getOrElse(
         throw new Exception(s"Could not find case object block for ${endpointConfig.className}")
       )
@@ -359,7 +359,6 @@ object ModelUpdater extends IOApp {
     if (markerIndex == -1) {
       None
     } else {
-      val endIndex = markerIndex
       val startIndex = boundary {
         lines.take(markerIndex).zipWithIndex.reverse.foldLeft(-1) { case (startIndex, (line, index)) =>
           if (caseObjectPattern.matches(line)) {
@@ -379,7 +378,7 @@ object ModelUpdater extends IOApp {
         Some(CaseObjectBlock(markerIndex, markerIndex, List.empty))
       } else {
         // Extract all case objects in the block that extend our className
-        val caseObjects = (startIndex until endIndex).toList.flatMap { i =>
+        val caseObjects = (startIndex until markerIndex).toList.flatMap { i =>
           val line = lines(i)
           if (caseObjectPattern.matches(line)) {
             val caseObjectPattern(name, modelName) = line: @unchecked
@@ -389,7 +388,7 @@ object ModelUpdater extends IOApp {
           }
         }
 
-        Some(CaseObjectBlock(startIndex, endIndex, caseObjects))
+        Some(CaseObjectBlock(startIndex, markerIndex, caseObjects))
       }
     }
 
