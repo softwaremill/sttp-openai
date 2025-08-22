@@ -10,10 +10,10 @@
 import cats.effect.{IO, IOApp, Resource}
 import cats.syntax.all.*
 import ch.qos.logback.classic.{Level, LoggerContext}
-import com.microsoft.playwright.*
-import com.microsoft.playwright.options.WaitUntilState
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.microsoft.playwright.*
+import com.microsoft.playwright.options.WaitUntilState
 import org.slf4j.LoggerFactory
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -133,7 +133,7 @@ object ModelEndpointScraper extends IOApp {
     } yield ()
 
   case class ModelWithSnapshots(name: String, snapshots: List[String])
-  
+
   given JsonValueCodec[ModelWithSnapshots] = JsonCodecMaker.make
   given JsonValueCodec[scala.collection.immutable.ListMap[String, List[ModelWithSnapshots]]] = JsonCodecMaker.make
 
