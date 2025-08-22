@@ -312,45 +312,6 @@ object ModelUpdater extends IOApp {
 
   case class CaseObjectBlock(startIndex: Int, endIndex: Int, caseObjects: List[CaseObjectInfo])
 
-  private def extractExistingModels(content: String, className: String): IO[(List[String], List[CaseObjectInfo], Int, Int)] =
-    IO {
-      val lines = content.split("\n").toList
-      val startPattern = s"object $className"
-      val caseObjectPattern = s"""^\\s*case object\\s+(\\w+)\\s+extends\\s+$className\\("([^"]+)"\\).*""".r
-
-      val startIndex = lines.indexWhere(_.contains(startPattern))
-
-      if (startIndex == -1) {
-        (List.empty, List.empty, -1, -1)
-      } else {
-        val relevantLines = lines.drop(startIndex)
-        // Find the end of the object by counting braces
-        var braceCount = 0
-        var endIndex = -1
-        for (i <- relevantLines.indices if endIndex == -1) {
-          val line = relevantLines(i)
-          braceCount += line.count(_ == '{') - line.count(_ == '}')
-          if (braceCount == 0 && i > 0) { // Don't end on the first line which contains the opening brace
-            endIndex = i + 1
-          }
-        }
-
-        val objectLines = if (endIndex == -1) relevantLines else relevantLines.take(endIndex)
-
-        val caseObjects = objectLines.zipWithIndex.collect {
-          case (line, _) if caseObjectPattern.matches(line) =>
-            val caseObjectPattern(name, modelName) = line: @unchecked
-            CaseObjectInfo(name, line.trim, modelName)
-        }
-
-        val modelNames = caseObjects.map(_.name)
-        val objectStartIndex = startIndex
-        val objectEndIndex = if (endIndex == -1) lines.length else startIndex + endIndex
-
-        (modelNames, caseObjects, objectStartIndex, objectEndIndex)
-      }
-    }
-
   private def findCaseObjectBlock(content: String, className: String, insertBeforeMarker: String): Option[CaseObjectBlock] =
     val lines = content.split("\n").toList
     val caseObjectPattern = s"""^\\s*case object\\s+(\\w+)\\s+extends\\s+$className\\("([^"]+)"\\).*""".r
