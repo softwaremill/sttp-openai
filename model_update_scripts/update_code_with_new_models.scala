@@ -318,27 +318,23 @@ object ModelUpdater extends IOApp {
     if (markerIndex == -1) {
       None
     } else {
-      val startIndex = boundary {
+      val startIndex = lines.indexWhere(caseObjectPattern.matches)
+      val endIndex = boundary {
         lines.take(markerIndex).zipWithIndex.reverse.foldLeft(-1) { case (startIndex, (line, index)) =>
-          if (caseObjectPattern.matches(line)) {
-            index
-          } else if (startIndex != -1 && line.trim.nonEmpty && !isCommentLine(line)) {
-            // Found non-case-object, non-comment, non-empty line - stop here
-            // startIndex is already set to the last case object we found
-            break(startIndex)
+          if (!isCommentLine(line) || caseObjectPattern.matches(line)) {
+            break(index + 1)
           } else {
             startIndex
           }
         }
       }
-
-      if (startIndex == -1) {
+      if (endIndex == -1) {
         // No case objects found before marker
         Some(CaseObjectBlock(markerIndex, markerIndex, List.empty))
       } else {
         // Extract all case objects in the block that extend our className
         val caseObjects = lines
-          .slice(startIndex, markerIndex)
+          .slice(startIndex, endIndex)
           .zipWithIndex
           .flatMap { case (line, index) =>
             line match {
@@ -348,7 +344,7 @@ object ModelUpdater extends IOApp {
             }
           }
 
-        Some(CaseObjectBlock(startIndex, markerIndex, caseObjects))
+        Some(CaseObjectBlock(startIndex, endIndex, caseObjects))
       }
     }
 
