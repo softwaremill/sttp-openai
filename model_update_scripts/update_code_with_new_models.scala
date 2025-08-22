@@ -435,34 +435,6 @@ object ModelUpdater extends IOApp {
     }
   }
 
-  private def findInsertionPoint(lines: List[String], markerIndex: Int): Int = {
-    // Look backwards from the marker to find comment lines
-    var currentIndex = markerIndex - 1
-    var commentStart = markerIndex
-
-    // Skip empty lines immediately before the marker
-    while (currentIndex >= 0 && lines(currentIndex).trim.isEmpty)
-      currentIndex -= 1
-
-    // Check if we have comment lines
-    while (currentIndex >= 0 && isCommentLine(lines(currentIndex))) {
-      commentStart = currentIndex
-      currentIndex -= 1
-    }
-
-    // If we found comments, insert before them (but after any preceding empty line)
-    if (commentStart < markerIndex) {
-      // Look for an empty line before the comments to maintain spacing
-      if (currentIndex >= 0 && lines(currentIndex).trim.isEmpty) {
-        currentIndex + 1 // Insert after the empty line
-      } else {
-        commentStart // Insert directly before comments
-      }
-    } else {
-      markerIndex // No comments found, use original marker position
-    }
-  }
-
   private def isCommentLine(line: String): Boolean = {
     val trimmed = line.trim
     trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")
