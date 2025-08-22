@@ -198,7 +198,6 @@ object ModelUpdater extends IOApp {
             val allModelNames = modelsWithSnapshots.flatMap { modelWithSnapshots =>
               modelWithSnapshots.snapshots
             }.distinct
-
             for {
               _ <- logger.debug(s"📸 Processing $endpoint with ${modelsWithSnapshots.size} models:")
               _ <- modelsWithSnapshots.traverse_ { model =>
@@ -211,7 +210,6 @@ object ModelUpdater extends IOApp {
               IO.pure(None)
         }
       }
-
       successCount = updates.flatten.size
       _ <- logger.info(s"📊 Successfully processed $successCount model class files")
     } yield ()
