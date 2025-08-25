@@ -48,7 +48,7 @@ object AssistantsResponseData {
       createdAt: Int,
       name: Option[String],
       description: Option[String],
-      model: String,
+      model: AssistantsModel,
       instructions: Option[String],
       tools: Seq[Tool],
       toolResources: Option[ToolResources],

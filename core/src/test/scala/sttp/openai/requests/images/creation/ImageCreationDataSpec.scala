@@ -39,7 +39,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     val givenRequest: ImageCreationBody = ImageCreationBody(
       "cute fish", // prompt
       Some("transparent"), // background
-      "dall-e-3", // model
+      ImageCreationModel.DALLE3,
       Some("strict"), // moderation
       Some(1), // n
       Some(80), // outputCompression
@@ -70,7 +70,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     val givenRequest: ImageCreationBody = ImageCreationBody(
       "cute fish", // prompt
       Some("transparent"), // background
-      "dall-e-3", // model
+      ImageCreationModel.DALLE3, // model
       None, // moderation
       Some(1), // n
       Some(80), // outputCompression
@@ -101,7 +101,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     val givenRequest: ImageCreationBody = ImageCreationBody(
       "cute fish", // prompt
       Some("transparent"), // background
-      "dall-e-3", // model
+      ImageCreationModel.DALLE3, // model
       Some("strict"), // moderation
       Some(1), // n
       Some(80), // outputCompression
@@ -132,7 +132,7 @@ class ImageCreationDataSpec extends AnyFlatSpec with Matchers with EitherValues 
     val givenRequest: ImageCreationBody = ImageCreationBody(
       "cute fish", // prompt
       Some("transparent"), // background
-      "dall-e-2", // model
+      ImageCreationModel.DALLE2,
       Some("strict"), // moderation
       Some(1), // n
       Some(80), // outputCompression

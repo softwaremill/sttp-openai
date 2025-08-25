@@ -51,7 +51,7 @@ case class FineTuningJobResponse(
     fineTunedModel: Option[String],
     finishedAt: Option[Int],
     hyperparameters: Option[Hyperparameters],
-    model: String,
+    model: FineTuningModel,
     `object`: String,
     organizationId: String,
     resultFiles: Seq[String],

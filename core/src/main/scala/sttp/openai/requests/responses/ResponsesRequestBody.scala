@@ -75,7 +75,7 @@ case class ResponsesRequestBody(
     maxOutputTokens: Option[Int] = None,
     maxToolCalls: Option[Int] = None,
     metadata: Option[Map[String, String]] = None,
-    model: Option[String] = None,
+    model: Option[ResponsesModel] = None,
     parallelToolCalls: Option[Boolean] = None,
     previousResponseId: Option[String] = None,
     prompt: Option[ResponsesRequestBody.PromptConfig] = None,

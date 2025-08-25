@@ -37,7 +37,7 @@ object AssistantsRequestBody {
     * For more information please visit: [[https://platform.openai.com/docs/api-reference/assistants/createAssistant]]
     */
   case class CreateAssistantBody(
-      model: String,
+      model: AssistantsModel,
       name: Option[String] = None,
       description: Option[String] = None,
       instructions: Option[String] = None,

@@ -54,7 +54,7 @@ class ModerationsDataSpec extends AnyFlatSpec with Matchers with EitherValues {
       JsonUtils.deserializeJsonSnake[ModerationData].apply(createModerationResponse)
 
     // then
-    givenResponse.value.model shouldBe ModerationModel.CustomModerationModel("text-moderation-007")
+    givenResponse.value.model shouldBe ModerationModel.TextModeration007
   }
 
 }

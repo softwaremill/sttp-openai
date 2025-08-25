@@ -81,11 +81,17 @@ object CompletionsRequestBody {
           }
       )
 
+    case object Babbage002 extends CompletionModel("babbage-002")
+    case object Davinci002 extends CompletionModel("davinci-002")
     case object GPT35TurboInstruct extends CompletionModel("gpt-3.5-turbo-instruct")
-
     case class CustomCompletionModel(customCompletionModel: String) extends CompletionModel(customCompletionModel)
 
-    val values: Set[CompletionModel] = Set(GPT35TurboInstruct)
+    val values: Set[CompletionModel] =
+      Set(
+        Babbage002,
+        Davinci002,
+        GPT35TurboInstruct
+      )
 
     private val byCompletionModelValue = values.map(model => model.value -> model).toMap
   }

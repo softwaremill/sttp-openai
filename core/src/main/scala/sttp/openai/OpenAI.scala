@@ -190,7 +190,7 @@ class OpenAI(authToken: String, baseUri: Uri = OpenAIUris.OpenAIBaseUri) {
           background.map(bg => multipart("background", bg)),
           inputFidelity.map(fid => multipart("input_fidelity", fid)),
           mask.map(multipartFile("mask", _)),
-          model.map(m => multipart("model", m)),
+          model.map(m => multipart("model", m.value)),
           n.map(i => multipart("n", i.toString)),
           outputCompression.map(c => multipart("output_compression", c.toString)),
           outputFormat.map(f => multipart("output_format", f)),

@@ -1,6 +1,6 @@
 package sttp.openai.fixtures
 
-import sttp.openai.requests.images.edit.ImageEditsConfig
+import sttp.openai.requests.images.edit.{ImageEditsConfig, ImageEditsModel}
 import sttp.openai.requests.images.{ResponseFormat, Size}
 
 import java.io.File
@@ -27,7 +27,7 @@ trait ImageEditsFixture {
     background = Some("transparent"),
     inputFidelity = Some("high"),
     mask = Some(testMask),
-    model = Some("gpt-image-1"),
+    model = Some(ImageEditsModel.GPTImage1),
     n = Some(2),
     outputCompression = Some(80),
     outputFormat = Some("png"),
