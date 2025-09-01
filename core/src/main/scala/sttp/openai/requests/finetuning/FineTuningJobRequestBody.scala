@@ -44,39 +44,3 @@ case class FineTuningJobRequestBody(
 object FineTuningJobRequestBody {
   implicit val fineTuningRequestBodyWriter: SnakePickle.Writer[FineTuningJobRequestBody] = SnakePickle.macroW[FineTuningJobRequestBody]
 }
-
-sealed abstract class FineTuningModel(val value: String)
-
-object FineTuningModel {
-
-  implicit val fineTuningModelRW: SnakePickle.ReadWriter[FineTuningModel] = SnakePickle
-    .readwriter[ujson.Value]
-    .bimap[FineTuningModel](
-      model => SnakePickle.writeJs(model.value),
-      jsonValue =>
-        SnakePickle.read[ujson.Value](jsonValue) match {
-          case Str(value) =>
-            byFineTuningModelValue.getOrElse(value, CustomFineTuningModel(value))
-          case e => throw new Exception(s"Could not deserialize: $e")
-        }
-    )
-
-  case object GPT4o20240806 extends FineTuningModel("gpt-4o-2024-08-06")
-
-  case object GPT4oMini20240718 extends FineTuningModel("gpt-4o-mini-2024-07-18")
-
-  case object GPT40613 extends FineTuningModel("gpt-4-0613")
-
-  case object GPT35Turbo0125 extends FineTuningModel("gpt-3.5-turbo-0125")
-
-  case object GPT35Turbo1106 extends FineTuningModel("gpt-3.5-turbo-1106")
-
-  case object GPT35Turbo0613 extends FineTuningModel("gpt-3.5-turbo-0613")
-
-  case class CustomFineTuningModel(customFineTuningModel: String) extends FineTuningModel(customFineTuningModel)
-
-  val values: Set[FineTuningModel] = Set(GPT4o20240806, GPT4oMini20240718, GPT40613, GPT35Turbo0125, GPT35Turbo1106, GPT35Turbo0613)
-
-  private val byFineTuningModelValue = values.map(model => model.value -> model).toMap
-
-}

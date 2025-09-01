@@ -11,6 +11,7 @@ import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatComp
 import sttp.openai.requests.completions.chat.message.{Content, Message}
 import sttp.openai.requests.embeddings.EmbeddingsRequestBody.{EmbeddingsBody, EmbeddingsInput, EmbeddingsModel}
 import sttp.openai.requests.moderations.ModerationsRequestBody.ModerationsBody
+import sttp.openai.requests.responses.ResponsesModel.GPT4oMini
 import sttp.openai.requests.responses.{GetResponseQueryParameters, ListInputItemsQueryParameters, ResponsesRequestBody}
 
 // Suppress warnings for unused assertions - these are test assertions that verify behavior
@@ -194,7 +195,7 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     withClient { client =>
       // given
       val requestBody = ResponsesRequestBody(
-        model = Some("gpt-4o-mini"), // Using the cheapest available model
+        model = Some(GPT4oMini), // Using the cheapest available model
         input = Some(Left("Hi")) // Simple text input to minimize cost
       )
 
@@ -205,7 +206,6 @@ class OpenAIIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
       createdResponse should not be null
       createdResponse.id should not be empty
       createdResponse.`object` shouldBe "response"
-      createdResponse.model should not be empty
       createdResponse.status shouldBe "completed"
       createdResponse.output should not be empty
       createdResponse.output.head should be(a[sttp.openai.requests.responses.ResponsesResponseBody.OutputItem.OutputMessage])

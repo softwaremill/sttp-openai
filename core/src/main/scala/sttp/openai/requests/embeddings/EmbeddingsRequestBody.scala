@@ -35,11 +35,17 @@ object EmbeddingsRequestBody {
             case e => throw new Exception(s"Could not deserialize: $e")
           }
       )
+    case object TextEmbedding3Large extends EmbeddingsModel("text-embedding-3-large")
+    case object TextEmbedding3Small extends EmbeddingsModel("text-embedding-3-small")
     case object TextEmbeddingAda002 extends EmbeddingsModel("text-embedding-ada-002")
-    case object TextSearchAdaDoc001 extends EmbeddingsModel("text-search-ada-doc-001")
     case class CustomEmbeddingsModel(customEmbeddingsModel: String) extends EmbeddingsModel(customEmbeddingsModel)
 
-    val values: Set[EmbeddingsModel] = Set(TextEmbeddingAda002, TextSearchAdaDoc001)
+    val values: Set[EmbeddingsModel] =
+      Set(
+        TextEmbedding3Large,
+        TextEmbedding3Small,
+        TextEmbeddingAda002
+      )
 
     private val byEmbeddingsModelValue = values.map(model => model.value -> model).toMap
   }

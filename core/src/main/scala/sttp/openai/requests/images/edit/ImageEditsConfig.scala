@@ -1,5 +1,6 @@
 package sttp.openai.requests.images.edit
 
+import sttp.openai.json.SnakePickle
 import sttp.openai.requests.images.{ResponseFormat, Size}
 
 import java.io.File
@@ -61,7 +62,7 @@ case class ImageEditsConfig(
     background: Option[String] = None,
     inputFidelity: Option[String] = None,
     mask: Option[File] = None,
-    model: Option[String] = None,
+    model: Option[ImageEditsModel] = None,
     n: Option[Int] = None,
     outputCompression: Option[Int] = None,
     outputFormat: Option[String] = None,
@@ -80,7 +81,7 @@ object ImageEditsConfig {
       background: Option[String] = None,
       inputFidelity: Option[String] = None,
       systemPathMask: Option[String] = None,
-      model: Option[String] = None,
+      model: Option[ImageEditsModel] = None,
       n: Option[Int] = None,
       outputCompression: Option[Int] = None,
       outputFormat: Option[String] = None,
@@ -112,4 +113,19 @@ object ImageEditsConfig {
       user = user
     )
   }
+}
+
+sealed abstract class ImageEditsModel(val value: String)
+
+object ImageEditsModel {
+
+  implicit val imageEditsModelW: SnakePickle.Writer[ImageEditsModel] = SnakePickle
+    .writer[ujson.Value]
+    .comap[ImageEditsModel](model => SnakePickle.writeJs(model.value))
+
+  case object DALLE2 extends ImageEditsModel("dall-e-2")
+  case object GPTImage1 extends ImageEditsModel("gpt-image-1")
+
+  case class CustomImageEditsModel(customImageEditsModel: String) extends ImageEditsModel(customImageEditsModel)
+
 }

@@ -1,7 +1,17 @@
 package sttp.openai.fixtures
 
 import sttp.openai.requests.finetuning.Status.Running
-import sttp.openai.requests.finetuning.{Dpo, Error, FineTuningJobResponse, Hyperparameters, Integration, Method, Supervised, Wandb}
+import sttp.openai.requests.finetuning.{
+  Dpo,
+  Error,
+  FineTuningJobResponse,
+  FineTuningModel,
+  Hyperparameters,
+  Integration,
+  Method,
+  Supervised,
+  Wandb
+}
 
 object FineTuningJobFixture {
 
@@ -194,7 +204,7 @@ object FineTuningJobFixture {
         nEpochs = Some(4)
       )
     ),
-    model = "ft-model",
+    model = FineTuningModel.CustomFineTuningModel("ft-model"),
     `object` = "ft-object",
     organizationId = "ft-org-id",
     resultFiles = Seq("ft-rf"),
