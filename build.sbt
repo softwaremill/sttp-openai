@@ -30,6 +30,12 @@ lazy val core = (projectMatrix in file("core"))
   .jvmPlatform(
     scalaVersions = scala2 ++ scala3
   )
+  .nativePlatform(
+    scalaVersions = scala2 ++ scala3
+  )
+  .jsPlatform(
+    scalaVersions = scala2 ++ scala3
+  )
   .settings(
     libraryDependencies ++= Seq(
       Libraries.tapirApispecDocs,
