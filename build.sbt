@@ -5,6 +5,18 @@ import Dependencies._
 val scala2 = List("2.13.16")
 val scala3 = List("3.3.6")
 
+val tapirApispecDocs = Def.setting {
+  "com.softwaremill.sttp.tapir" %%% "tapir-apispec-docs" % V.tapir
+}
+
+val uJsonCirce = Def.setting {
+  "com.lihaoyi" %%% "ujson-circe" % V.uPickle
+}
+
+val uPickle = Def.setting {
+  "com.lihaoyi" %%% "upickle" % V.uPickle
+}
+
 def dependenciesFor(version: String)(deps: (Option[(Long, Long)] => ModuleID)*): Seq[ModuleID] =
   deps.map(_.apply(CrossVersion.partialVersion(version)))
 
@@ -33,14 +45,11 @@ lazy val core = (projectMatrix in file("core"))
   .nativePlatform(
     scalaVersions = scala2 ++ scala3
   )
-  .jsPlatform(
-    scalaVersions = scala2 ++ scala3
-  )
   .settings(
     libraryDependencies ++= Seq(
-      Libraries.tapirApispecDocs,
-      Libraries.uJsonCirce,
-      Libraries.uPickle
+      tapirApispecDocs.value,
+      uJsonCirce.value,
+      uPickle.value
     ) ++ Libraries.sttpApispec ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
   )
   .settings(commonSettings: _*)
