@@ -11,7 +11,7 @@ object Dependencies {
     val pekkoStreams = "1.2.0"
     val akkaStreams = "2.6.20"
     val tapir = "1.11.44"
-    val uPickle = "4.3.0"
+    val uPickle = "4.3.1"
   }
 
   object Libraries {
@@ -48,12 +48,6 @@ object Dependencies {
     val sttpClientOx = Seq(
       "com.softwaremill.sttp.client4" %% "ox" % V.sttpClient
     )
-
-    val tapirApispecDocs = "com.softwaremill.sttp.tapir" %% "tapir-apispec-docs" % V.tapir
-
-    val uJsonCirce = "com.lihaoyi" %% "ujson-circe" % V.uPickle
-
-    val uPickle = "com.lihaoyi" %% "upickle" % V.uPickle
 
   }
 
