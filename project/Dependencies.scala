@@ -11,7 +11,7 @@ object Dependencies {
     val pekkoStreams = "1.2.0"
     val akkaStreams = "2.6.20"
     val tapir = "1.11.44"
-    val uPickle = "4.3.0"
+    val uPickle = "4.3.2"
   }
 
   object Libraries {
