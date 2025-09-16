@@ -138,6 +138,7 @@ The project uses Scalafmt for consistent code formatting. You MUST run formattin
 ```bash
 # Check formatting (will show warnings for improperly formatted files)
 sbt scalafmtCheck
+sbt Test/scalafmtCheck
 
 # Fix formatting issues (run this after each implementation step)
 sbt scalafmt
@@ -147,15 +148,17 @@ sbt Test/scalafmt
 
 # Verify all issues are resolved
 sbt scalafmtCheck
+sbt Test/scalafmtCheck
 ```
 
 **Workflow Example:**
 1. Implement feature/fix
 2. Run `sbt scalafmt` ← NEVER SKIP THIS STEP
 3. Run `sbt Test/scalafmt` ← ALSO MANDATORY FOR TEST FILES
-4. Run `sbt compile` to verify compilation
-5. Run tests
-6. Commit changes
+4. Run `sbt scalafmtCheck` and `sbt Test/scalafmtCheck` to verify
+5. Run `sbt compile` to verify compilation
+6. Run tests
+7. Commit changes
 
 **Why this matters:**
 - CI/CD pipeline will fail if code is not properly formatted
@@ -284,6 +287,7 @@ For every implementation phase:
 - [ ] Write/modify code
 - [ ] Run `sbt scalafmt` (CRITICAL - never skip)
 - [ ] Run `sbt Test/scalafmt` (CRITICAL - formats test files)
+- [ ] Run `sbt scalafmtCheck` and `sbt Test/scalafmtCheck` (verify formatting)
 - [ ] Run `sbt compile`
 - [ ] Run relevant tests
 - [ ] Commit changes
