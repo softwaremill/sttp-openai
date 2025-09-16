@@ -125,6 +125,40 @@ sbt compileDocumentation
 sbt scalafmtAll
 ```
 
+### ⚠️ CRITICAL: Code Formatting Workflow
+
+**ALWAYS run `sbt scalafmt` after implementing each step or phase!**
+
+The project uses Scalafmt for consistent code formatting. You MUST run formatting after:
+- Creating new files
+- Modifying existing files
+- Adding new functionality
+- Completing any implementation phase
+
+```bash
+# Check formatting (will show warnings for improperly formatted files)
+sbt scalafmtCheck
+
+# Fix formatting issues (run this after each implementation step)
+sbt scalafmt
+
+# Verify all issues are resolved
+sbt scalafmtCheck
+```
+
+**Workflow Example:**
+1. Implement feature/fix
+2. Run `sbt scalafmt` ← NEVER SKIP THIS STEP
+3. Run `sbt compile` to verify compilation
+4. Run tests
+5. Commit changes
+
+**Why this matters:**
+- CI/CD pipeline will fail if code is not properly formatted
+- Maintains consistent code style across the entire codebase
+- Prevents formatting-related merge conflicts
+- Required before any PR can be merged
+
 ### Cross-platform Building
 The project uses sbt-projectmatrix for cross-building:
 - Scala 2.13.16 and Scala 3.3.6 support
@@ -222,3 +256,34 @@ Integration tests require a real OpenAI API key but are designed to be cost-effi
 - 30-second timeouts
 - Rate limiting handling
 - See `INTEGRATION_TESTING.md` for detailed setup
+
+# 🚨 IMPORTANT DEVELOPMENT REMINDERS
+
+## Code Formatting is MANDATORY
+
+**NEVER forget to run `sbt scalafmt` after ANY code changes!**
+
+This is not optional - it's a required part of the development workflow:
+
+1. **After creating new files** → `sbt scalafmt`
+2. **After modifying existing files** → `sbt scalafmt`
+3. **After implementing any feature** → `sbt scalafmt`
+4. **Before committing changes** → `sbt scalafmt`
+5. **Before creating PRs** → `sbt scalafmt`
+
+**Memory aid:** Think of `sbt scalafmt` as part of the "save" operation - you haven't properly completed your work until the code is formatted.
+
+## Development Checklist
+
+For every implementation phase:
+- [ ] Write/modify code
+- [ ] Run `sbt scalafmt` (CRITICAL - never skip)
+- [ ] Run `sbt compile`
+- [ ] Run relevant tests
+- [ ] Commit changes
+
+**Why this is critical:**
+- Unformatted code will cause CI failures
+- Inconsistent formatting creates merge conflicts
+- Team productivity suffers from formatting inconsistencies
+- PRs cannot be merged with formatting violations
