@@ -53,8 +53,8 @@ package object zio {
 
   implicit class claudeExtension(val client: Claude) {
 
-    /** Creates and streams a model response as chunk objects for the given Claude message request. The request will complete
-      * and the connection close only once the source is fully consumed.
+    /** Creates and streams a model response as chunk objects for the given Claude message request. The request will complete and the
+      * connection close only once the source is fully consumed.
       *
       * [[https://docs.anthropic.com/en/api/messages-streaming]]
       *
@@ -94,7 +94,8 @@ package object zio {
     )
 
   private def deserializeClaudeEvent(metadata: ResponseMetadata): ZioStreams.Pipe[ServerSentEvent, ClaudeChunkResponse] =
-    _.collectZIO { case ServerSentEvent(Some(data), Some(eventType), _, _) if data.nonEmpty && eventType != "ping" =>
-      ZIO.fromEither(deserializeJsonSnake[ClaudeChunkResponse].apply(data, metadata))
+    _.collectZIO {
+      case ServerSentEvent(Some(data), Some(eventType), _, _) if data.nonEmpty && eventType != "ping" =>
+        ZIO.fromEither(deserializeJsonSnake[ClaudeChunkResponse].apply(data, metadata))
     }
 }

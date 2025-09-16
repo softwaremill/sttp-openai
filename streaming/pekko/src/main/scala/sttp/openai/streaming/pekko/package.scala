@@ -54,8 +54,8 @@ package object pekko {
 
   implicit class claudeExtension(val client: Claude) {
 
-    /** Creates and streams a model response as chunk objects for the given Claude message request. The request will complete
-      * and the connection close only once the source is fully consumed.
+    /** Creates and streams a model response as chunk objects for the given Claude message request. The request will complete and the
+      * connection close only once the source is fully consumed.
       *
       * [[https://docs.anthropic.com/en/api/messages-streaming]]
       *
@@ -101,10 +101,11 @@ package object pekko {
 
   private def deserializeClaudeEvent(metadata: ResponseMetadata): Flow[ServerSentEvent, ClaudeChunkResponse, Any] =
     Flow[ServerSentEvent]
-      .collect { case ServerSentEvent(Some(data), Some(eventType), _, _) if data.nonEmpty && eventType != "ping" =>
-        deserializeJsonSnake[ClaudeChunkResponse].apply(data, metadata) match {
-          case Left(exception) => throw exception
-          case Right(value)    => value
-        }
+      .collect {
+        case ServerSentEvent(Some(data), Some(eventType), _, _) if data.nonEmpty && eventType != "ping" =>
+          deserializeJsonSnake[ClaudeChunkResponse].apply(data, metadata) match {
+            case Left(exception) => throw exception
+            case Right(value)    => value
+          }
       }
 }

@@ -34,7 +34,10 @@ class Claude(apiKey: String, baseUri: Uri = ClaudeUris.ClaudeBaseUri) {
     * @param messageRequest
     *   The message request with streaming enabled
     */
-  def createMessageStream[S](s: Streams[S], messageRequest: ClaudeMessageRequest): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
+  def createMessageStream[S](
+      s: Streams[S],
+      messageRequest: ClaudeMessageRequest
+  ): StreamRequest[Either[OpenAIException, s.BinaryStream], S] =
     claudeAuthRequest
       .post(claudeUris.Messages)
       .body(asJson(messageRequest.copy(stream = Some(true))))

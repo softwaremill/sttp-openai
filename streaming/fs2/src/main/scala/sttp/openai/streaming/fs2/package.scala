@@ -55,8 +55,8 @@ package object fs2 {
 
   implicit class claudeExtension(val client: Claude) {
 
-    /** Creates and streams a model response as chunk objects for the given Claude message request. The request will complete
-      * and the connection close only once the source is fully consumed.
+    /** Creates and streams a model response as chunk objects for the given Claude message request. The request will complete and the
+      * connection close only once the source is fully consumed.
       *
       * [[https://docs.anthropic.com/en/api/messages-streaming]]
       *
@@ -99,7 +99,8 @@ package object fs2 {
     )
 
   private def deserializeClaudeEvent[F[_]](metadata: ResponseMetadata): Pipe[F, ServerSentEvent, Either[Exception, ClaudeChunkResponse]] =
-    _.collect { case ServerSentEvent(Some(data), Some(eventType), _, _) if data.nonEmpty && eventType != "ping" =>
-      deserializeJsonSnake[ClaudeChunkResponse].apply(data, metadata)
+    _.collect {
+      case ServerSentEvent(Some(data), Some(eventType), _, _) if data.nonEmpty && eventType != "ping" =>
+        deserializeJsonSnake[ClaudeChunkResponse].apply(data, metadata)
     }
 }

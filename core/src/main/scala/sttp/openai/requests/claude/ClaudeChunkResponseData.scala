@@ -38,16 +38,19 @@ object ClaudeChunkResponseData {
       .map { json =>
         json("type").str match {
           case "message_start" => MessageStart(SnakePickle.read[MessageStartData](json("message")))
-          case "content_block_start" => ContentBlockStart(
+          case "content_block_start" =>
+            ContentBlockStart(
               json("index").num.toInt,
               SnakePickle.read[ContentBlockStartData](json("content_block"))
             )
-          case "content_block_delta" => ContentBlockDelta(
+          case "content_block_delta" =>
+            ContentBlockDelta(
               json("index").num.toInt,
               SnakePickle.read[ContentDelta](json("delta"))
             )
           case "content_block_stop" => ContentBlockStop(json("index").num.toInt)
-          case "message_delta" => MessageDelta(
+          case "message_delta" =>
+            MessageDelta(
               SnakePickle.read[MessageDeltaData](json("delta")),
               SnakePickle.read[Usage](json("usage"))
             )

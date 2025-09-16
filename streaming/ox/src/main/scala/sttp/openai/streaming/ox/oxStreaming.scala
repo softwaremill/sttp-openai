@@ -72,7 +72,8 @@ private def mapClaudeEventToResponse(
   response.map(s =>
     OxServerSentEvents
       .parse(s)
-      .collect { case ServerSentEvent(Some(data), Some(eventType), _, _) if data.nonEmpty && eventType != "ping" =>
-        deserializeJsonSnake[ClaudeChunkResponse].apply(data, metadata)
+      .collect {
+        case ServerSentEvent(Some(data), Some(eventType), _, _) if data.nonEmpty && eventType != "ping" =>
+          deserializeJsonSnake[ClaudeChunkResponse].apply(data, metadata)
       }
   )

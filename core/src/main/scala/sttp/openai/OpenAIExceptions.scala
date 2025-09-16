@@ -5,6 +5,7 @@ import sttp.client4.ResponseException.{DeserializationException, UnexpectedStatu
 import sttp.model.ResponseMetadata
 
 object OpenAIExceptions {
+
   /** Base exception class for OpenAI and Claude API errors.
     *
     * Used for both OpenAI and Claude/Anthropic API error responses.
