@@ -25,3 +25,6 @@ project/plugins/project/
 metals.sbt
 .vscode
 .scala-build
+
+# Claude Code
+.claude/settings.local.json
