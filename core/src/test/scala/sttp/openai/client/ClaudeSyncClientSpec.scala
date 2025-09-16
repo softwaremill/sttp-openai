@@ -7,7 +7,7 @@ import sttp.client4._
 import sttp.model.StatusCode._
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.fixtures.{ClaudeFixture, ErrorFixture}
-import sttp.openai.{ClaudeSyncClient}
+import sttp.openai.ClaudeSyncClient
 
 import java.util.concurrent.atomic.AtomicReference
 

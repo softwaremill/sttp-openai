@@ -142,6 +142,9 @@ sbt scalafmtCheck
 # Fix formatting issues (run this after each implementation step)
 sbt scalafmt
 
+# ALSO format test files (MANDATORY for test code)
+sbt Test/scalafmt
+
 # Verify all issues are resolved
 sbt scalafmtCheck
 ```
@@ -149,9 +152,10 @@ sbt scalafmtCheck
 **Workflow Example:**
 1. Implement feature/fix
 2. Run `sbt scalafmt` ← NEVER SKIP THIS STEP
-3. Run `sbt compile` to verify compilation
-4. Run tests
-5. Commit changes
+3. Run `sbt Test/scalafmt` ← ALSO MANDATORY FOR TEST FILES
+4. Run `sbt compile` to verify compilation
+5. Run tests
+6. Commit changes
 
 **Why this matters:**
 - CI/CD pipeline will fail if code is not properly formatted
@@ -261,23 +265,25 @@ Integration tests require a real OpenAI API key but are designed to be cost-effi
 
 ## Code Formatting is MANDATORY
 
-**NEVER forget to run `sbt scalafmt` after ANY code changes!**
+**NEVER forget to run `sbt scalafmt` AND `sbt Test/scalafmt` after ANY code changes!**
 
 This is not optional - it's a required part of the development workflow:
 
-1. **After creating new files** → `sbt scalafmt`
-2. **After modifying existing files** → `sbt scalafmt`
-3. **After implementing any feature** → `sbt scalafmt`
-4. **Before committing changes** → `sbt scalafmt`
-5. **Before creating PRs** → `sbt scalafmt`
+1. **After creating new files** → `sbt scalafmt` + `sbt Test/scalafmt`
+2. **After modifying existing files** → `sbt scalafmt` + `sbt Test/scalafmt`
+3. **After implementing any feature** → `sbt scalafmt` + `sbt Test/scalafmt`
+4. **After writing/modifying tests** → `sbt Test/scalafmt` (CRITICAL!)
+5. **Before committing changes** → `sbt scalafmt` + `sbt Test/scalafmt`
+6. **Before creating PRs** → `sbt scalafmt` + `sbt Test/scalafmt`
 
-**Memory aid:** Think of `sbt scalafmt` as part of the "save" operation - you haven't properly completed your work until the code is formatted.
+**Memory aid:** Think of `sbt scalafmt` + `sbt Test/scalafmt` as part of the "save" operation - you haven't properly completed your work until ALL code (including tests) is formatted.
 
 ## Development Checklist
 
 For every implementation phase:
 - [ ] Write/modify code
 - [ ] Run `sbt scalafmt` (CRITICAL - never skip)
+- [ ] Run `sbt Test/scalafmt` (CRITICAL - formats test files)
 - [ ] Run `sbt compile`
 - [ ] Run relevant tests
 - [ ] Commit changes

@@ -45,14 +45,13 @@ class ClaudeIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
     super.afterAll()
   }
 
-  private def withClient(testCode: ClaudeSyncClient => Unit): Unit = {
+  private def withClient(testCode: ClaudeSyncClient => Unit): Unit =
     clientOpt match {
       case Some(client) => testCode(client)
       case None =>
         info("ANTHROPIC_API_KEY not provided - skipping Claude integration test")
         pending
     }
-  }
 
   "Claude API" should "successfully create a basic message" in withClient { client =>
     // given
