@@ -1,17 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "mcp__jetbrains__list_directory_tree",
-      "mcp__jetbrains__get_file_text_by_path",
-      "mcp__jetbrains__find_files_by_name_keyword",
-      "mcp__jetbrains__find_files_by_glob",
       "Bash(sbt:*)",
       "Bash(./run-integration-tests.sh)",
       "Bash(scala-cli:*)",
       "Bash(git:*)",
-      "Bash((gh pr create:*)",
-      "Bash((gh pr view:*)",
-      "Bash((gh issue list:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh issue list:*)",
       "WebFetch(domain:github.com)"
     ],
     "deny": [],
@@ -20,5 +16,8 @@
   "env": {
     "SBT_OPTS": "-Xmx4G -XX:+UseG1GC",
     "JAVA_OPTS": "-Xmx4G"
-  }
+  },
+  "enabledMcpjsonServers": [
+    "jetbrains"
+  ]
 }

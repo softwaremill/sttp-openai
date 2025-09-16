@@ -5,9 +5,11 @@ import sttp.client4.Request
 import sttp.client4.impl.ox.sse.OxServerSentEvents
 import sttp.model.ResponseMetadata
 import sttp.model.sse.ServerSentEvent
-import sttp.openai.OpenAI
+import sttp.openai.{Claude, OpenAI}
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.json.SttpUpickleApiExtension.deserializeJsonSnake
+import sttp.openai.requests.claude.ClaudeRequestBody.ClaudeMessageRequest
+import sttp.openai.requests.claude.ClaudeChunkResponseData.ClaudeChunkResponse
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse.DoneEvent
 import sttp.openai.requests.completions.chat.ChatRequestBody.ChatBody
@@ -32,6 +34,24 @@ extension (client: OpenAI)
 
     request.response(request.response.mapWithMetadata(mapEventToResponse))
 
+extension (client: Claude)
+  /** Creates and streams a model response as chunk objects for the given Claude message request.
+    *
+    * The request will complete and the connection close only once the returned [[Flow]] is fully consumed.
+    *
+    * [[https://docs.anthropic.com/en/api/messages-streaming]]
+    *
+    * @param messageRequest
+    *   Claude message request body.
+    */
+  def createStreamedMessage(
+      messageRequest: ClaudeMessageRequest
+  ): Request[Either[OpenAIException, Flow[Either[Exception, ClaudeChunkResponse]]]] =
+    val request = client
+      .createMessageAsInputStream(messageRequest)
+
+    request.response(request.response.mapWithMetadata(mapClaudeEventToResponse))
+
 private def mapEventToResponse(
     response: Either[OpenAIException, InputStream],
     metadata: ResponseMetadata
@@ -42,5 +62,17 @@ private def mapEventToResponse(
       .takeWhile(_ != DoneEvent)
       .collect { case ServerSentEvent(Some(data), _, _, _) =>
         deserializeJsonSnake[ChatChunkResponse].apply(data, metadata)
+      }
+  )
+
+private def mapClaudeEventToResponse(
+    response: Either[OpenAIException, InputStream],
+    metadata: ResponseMetadata
+): Either[OpenAIException, Flow[Either[Exception, ClaudeChunkResponse]]] =
+  response.map(s =>
+    OxServerSentEvents
+      .parse(s)
+      .collect { case ServerSentEvent(Some(data), Some(eventType), _, _) if data.nonEmpty && eventType != "ping" =>
+        deserializeJsonSnake[ClaudeChunkResponse].apply(data, metadata)
       }
   )
