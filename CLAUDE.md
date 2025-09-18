@@ -125,6 +125,47 @@ sbt compileDocumentation
 sbt scalafmtAll
 ```
 
+### ⚠️ CRITICAL: Code Formatting Workflow
+
+**ALWAYS run `sbt scalafmt` after implementing each step or phase!**
+
+The project uses Scalafmt for consistent code formatting. You MUST run formatting after:
+- Creating new files
+- Modifying existing files
+- Adding new functionality
+- Completing any implementation phase
+
+```bash
+# Check formatting (will show warnings for improperly formatted files)
+sbt scalafmtCheck
+sbt Test/scalafmtCheck
+
+# Fix formatting issues (run this after each implementation step)
+sbt scalafmt
+
+# ALSO format test files (MANDATORY for test code)
+sbt Test/scalafmt
+
+# Verify all issues are resolved
+sbt scalafmtCheck
+sbt Test/scalafmtCheck
+```
+
+**Workflow Example:**
+1. Implement feature/fix
+2. Run `sbt scalafmt` ← NEVER SKIP THIS STEP
+3. Run `sbt Test/scalafmt` ← ALSO MANDATORY FOR TEST FILES
+4. Run `sbt scalafmtCheck` and `sbt Test/scalafmtCheck` to verify
+5. Run `sbt compile` to verify compilation
+6. Run tests
+7. Commit changes
+
+**Why this matters:**
+- CI/CD pipeline will fail if code is not properly formatted
+- Maintains consistent code style across the entire codebase
+- Prevents formatting-related merge conflicts
+- Required before any PR can be merged
+
 ### Cross-platform Building
 The project uses sbt-projectmatrix for cross-building:
 - Scala 2.13.16 and Scala 3.3.6 support
@@ -148,11 +189,11 @@ The project uses sbt-projectmatrix for cross-building:
 
 ### Key Components
 - **Requests Package**: Contains all API endpoint definitions organized by OpenAI API categories
-  - `completions.chat` - Chat completions API
-  - `audio` - Speech synthesis, transcriptions, translations
-  - `images` - Image generation, editing, variations
-  - `embeddings` - Text embeddings
-  - `files`, `assistants`, `threads` - OpenAI platform features
+    - `completions.chat` - Chat completions API
+    - `audio` - Speech synthesis, transcriptions, translations
+    - `images` - Image generation, editing, variations
+    - `embeddings` - Text embeddings
+    - `files`, `assistants`, `threads` - OpenAI platform features
 - **JSON Handling**: Uses uPickle with SnakePickle for snake_case conversion
 - **Error Handling**: Comprehensive OpenAIException hierarchy for different API errors
 
@@ -173,12 +214,12 @@ The project includes automated scripts for updating OpenAI model definitions:
 
 ### Model Update Workflow
 1. **Scrape Models**: `scala-cli model_update_scripts/scrape_models.scala`
-   - Uses Playwright + Firefox to scrape OpenAI docs
-   - Generates `models.json` with current model mappings
+    - Uses Playwright + Firefox to scrape OpenAI docs
+    - Generates `models.json` with current model mappings
 2. **Update Code**: `scala-cli model_update_scripts/update_code_with_new_models.scala --apply`
-   - Updates Scala case objects with new models
-   - Maintains alphabetical ordering
-   - Only adds models (manual removal required)
+    - Updates Scala case objects with new models
+    - Maintains alphabetical ordering
+    - Only adds models (manual removal required)
 3. **Format**: Run `sbt scalafmtAll` after updates
 
 ## Code Style
@@ -222,3 +263,37 @@ Integration tests require a real OpenAI API key but are designed to be cost-effi
 - 30-second timeouts
 - Rate limiting handling
 - See `INTEGRATION_TESTING.md` for detailed setup
+
+# 🚨 IMPORTANT DEVELOPMENT REMINDERS
+
+## Code Formatting is MANDATORY
+
+**NEVER forget to run `sbt scalafmt` AND `sbt Test/scalafmt` after ANY code changes!**
+
+This is not optional - it's a required part of the development workflow:
+
+1. **After creating new files** → `sbt scalafmt` + `sbt Test/scalafmt`
+2. **After modifying existing files** → `sbt scalafmt` + `sbt Test/scalafmt`
+3. **After implementing any feature** → `sbt scalafmt` + `sbt Test/scalafmt`
+4. **After writing/modifying tests** → `sbt Test/scalafmt` (CRITICAL!)
+5. **Before committing changes** → `sbt scalafmt` + `sbt Test/scalafmt`
+6. **Before creating PRs** → `sbt scalafmt` + `sbt Test/scalafmt`
+
+**Memory aid:** Think of `sbt scalafmt` + `sbt Test/scalafmt` as part of the "save" operation - you haven't properly completed your work until ALL code (including tests) is formatted.
+
+## Development Checklist
+
+For every implementation phase:
+- [ ] Write/modify code
+- [ ] Run `sbt scalafmt` (CRITICAL - never skip)
+- [ ] Run `sbt Test/scalafmt` (CRITICAL - formats test files)
+- [ ] Run `sbt scalafmtCheck` and `sbt Test/scalafmtCheck` (verify formatting)
+- [ ] Run `sbt compile`
+- [ ] Run relevant tests
+- [ ] Commit changes
+
+**Why this is critical:**
+- Unformatted code will cause CI failures
+- Inconsistent formatting creates merge conflicts
+- Team productivity suffers from formatting inconsistencies
+- PRs cannot be merged with formatting violations
