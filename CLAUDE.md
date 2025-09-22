@@ -127,7 +127,7 @@ sbt scalafmtAll
 
 ### ⚠️ CRITICAL: Code Formatting Workflow
 
-**ALWAYS run `sbt scalafmt` after implementing each step or phase!**
+**ALWAYS run `sbt scalafmtAll` after implementing each step or phase!**
 
 The project uses Scalafmt for consistent code formatting. You MUST run formatting after:
 - Creating new files
@@ -138,27 +138,23 @@ The project uses Scalafmt for consistent code formatting. You MUST run formattin
 ```bash
 # Check formatting (will show warnings for improperly formatted files)
 sbt scalafmtCheck
-sbt Test/scalafmtCheck
+sbt Test / scalafmtCheck
 
 # Fix formatting issues (run this after each implementation step)
-sbt scalafmt
-
-# ALSO format test files (MANDATORY for test code)
-sbt Test/scalafmt
+sbt scalafmtAll
 
 # Verify all issues are resolved
 sbt scalafmtCheck
-sbt Test/scalafmtCheck
+sbt Test / scalafmtCheck
 ```
 
 **Workflow Example:**
 1. Implement feature/fix
-2. Run `sbt scalafmt` ← NEVER SKIP THIS STEP
-3. Run `sbt Test/scalafmt` ← ALSO MANDATORY FOR TEST FILES
-4. Run `sbt scalafmtCheck` and `sbt Test/scalafmtCheck` to verify
-5. Run `sbt compile` to verify compilation
-6. Run tests
-7. Commit changes
+2. Run `sbt scalafmtAll` ← NEVER SKIP THIS STEP
+3. Run `sbt scalafmtCheck` and `sbt Test / scalafmtCheck` to verify
+4. Run `sbt compile` to verify compilation
+5. Run tests
+6. Commit changes
 
 **Why this matters:**
 - CI/CD pipeline will fail if code is not properly formatted
@@ -268,25 +264,24 @@ Integration tests require a real OpenAI API key but are designed to be cost-effi
 
 ## Code Formatting is MANDATORY
 
-**NEVER forget to run `sbt scalafmt` AND `sbt Test/scalafmt` after ANY code changes!**
+**NEVER forget to run `sbt scalafmtAll` after ANY code changes!**
 
 This is not optional - it's a required part of the development workflow:
 
-1. **After creating new files** → `sbt scalafmt` + `sbt Test/scalafmt`
-2. **After modifying existing files** → `sbt scalafmt` + `sbt Test/scalafmt`
-3. **After implementing any feature** → `sbt scalafmt` + `sbt Test/scalafmt`
-4. **After writing/modifying tests** → `sbt Test/scalafmt` (CRITICAL!)
-5. **Before committing changes** → `sbt scalafmt` + `sbt Test/scalafmt`
-6. **Before creating PRs** → `sbt scalafmt` + `sbt Test/scalafmt`
+1. **After creating new files** → `sbt scalafmtAll`
+2. **After modifying existing files** → `sbt scalafmtAll`
+3. **After implementing any feature** → `sbt scalafmtAll`
+4. **After writing/modifying tests** → `sbt Test / scalafmt` (CRITICAL!)
+5. **Before committing changes** → `sbt scalafmtAll`
+6. **Before creating PRs** → `sbt scalafmtAll`
 
-**Memory aid:** Think of `sbt scalafmt` + `sbt Test/scalafmt` as part of the "save" operation - you haven't properly completed your work until ALL code (including tests) is formatted.
+**Memory aid:** Think of `sbt scalafmtAll` as part of the "save" operation - you haven't properly completed your work until ALL code (including tests) is formatted.
 
 ## Development Checklist
 
 For every implementation phase:
 - [ ] Write/modify code
-- [ ] Run `sbt scalafmt` (CRITICAL - never skip)
-- [ ] Run `sbt Test/scalafmt` (CRITICAL - formats test files)
+- [ ] Run `sbt scalafmtAll` (CRITICAL - never skip)
 - [ ] Run `sbt scalafmtCheck` and `sbt Test/scalafmtCheck` (verify formatting)
 - [ ] Run `sbt compile`
 - [ ] Run relevant tests

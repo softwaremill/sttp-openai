@@ -1,18 +1,28 @@
 {
   "permissions": {
     "allow": [
-      "mcp__jetbrains__list_directory_tree",
-      "mcp__jetbrains__get_file_text_by_path",
-      "mcp__jetbrains__find_files_by_name_keyword",
-      "mcp__jetbrains__find_files_by_glob",
-      "Bash(sbt:*)",
+      "Bash(find:*)",
+      "Bash(sbt compile:*)",
+      "Bash(sbt test:*)",
+      "Bash(sbt testOnly:*)",
+      "Bash(sbt scalafmtAll:*)",
+      "Bash(sbt scalafmt:*)",
+      "Bash(sbt Test / scalafmt:*)",
       "Bash(./run-integration-tests.sh)",
       "Bash(scala-cli:*)",
-      "Bash(git:*)",
-      "Bash((gh pr create:*)",
-      "Bash((gh pr view:*)",
-      "Bash((gh issue list:*)",
-      "WebFetch(domain:github.com)"
+      "Bash(gh pr create:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.claude.com)",
+      "mcp__jetbrains",
+      "mcp__github"
     ],
     "deny": [],
     "ask": []
