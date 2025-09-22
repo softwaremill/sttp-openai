@@ -18,6 +18,7 @@ lazy val root = (project in file("."))
   .aggregate(allAgregates: _*)
 
 lazy val allAgregates = core.projectRefs ++
+  claude.projectRefs ++
   fs2.projectRefs ++
   zio.projectRefs ++
   pekko.projectRefs ++
@@ -38,6 +39,19 @@ lazy val core = (projectMatrix in file("core"))
     ) ++ Libraries.sttpApispec ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
   )
   .settings(commonSettings: _*)
+
+lazy val claude = (projectMatrix in file("claude"))
+  .jvmPlatform(
+    scalaVersions = scala3 ++ scala2  // Scala 3 first priority
+  )
+  .settings(commonSettings: _*)
+  .settings(
+    libraryDependencies ++= Seq(
+      Libraries.tapirApispecDocs,
+      Libraries.uJsonCirce,
+      Libraries.uPickle
+    ) ++ Libraries.sttpApispec ++ Libraries.sttpClient ++ Seq(Libraries.scalaTest)
+  )
 
 lazy val fs2 = (projectMatrix in file("streaming/fs2"))
   .jvmPlatform(
