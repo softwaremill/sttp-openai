@@ -28,5 +28,15 @@ object Message {
     content = content
   )
 
+  def toolResult(toolUseId: String, result: String): Message = Message(
+    role = "user",
+    content = List(ContentBlock.ToolResultContent(toolUseId, result))
+  )
+
+  def toolResultWithError(toolUseId: String, error: String): Message = Message(
+    role = "user",
+    content = List(ContentBlock.ToolResultContent(toolUseId, error, Some(true)))
+  )
+
   implicit val rw: ReadWriter[Message] = macroRW
 }

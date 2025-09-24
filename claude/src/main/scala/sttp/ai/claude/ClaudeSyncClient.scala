@@ -19,6 +19,8 @@ class ClaudeSyncClient(config: ClaudeConfig, backend: SyncBackend = DefaultSyncB
       case Left(exception) => throw exception
       case Right(response) => response
     }
+
+  def close(): Unit = backend.close()
 }
 
 object ClaudeSyncClient {

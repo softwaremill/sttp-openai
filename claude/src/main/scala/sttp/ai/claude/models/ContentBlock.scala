@@ -1,6 +1,7 @@
 package sttp.ai.claude.models
 
 import upickle.default.{macroRW, ReadWriter}
+import ujson.Value
 
 sealed trait ContentBlock {
   def `type`: String
@@ -13,6 +14,22 @@ object ContentBlock {
 
   case class ImageContent(source: ImageSource) extends ContentBlock {
     val `type`: String = "image"
+  }
+
+  case class ToolUseContent(
+      id: String,
+      name: String,
+      input: Map[String, Value]
+  ) extends ContentBlock {
+    val `type`: String = "tool_use"
+  }
+
+  case class ToolResultContent(
+      toolUseId: String,
+      content: String,
+      isError: Option[Boolean] = None
+  ) extends ContentBlock {
+    val `type`: String = "tool_result"
   }
 
   case class ImageSource(
@@ -33,9 +50,13 @@ object ContentBlock {
 
   implicit val textContentRW: ReadWriter[TextContent] = macroRW
   implicit val imageContentRW: ReadWriter[ImageContent] = macroRW
+  implicit val toolUseContentRW: ReadWriter[ToolUseContent] = macroRW
+  implicit val toolResultContentRW: ReadWriter[ToolResultContent] = macroRW
 
   implicit val rw: ReadWriter[ContentBlock] = ReadWriter.merge(
     textContentRW,
-    imageContentRW
+    imageContentRW,
+    toolUseContentRW,
+    toolResultContentRW
   )
 }
