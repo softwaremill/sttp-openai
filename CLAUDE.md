@@ -222,7 +222,7 @@ The project includes automated scripts for updating OpenAI model definitions:
 
 - **Formatting**: Uses Scalafmt with max column 140, Scala 3 dialect
 - **Naming**: Snake case for JSON fields (handled by SnakePickle)
-- **Imports**: SortImports rule applied, RedundantBraces/Parens removed
+- **Imports**: SortImports rule applied, RedundantBraces/Parens removed, AVOID using "import _root_.xxxx.yyyy", just USE "import xxxx.yyyy"
 - **Case Objects**: Models defined as case objects extending sealed traits
 - **Companion Values**: Some models maintain values sets for easy access
 
