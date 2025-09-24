@@ -281,7 +281,7 @@ class ClaudeIntegrationSpec extends AnyFlatSpec with Matchers with BeforeAndAfte
         Message.user("What's the weather in Paris?"),
         Message.assistant(
           List(
-            ContentBlock.ToolUseContent("tool_use_123", "get_weather", Map("city" -> Value.Str("Paris")))
+            ContentBlock.ToolUseContent("tool_use_123", "get_weather", Map("city" -> Value.JsonableString("Paris")))
           )
         ),
         toolResultMessage,
