@@ -1,6 +1,6 @@
 package sttp.ai.claude.responses
 
-import upickle.default.{macroRW, ReadWriter}
+import sttp.ai.claude.json.SnakePickle.{macroRW, ReadWriter}
 
 case class ModelsResponse(
     data: List[ModelData]

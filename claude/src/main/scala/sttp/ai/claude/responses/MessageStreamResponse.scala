@@ -1,7 +1,7 @@
 package sttp.ai.claude.responses
 
 import sttp.ai.claude.models.{ContentBlock, Usage}
-import upickle.default.{macroRW, ReadWriter}
+import sttp.ai.claude.json.SnakePickle.{macroRW, ReadWriter}
 
 sealed trait MessageStreamResponse {
   def `type`: String
