@@ -2,12 +2,17 @@
   "permissions": {
     "allow": [
       "Bash(find:*)",
+      "Bash(cat:*)",
       "Bash(sbt compile:*)",
       "Bash(sbt test:*)",
       "Bash(sbt testOnly:*)",
       "Bash(sbt scalafmtAll:*)",
       "Bash(sbt scalafmt:*)",
       "Bash(sbt Test / scalafmt:*)",
+      "Bash(sbt Test/scalafmt:*)",
+      "Bash(sbt scalafmtCheck:*)",
+      "Bash(sbt Test/scalafmtCheck:*)",
+      "Bash(sbt:*)",
       "Bash(./run-integration-tests.sh)",
       "Bash(scala-cli:*)",
       "Bash(gh pr create:*)",
@@ -20,6 +25,7 @@
       "Bash(git commit:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:docs.claude.com)",
       "mcp__jetbrains",
       "mcp__github"
