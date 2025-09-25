@@ -1,21 +1,25 @@
 package sttp.ai.claude.models
 
-import upickle.default.{macroRW, ReadWriter}
+import sttp.ai.claude.json.SnakePickle.{macroRW, ReadWriter}
 import ujson.Value
+import upickle.implicits.key
 
 sealed trait ContentBlock {
   def `type`: String
 }
 
 object ContentBlock {
+  @key("text")
   case class TextContent(text: String) extends ContentBlock {
     val `type`: String = "text"
   }
 
+  @key("image")
   case class ImageContent(source: ImageSource) extends ContentBlock {
     val `type`: String = "image"
   }
 
+  @key("tool_use")
   case class ToolUseContent(
       id: String,
       name: String,
@@ -24,6 +28,7 @@ object ContentBlock {
     val `type`: String = "tool_use"
   }
 
+  @key("tool_result")
   case class ToolResultContent(
       toolUseId: String,
       content: String,
