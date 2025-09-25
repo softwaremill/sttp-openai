@@ -377,16 +377,32 @@ Advanced features like rate limiting, circuit breakers, and performance optimiza
 **Dependencies:** Phase 3 complete
 **Testing:** ✅ Core functionality tested, integration tests passing
 
-### Phase 5: Documentation and Polish (Week 9-10)
+### Phase 5: Documentation and Polish ✅ COMPLETED
 **Deliverables:**
-- Complete Claude API documentation with examples
-- Claude-specific usage examples and guides
-- Performance benchmarks against Claude API
-- Final integration testing with Claude API
-- Claude Code formatting compliance (mandatory `sbt scalafmt`)
+- ✅ Complete Claude API documentation with examples
+- ✅ Claude-specific usage examples and guides
+- ✅ Performance benchmarks against Claude API
+- ✅ Final integration testing with Claude API
+- ✅ Claude Code formatting compliance (mandatory `sbt scalafmt`)
+
+**Implementation Issue Found and Resolved:**
+During Phase 5 completion, a critical JSON serialization bug was discovered in the ClaudeBasicExample execution:
+
+**Bug Report:**
+- Error: `"messages.0.content.0.type: Field required"`
+- Root Cause: Claude module was using `upickle.default._` instead of `SnakePickle` for JSON serialization
+- Impact: ContentBlock discriminated union types missing required `type` field for Claude API
+
+**Resolution Applied:**
+- Created `claude/src/main/scala/sttp/ai/claude/json/SnakePickle.scala` (copied from core module)
+- Updated all Claude source and test files to use `SnakePickle` instead of `upickle.default._`
+- Ensured proper discriminator field (`type`) serialization for sealed traits
+- Files modified: 10 total (ClaudeClient.scala, all model files, all request/response files, test files)
+
+**Result:** Claude API calls now properly serialize ContentBlock objects with required `type` fields, fixing the API validation errors.
 
 **Dependencies:** Phase 4 complete
-**Testing:** Documentation testing, Claude example validation
+**Testing:** ✅ Documentation testing, Claude example validation, JSON serialization fix verification
 
 ## 8. Migration and Compatibility
 

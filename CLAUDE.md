@@ -292,3 +292,129 @@ For every implementation phase:
 - Inconsistent formatting creates merge conflicts
 - Team productivity suffers from formatting inconsistencies
 - PRs cannot be merged with formatting violations
+
+## Debugging with Scratch Files (*.sc)
+
+Scratch files (`.sc` extension) are powerful debugging tools for rapid prototyping and issue isolation. They compile and run independently using scala-cli, providing immediate feedback without the overhead of the full sbt build cycle.
+
+### When to Use Scratch Files
+
+**Ideal for:**
+- **JSON serialization debugging** - Test uPickle behavior and field serialization
+- **API request validation** - Verify request/response structures before integration tests
+- **Library behavior testing** - Quickly test specific library features or edge cases
+- **Hypothesis validation** - Confirm assumptions about code behavior
+- **Cost-effective API debugging** - Test locally before hitting paid APIs
+
+**Examples from Claude API implementation:**
+```scala
+// debug_tool_schema.sc - Test ToolInputSchema JSON serialization
+//> using dep com.softwaremill.sttp.openai::claude:0.3.10+SNAPSHOT
+import sttp.ai.claude.models._
+import sttp.ai.claude.json.SnakePickle._
+
+val weatherTool = Tool(...)
+val json = write(weatherTool)
+println("Tool JSON:")
+println(json)
+// Immediately see if 'type' field is present
+```
+
+### Common Debugging Patterns
+
+#### 1. JSON Serialization Testing
+```scala
+// test_serialization.sc
+//> using dep com.lihaoyi::upickle:4.3.2
+import upickle.default._
+
+case class Test(name: String, value: String = "default")
+object Test { implicit val rw: ReadWriter[Test] = macroRW }
+
+val test = Test("hello")
+val json = write(test)
+println(s"JSON: $json") // Reveals if default values are omitted
+```
+
+#### 2. API Request Structure Validation
+```scala
+// validate_request.sc
+//> using dep com.softwaremill.sttp.openai::claude:SNAPSHOT
+import sttp.ai.claude.models._
+
+val request = MessageRequest.simple(...)
+val requestJson = write(request)
+println("Request structure:")
+println(requestJson)
+// Verify request matches API specification
+```
+
+#### 3. Library Behavior Investigation
+```scala
+// test_upickle_behavior.sc
+//> using dep com.lihaoyi::upickle:4.3.2
+
+// Test how AttributeTagged handles discriminators
+object TestPickle extends upickle.AttributeTagged {
+  override def tagName: String = "type"
+}
+
+// Test serialization behavior
+```
+
+### Best Practices
+
+**Naming Conventions:**
+- `debug_*.sc` - For debugging specific issues
+- `test_*.sc` - For testing specific functionality
+- `validate_*.sc` - For validation and verification
+
+**Dependencies:**
+- Always use explicit versions: `//> using dep group::artifact:version`
+- Use SNAPSHOT versions when testing unreleased changes
+- Add `//> using repository ivy2Local` for local artifacts
+
+**Cleanup:**
+- Remove scratch files after debugging is complete
+- Never commit .sc files to the repository
+- Document findings in code comments or issues
+
+**Integration with Development Workflow:**
+
+1. **Issue Identification**: Use scratch files to isolate and reproduce problems
+2. **Hypothesis Testing**: Create focused tests for specific theories
+3. **Solution Validation**: Verify fixes before running expensive integration tests
+4. **Documentation**: Use findings to improve code comments and documentation
+
+### Benefits
+
+**Speed & Efficiency:**
+- Compile and run in seconds vs. minutes for full sbt builds
+- No need to wait for complete project compilation
+- Immediate feedback on specific issues
+
+**Cost-Effective:**
+- Test JSON serialization locally before hitting paid APIs
+- Avoid repeated failed integration test runs
+- Debug without consuming API credits
+
+**Isolation:**
+- Focus on single issues without dependency complexity
+- Test specific library behaviors in isolation
+- Validate assumptions independently
+
+### Example Debugging Session
+
+During the Claude API implementation, scratch files helped identify the root cause:
+
+1. **Problem**: `"messages.0.content.0.type: Field required"` error
+2. **Hypothesis**: uPickle might be omitting default values
+3. **Test**: Created `debug_defaults.sc` to test default value serialization
+4. **Result**: Confirmed default values are omitted in JSON
+5. **Solution**: Remove default value and use helper method
+6. **Validation**: Created `test_tool_fixed.sc` to verify fix
+7. **Integration**: Run full tests once fix was confirmed
+
+This approach saved significant development time and API costs while providing precise problem identification and solution validation.
+
+**Remember**: Scratch files are disposable debugging tools - use them freely for investigation, then clean them up once issues are resolved.
