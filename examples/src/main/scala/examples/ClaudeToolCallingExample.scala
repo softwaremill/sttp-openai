@@ -1,4 +1,5 @@
-//> using dep com.softwaremill.sttp.openai::claude:0.3.7
+//> using repository ivy2Local
+//> using dep com.softwaremill.sttp.openai::claude:0.3.10
 //> using dep ch.qos.logback:logback-classic:1.5.18
 //> using dep com.softwaremill.sttp.client4::upickle:4.0.11
 
@@ -26,17 +27,10 @@ object ClaudeToolCallingExample extends App {
   val weatherTool = Tool(
     name = "get_weather",
     description = "Get current weather information for a specific location",
-    inputSchema = ToolInputSchema(
+    inputSchema = ToolInputSchema.forObject(
       properties = Map(
-        "location" -> PropertySchema(
-          `type` = "string",
-          description = Some("The city name or location")
-        ),
-        "unit" -> PropertySchema(
-          `type` = "string",
-          `enum` = Some(List("celsius", "fahrenheit")),
-          description = Some("Temperature unit")
-        )
+        "location" -> PropertySchema.string("The city name or location"),
+        "unit" -> PropertySchema.stringEnum("Temperature unit", List("celsius", "fahrenheit"))
       ),
       required = Some(List("location"))
     )
@@ -45,21 +39,11 @@ object ClaudeToolCallingExample extends App {
   val calculatorTool = Tool(
     name = "calculate",
     description = "Perform basic mathematical calculations",
-    inputSchema = ToolInputSchema(
+    inputSchema = ToolInputSchema.forObject(
       properties = Map(
-        "operation" -> PropertySchema(
-          `type` = "string",
-          `enum` = Some(List("add", "subtract", "multiply", "divide")),
-          description = Some("The mathematical operation to perform")
-        ),
-        "a" -> PropertySchema(
-          `type` = "number",
-          description = Some("First number")
-        ),
-        "b" -> PropertySchema(
-          `type` = "number",
-          description = Some("Second number")
-        )
+        "operation" -> PropertySchema.stringEnum("The mathematical operation to perform", List("add", "subtract", "multiply", "divide")),
+        "a" -> PropertySchema("number", Some("First number")),
+        "b" -> PropertySchema("number", Some("Second number"))
       ),
       required = Some(List("operation", "a", "b"))
     )
@@ -74,7 +58,7 @@ object ClaudeToolCallingExample extends App {
   )
 
   val request = MessageRequest.withTools(
-    model = "claude-3-sonnet-20240229", // Use a more capable model for tool calling
+    model = "claude-3-haiku-20240307", // Use a more capable model for tool calling
     messages = messages,
     maxTokens = 1000,
     tools = tools
@@ -113,7 +97,7 @@ object ClaudeToolCallingExample extends App {
   )
 
   val toolResultRequest = MessageRequest.withTools(
-    model = "claude-3-sonnet-20240229",
+    model = "claude-3-haiku-20240307",
     messages = toolResultMessages,
     maxTokens = 500,
     tools = List(calculatorTool)

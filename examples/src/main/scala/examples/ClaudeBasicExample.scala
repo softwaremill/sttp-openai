@@ -1,4 +1,5 @@
-//> using dep com.softwaremill.sttp.openai::claude:0.3.7
+//> using repository ivy2Local
+//> using dep com.softwaremill.sttp.openai::claude:0.3.10
 //> using dep ch.qos.logback:logback-classic:1.5.18
 
 // remember to set the ANTHROPIC_API_KEY env variable!
@@ -110,7 +111,7 @@ object ClaudeBasicExample extends App {
     maxTokens = 200,
     temperature = Some(0.8), // More creative
     topP = Some(0.9),
-    stopSequences = Some(List("\n\n")) // Stop at double newline
+    stopSequences = Some(List("---")) // Stop at triple dash
   )
 
   val advancedResponse = client.createMessage(advancedRequest).send(backend)

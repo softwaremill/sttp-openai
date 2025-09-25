@@ -1,4 +1,5 @@
-//> using dep com.softwaremill.sttp.openai::claude:0.3.7
+//> using repository ivy2Local
+//> using dep com.softwaremill.sttp.openai::claude:0.3.10
 //> using dep ch.qos.logback:logback-classic:1.5.18
 
 // remember to set the ANTHROPIC_API_KEY env variable!
@@ -44,7 +45,7 @@ object ClaudeImageAnalysisExample extends App {
   )
 
   val request = MessageRequest.simple(
-    model = "claude-3-sonnet-20240229", // Use a vision-capable model
+    model = "claude-3-haiku-20240307", // Use a vision-capable model
     messages = messages,
     maxTokens = 500
   )
@@ -85,7 +86,7 @@ object ClaudeImageAnalysisExample extends App {
   )
 
   val multiImageRequest = MessageRequest.simple(
-    model = "claude-3-sonnet-20240229",
+    model = "claude-3-haiku-20240307",
     messages = multiImageMessages,
     maxTokens = 600
   )
@@ -118,7 +119,7 @@ object ClaudeImageAnalysisExample extends App {
   )
 
   val specificRequest = MessageRequest.withSystem(
-    model = "claude-3-sonnet-20240229",
+    model = "claude-3-haiku-20240307",
     system = "You are an expert in image analysis. Provide detailed technical descriptions of visual elements.",
     messages = specificMessages,
     maxTokens = 400

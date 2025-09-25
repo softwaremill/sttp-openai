@@ -3,7 +3,7 @@ package sttp.ai.claude.unit.models
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.ai.claude.models.ContentBlock
-import upickle.default._
+import sttp.ai.claude.json.SnakePickle._
 
 class ContentBlockSpec extends AnyFlatSpec with Matchers {
 
