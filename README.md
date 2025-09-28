@@ -9,18 +9,35 @@ sttp is a family of Scala HTTP-related projects, and currently includes:
 
 * [sttp client](https://github.com/softwaremill/sttp): The Scala HTTP client you always wanted!
 * [sttp tapir](https://github.com/softwaremill/tapir): Typed API descRiptions
-* sttp openai: this project. Non-official Scala client wrapper for OpenAI (and OpenAI-compatible) API. Use the power of ChatGPT inside your code!
+* sttp openai: this project. Non-official Scala client wrapper for OpenAI, Claude (Anthropic), and OpenAI-compatible APIs. Use the power of ChatGPT and Claude inside your code!
 
 ## Intro
 
-sttp-openai uses sttp client to describe requests and responses used in OpenAI (and OpenAI-compatible) endpoints.
+sttp-openai uses sttp client to describe requests and responses used in OpenAI, Claude (Anthropic), and OpenAI-compatible endpoints.
 
 ## Quickstart with sbt
+
+### For OpenAI/OpenAI-compatible APIs
 
 Add the following dependency:
 
 ```sbt
 "com.softwaremill.sttp.openai" %% "core" % "0.3.10"
+```
+
+### For Claude (Anthropic) API
+
+Add the following dependency:
+
+```sbt
+"com.softwaremill.sttp.openai" %% "claude" % "0.3.10"
+
+// For streaming support, add one or more:
+"com.softwaremill.sttp.openai" %% "claude-streaming-fs2" % "0.3.10"    // cats-effect/fs2
+"com.softwaremill.sttp.openai" %% "claude-streaming-zio" % "0.3.10"    // ZIO
+"com.softwaremill.sttp.openai" %% "claude-streaming-akka" % "0.3.10"   // Akka Streams (Scala 2.13 only)
+"com.softwaremill.sttp.openai" %% "claude-streaming-pekko" % "0.3.10"  // Pekko Streams
+"com.softwaremill.sttp.openai" %% "claude-streaming-ox" % "0.3.10"    // Ox direct-style (Scala 3 only)
 ```
 
 sttp-openai is available for Scala 2.13 and Scala 3
@@ -80,6 +97,63 @@ object Main extends App {
   */
 }
 ```
+
+### To use Claude (Anthropic) API
+
+Claude support with sync backend:
+
+```scala mdoc:compile-only
+//> using dep com.softwaremill.sttp.openai::claude:0.3.10
+
+import sttp.ai.claude._
+import sttp.ai.claude.config.ClaudeConfig
+import sttp.ai.claude.models.{ContentBlock, Message}
+import sttp.ai.claude.requests.MessageRequest
+import sttp.client4._
+
+object Main extends App {
+  // Create an instance of ClaudeClient using your Anthropic API key
+  // Set ANTHROPIC_API_KEY environment variable or pass it directly
+  val config = ClaudeConfig.fromEnv  // reads ANTHROPIC_API_KEY
+  val backend: SyncBackend = DefaultSyncBackend()
+  val client = ClaudeClient(config)
+
+  // Create a simple message
+  val messages = List(
+    Message.user("Hello Claude! What's the weather like today?")
+  )
+
+  val request = MessageRequest.simple(
+    model = "claude-3-haiku-20240307",  // Fast, cost-effective model
+    messages = messages,
+    maxTokens = 500
+  )
+
+  // Send the request (returns Either[ClaudeException, MessageResponse])
+  val response = client.createMessage(request).send(backend)
+
+  response.body match {
+    case Right(messageResponse) =>
+      messageResponse.content.foreach {
+        case ContentBlock.TextContent(text) => println(text)
+        case _ => // Handle other content types if needed
+      }
+      println(s"Usage: ${messageResponse.usage}")
+    case Left(error) =>
+      println(s"Claude API Error: ${error.getMessage}")
+  }
+
+  backend.close()
+}
+```
+
+**Key differences from OpenAI:**
+- Uses `ContentBlock` instead of simple strings for rich content (text, images)
+- Separate system parameter instead of system role messages
+- Different authentication headers (`x-api-key` + `anthropic-version`)
+- Native Claude model names (e.g., `claude-3-haiku-20240307`)
+
+For complete Claude documentation and examples, see [claude/README.md](claude/README.md).
 
 ### To use Ollama or Grok (OpenAI-compatible APIs)
 
