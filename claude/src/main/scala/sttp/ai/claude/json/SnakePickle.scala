@@ -1,6 +1,9 @@
 package sttp.ai.claude.json
 
 /** An object that transforms all snake_case keys into camelCase [[https://com-lihaoyi.github.io/upickle/#CustomConfiguration]] */
+
+/** TODO: duplicates the same class in [[sttp.openai.json.SnakePickle]] - introduce sttp.ai.shared package
+  */
 object SnakePickle extends upickle.AttributeTagged {
 
   override def tagName: String = "type"

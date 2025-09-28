@@ -15,7 +15,6 @@ import sttp.ai.claude.requests.MessageRequest
 import sttp.ai.claude.responses.MessageResponse
 import sttp.ai.claude.ClaudeExceptions.ClaudeException
 import sttp.client4.{DefaultSyncBackend, SyncBackend}
-import upickle.default._
 
 object ClaudeToolCallingExample extends App {
 

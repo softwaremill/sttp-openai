@@ -11,7 +11,7 @@ import sttp.client4.StreamRequest
 import sttp.client4.impl.zio.ZioServerSentEvents
 import sttp.model.ResponseMetadata
 import sttp.model.sse.ServerSentEvent
-import upickle.default.read
+import sttp.ai.claude.json.SnakePickle._
 
 object ClaudeZioStreaming {
   import MessageStreamResponse.EventData.DoneEvent
