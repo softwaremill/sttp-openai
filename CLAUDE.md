@@ -125,9 +125,11 @@ sbt compileDocumentation
 sbt scalafmtAll
 ```
 
+If `jetbrains` MCP is available USE `mcp__jetbrains__reformat_file` tool instead of running `sbt scalafmtAll` command.
+
 ### ⚠️ CRITICAL: Code Formatting Workflow
 
-**ALWAYS run `sbt scalafmtAll` after implementing each step or phase!**
+**ALWAYS run `sbt scalafmtAll` or `mcp__jetbrains__reformat_file` after implementing each step or phase!**
 
 The project uses Scalafmt for consistent code formatting. You MUST run formatting after:
 - Creating new files
@@ -135,23 +137,10 @@ The project uses Scalafmt for consistent code formatting. You MUST run formattin
 - Adding new functionality
 - Completing any implementation phase
 
-```bash
-# Check formatting (will show warnings for improperly formatted files)
-sbt scalafmtCheck
-sbt Test / scalafmtCheck
-
-# Fix formatting issues (run this after each implementation step)
-sbt scalafmtAll
-
-# Verify all issues are resolved
-sbt scalafmtCheck
-sbt Test / scalafmtCheck
-```
-
 **Workflow Example:**
 1. Implement feature/fix
-2. Run `sbt scalafmtAll` ← NEVER SKIP THIS STEP
-3. Run `sbt scalafmtCheck` and `sbt Test / scalafmtCheck` to verify
+2. Run `sbt scalafmtAll` or `mcp__jetbrains__reformat_file` ← NEVER SKIP THIS STEP
+3. Run `sbt scalafmtCheck` and `sbt Test / scalafmtCheck` to verify if needed
 4. Run `sbt compile` to verify compilation
 5. Run tests
 6. Commit changes
