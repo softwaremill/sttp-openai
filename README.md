@@ -78,26 +78,26 @@ Examples are runnable using [scala-cli](https://scala-cli.virtuslab.org).
 
 ### Basic Usage (OpenAI)
 
-```scala mdoc:compile-only 
+```scala mdoc:compile-only
 //> using dep com.softwaremill.sttp.openai::core:0.3.10
 
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
-import sttp.openai.requests.completions.chat.message._
+import sttp.openai.requests.completions.chat.message.*
 
-object Main extends App {
+@main def chatGPTExample(): Unit =
   val apiKey = System.getenv("OPENAI_KEY")
   val openAI = OpenAISyncClient(apiKey)
 
   // Create body of Chat Completions Request
   val bodyMessages: Seq[Message] = Seq(
     Message.UserMessage(
-      content = Content.TextContent("Hello!"),
+      content = Content.TextContent("Hello!")
     )
   )
 
-  // use ChatCompletionModel.CustomChatCompletionModel("gpt-some-future-version") 
+  // use ChatCompletionModel.CustomChatCompletionModel("gpt-some-future-version")
   // for models not yet supported here
   val chatRequestBody: ChatBody = ChatBody(
     model = ChatCompletionModel.GPT4oMini,
@@ -121,7 +121,6 @@ object Main extends App {
          )
        )
   */
-}
 ```
 
 ## Claude API
@@ -475,24 +474,24 @@ Ollama with sync backend:
 ```scala mdoc:compile-only
 //> using dep com.softwaremill.sttp.openai::core:0.3.10
 
-import sttp.model.Uri._
+import sttp.model.Uri.*
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
-import sttp.openai.requests.completions.chat.message._
+import sttp.openai.requests.completions.chat.message.*
 
-object Main extends App {
-  // Create an instance of OpenAISyncClient providing any api key 
+@main def ollamaExample(): Unit =
+  // Create an instance of OpenAISyncClient providing any api key
   // and a base url of locally running instance of ollama
   val openAI: OpenAISyncClient = OpenAISyncClient("ollama", uri"http://localhost:11434/v1")
 
   // Create body of Chat Completions Request
   val bodyMessages: Seq[Message] = Seq(
     Message.UserMessage(
-      content = Content.TextContent("Hello!"),
+      content = Content.TextContent("Hello!")
     )
   )
-  
+
   val chatRequestBody: ChatBody = ChatBody(
     // assuming one has already executed `ollama pull mistral` in console
     model = ChatCompletionModel.CustomChatCompletionModel("mistral"),
@@ -521,7 +520,6 @@ object Main extends App {
       Some("fp_ollama")
     )
   */
-}
 ```
 
 Grok with cats-effect based backend:
@@ -533,12 +531,12 @@ Grok with cats-effect based backend:
 import cats.effect.{ExitCode, IO, IOApp}
 import sttp.client4.httpclient.cats.HttpClientCatsBackend
 
-import sttp.model.Uri._
+import sttp.model.Uri.*
 import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
-import sttp.openai.requests.completions.chat.message._
+import sttp.openai.requests.completions.chat.message.*
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
@@ -614,7 +612,7 @@ import sttp.openai.OpenAI
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
-import sttp.openai.requests.completions.chat.message._
+import sttp.openai.requests.completions.chat.message.*
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
@@ -677,7 +675,7 @@ For example, to use `fs2` add the following dependency & import:
 "com.softwaremill.sttp.openai" %% "fs2" % "0.3.10"
 
 // import 
-import sttp.openai.streaming.fs2._
+import sttp.openai.streaming.fs2.*
 ```
 
 Example below uses `HttpClientFs2Backend` as a backend:
@@ -690,11 +688,11 @@ import fs2.Stream
 import sttp.client4.httpclient.fs2.HttpClientFs2Backend
 
 import sttp.openai.OpenAI
-import sttp.openai.streaming.fs2._
+import sttp.openai.streaming.fs2.*
 import sttp.openai.OpenAIExceptions.OpenAIException
 import sttp.openai.requests.completions.chat.ChatChunkRequestResponseData.ChatChunkResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel}
-import sttp.openai.requests.completions.chat.message._
+import sttp.openai.requests.completions.chat.message.*
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
@@ -828,9 +826,9 @@ import sttp.apispec.{Schema, SchemaType}
 import sttp.openai.OpenAISyncClient
 import sttp.openai.requests.completions.chat.ChatRequestResponseData.ChatResponse
 import sttp.openai.requests.completions.chat.ChatRequestBody.{ChatBody, ChatCompletionModel, ResponseFormat}
-import sttp.openai.requests.completions.chat.message._
+import sttp.openai.requests.completions.chat.message.*
 
-object Main extends App {
+@main def jsonSchemaExample(): Unit =
   val apiKey = System.getenv("OPENAI_KEY")
   val openAI = OpenAISyncClient(apiKey)
 
@@ -846,7 +844,7 @@ object Main extends App {
           ))
         ),
         "finalAnswer" -> Schema(SchemaType.String)
-      ),
+      )
     )
 
   val responseFormat: ResponseFormat.JsonSchema =
@@ -895,7 +893,6 @@ object Main extends App {
       )
     )
   */
-}
 ```
 
 ##### Deriving a JSON Schema with tapir
@@ -909,7 +906,7 @@ To derive the same math reasoning schema used above, you can use
 import sttp.apispec.{Schema => ASchema}
 import sttp.tapir.Schema
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
-import sttp.tapir.generic.auto._
+import sttp.tapir.generic.auto.*
 
 case class Step(
   explanation: String,
@@ -957,33 +954,30 @@ import sttp.openai.requests.completions.chat.ToolCall.FunctionToolCall
 import sttp.openai.requests.completions.chat.message.Content.TextContent
 import sttp.openai.requests.completions.chat.message.Message.{AssistantMessage, ToolMessage, UserMessage}
 import sttp.openai.requests.completions.chat.message.Tool.FunctionTool
-import sttp.tapir.generic.auto._
+import sttp.tapir.generic.auto.*
 
 case class Passenger(name: String, age: Int)
 
-object Passenger {
-  implicit val passengerR: SnakePickle.Reader[Passenger] = SnakePickle.macroR[Passenger]
-}
+object Passenger:
+  given SnakePickle.Reader[Passenger] = SnakePickle.macroR[Passenger]
 
 case class FlightDetails(passenger: Passenger, departureCity: String, destinationCity: String)
 
-object FlightDetails {
-  implicit val flightDetailsR: SnakePickle.Reader[FlightDetails] = SnakePickle.macroR[FlightDetails]
-}
+object FlightDetails:
+  given SnakePickle.Reader[FlightDetails] = SnakePickle.macroR[FlightDetails]
 
 case class BookedFlight(confirmationNumber: String, status: String)
 
-object BookedFlight {
-  implicit val bookedFlightW: SnakePickle.Writer[BookedFlight] = SnakePickle.macroW[BookedFlight]
-}
+object BookedFlight:
+  given SnakePickle.Writer[BookedFlight] = SnakePickle.macroW[BookedFlight]
 
-object Main extends App {
+@main def functionToolExample(): Unit =
   val apiKey = System.getenv("OPENAI_KEY")
   val openAI = OpenAISyncClient(apiKey)
 
   val initialRequestMessage = Seq(UserMessage(content = TextContent("I want to book a flight from London to Tokyo for Jane Doe, age 34")))
 
-  // Request created using FunctionTool.withSchema, all we need to do here is just define the type. The schema is automatically generated using a macro, available via the `sttp.tapir.generic.auto._` import.
+  // Request created using FunctionTool.withSchema, all we need to do here is just define the type. The schema is automatically generated using a macro, available via the `sttp.tapir.generic.auto.*` import.
   val givenRequest = ChatBody(
     model = GPT4oMini,
     messages = initialRequestMessage,
