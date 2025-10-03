@@ -1,4 +1,4 @@
-![sttp-ai](https://github.com/softwaremill/sttp-ai/raw/master/banner.jpg)
+![sttp-ai](https://github.com/softwaremill/sttp-ai/raw/master/banner.png)
 
 [![Ideas, suggestions, problems, questions](https://img.shields.io/badge/Discourse-ask%20question-blue)](https://softwaremill.community/c/open-source)
 [![CI](https://github.com/softwaremill/sttp-ai/workflows/CI/badge.svg)](https://github.com/softwaremill/sttp-ai/actions?query=workflow%3ACI+branch%3Amaster)
