@@ -147,13 +147,13 @@ This module provides **native support for Anthropic's Claude API** within the st
 ```scala mdoc:compile-only
 //> using dep com.softwaremill.sttp.openai::claude:0.3.10
 
-import sttp.ai.claude.*
+import sttp.ai.claude._
 import sttp.ai.claude.config.ClaudeConfig
 import sttp.ai.claude.models.{ContentBlock, Message}
 import sttp.ai.claude.requests.MessageRequest
-import sttp.client4.*
+import sttp.client4._
 
-@main def claudeExample(): Unit =
+object Main extends App {
   // Create an instance of ClaudeClient using your Anthropic API key
   // Set ANTHROPIC_API_KEY environment variable or pass it directly
   val config = ClaudeConfig.fromEnv  // reads ANTHROPIC_API_KEY
@@ -162,7 +162,7 @@ import sttp.client4.*
 
   // Create a simple message
   val messages = List(
-    Message.user(List(ContentBlock.text("Hello Claude! What's the weather like today?")))
+    Message.user(List(ContentBlock.TextContent("Hello Claude! What's the weather like today?")))
   )
 
   val request = MessageRequest.simple(
@@ -174,7 +174,7 @@ import sttp.client4.*
   // Send the request (returns Either[ClaudeException, MessageResponse])
   val response = client.createMessage(request).send(backend)
 
-  response.body match
+  response.body match {
     case Right(messageResponse) =>
       messageResponse.content.foreach {
         case ContentBlock.TextContent(text) => println(text)
@@ -183,8 +183,10 @@ import sttp.client4.*
       println(s"Usage: ${messageResponse.usage}")
     case Left(error) =>
       println(s"Claude API Error: ${error.getMessage}")
+  }
 
   backend.close()
+}
 ```
 
 **Key differences from OpenAI:**
