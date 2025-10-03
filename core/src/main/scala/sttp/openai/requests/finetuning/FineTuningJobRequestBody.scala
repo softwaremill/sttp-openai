@@ -1,7 +1,6 @@
 package sttp.openai.requests.finetuning
 
 import sttp.openai.json.SnakePickle
-import ujson.Str
 
 /** @param model
   *   The name of the model to fine-tune. You can select one of the supported models
